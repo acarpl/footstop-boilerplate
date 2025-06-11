@@ -50,7 +50,9 @@ Backend dan frontend dipisah. Pastikan Nest.js dan database sudah running di env
 
 ---
 
-## Kontribusi
+## Si Paling Nge dev:
+Tengkoyak (alip/krmosom/banh toyib): Dokumentasi, fe banyak banget ampe bluescreen, be tipis tipis berarti yuhuu, ui/ux bagian minta tolong biar design nya lebih manusiawi
+cakwelaa (aca/alpin/chipmunk): Dokumentasi, fe dikit, be banyak, ui/ux kebanyakan mas kalo ini mah jatohnya nyusahin front end
 ---
 
 Kalau mau aku buatin README yang full technical atau sekalian aku tambahin tabel API docs-nya, aku juga bisa bantuin. Mau? 😊
