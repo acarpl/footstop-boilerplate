@@ -18,17 +18,15 @@ Footstop adalah platform e-commerce sepatu dengan stok terbatas yang membawa vib
 * ⚡ User experience super smooth pake Next.js
 * 🔒 Backend kuat dan scalable pake Nest.js
 * 📱 Responsive design, bisa diakses kapan aja, di mana aja
-* 💬 Integrasi WhatsApp untuk fast response dan pemesanan
-* 🎁 Promo-promo kece ala Jaksel: Student Promo, Happy Hour, dan banyak lagi
 
 ---
 
 ## Tech Stack
 
 * **Frontend:** Next.js, Tailwind CSS
-* **Backend:** Nest.js, MySQL
+* **Backend:** Nest.js, Postgree
 * **Payment:** Midtrans Integration
-* **Deployment:** Vercel / Railway / Optional (tergantung kebutuhan)
+* **Deployment:** Vercel
 
 ---
 
