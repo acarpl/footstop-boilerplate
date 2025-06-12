@@ -40,10 +40,10 @@ git clone https://github.com/acarpl/footstop-boilerplate.git
 cd footstop
 
 # Install dependencies
-npm install
+yarn install
 
 # Jalankan development server
-npm run dev
+yarn run dev
 ```
 
 Backend dan frontend dipisah. Pastikan Nest.js dan database sudah running di environment lo.
