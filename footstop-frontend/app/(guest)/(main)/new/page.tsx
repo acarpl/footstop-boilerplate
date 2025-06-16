@@ -16,7 +16,7 @@ export default function NewArrivalPage() {
       <Navbar />
       <div className="relative w-full h-64">
         <Image
-          src="/banners/new-arrival-banner.jpg"
+          src="/banners/new-arrivals-banner.jpg"
           alt="Banner"
           fill
           className="object-cover"
