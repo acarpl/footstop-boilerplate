@@ -1,46 +1,45 @@
-import { ShoppingCart, Search } from "lucide-react";
+"use client";
+
 import Link from "next/link";
+import { Button } from "antd";
+import { Home } from "lucide-react";
 
 export default function Navbar() {
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-        <div className="flex items-center space-x-8">
-          <Link href="/" className="text-xl font-bold text-red-600">Foot.Stop</Link>
-          <nav className="hidden md:flex space-x-6 text-sm font-medium text-gray-700">
-            <Link href="/">Home</Link>
-            <Link href="/new">New Arrivals</Link>
-            <Link href="/sale">Sale</Link>
-            <Link href="/brands">Brands</Link>
-          </nav>
-        </div>
+    <nav className="sticky top-0 z-50 bg-white bg-opacity-30 border-b border-gray-200 rounded-b-xl shadow-sm">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    {/* Left Section */}
+    <div className="flex items-center space-x-8">
+      <Link
+        href="/"
+        className="text-white font-semibold bg-black px-4 py-1.5 rounded-full shadow-inner"
+      >
+        Footstop
+      </Link>
 
-        <div className="flex items-center space-x-4">
-          <div className="relative hidden md:block">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="pl-10 pr-4 py-2 rounded-full border text-sm w-64"
-            />
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
-          </div>
-          <Link
-            href="/register"
-            className="text-sm font-medium text-gray-700 hover:text-red-600"
-          >
-            Register
-          </Link>
-          <Link
-            href="/login"
-            className="bg-red-600 text-white text-sm px-4 py-1.5 rounded-full hover:bg-red-700"
-          >
-            Login
-          </Link>
-          <Link href="/cart" className="text-gray-700 hover:text-red-600">
-            <ShoppingCart className="w-5 h-5" />
-          </Link>
-        </div>
+      {/* Navigation */}
+      <div className="hidden md:flex space-x-6 text-sm font-medium text-black">
+        <Link href="/shop" className="hover:text-red-500 transition">Shop</Link>
+        <Link href="/brands" className="hover:text-red-500 transition">Brand</Link>
+        <Link href="/sale" className="hover:text-red-500 transition">Onsale</Link>
+        <Link href="/new" className="hover:text-red-500 transition">New Arrivals</Link>
       </div>
-    </header>
+    </div>
+
+    {/* Right Section */}
+    <div className="flex items-center space-x-4">
+      <Link href="/register">
+        <Button type="default" className="border-red-500 text-red-600 hover:border-red-600">
+          Register
+        </Button>
+      </Link>
+      <Link href="/login">
+        <Button type="primary" className="bg-red-600 hover:bg-red-700 border-none">
+          Log In
+        </Button>
+      </Link>
+    </div>
+  </div>
+</nav>
   );
 }

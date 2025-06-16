@@ -1,6 +1,6 @@
-// app/layout.tsx
+
 import '#/app/globals.css';
-import 'antd/dist/reset.css'; // Untuk versi Antd 5 terbaru
+import 'antd/dist/reset.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
