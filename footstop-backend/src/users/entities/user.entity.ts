@@ -1,45 +1,37 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  VersionColumn,
-  CreateDateColumn,
-} from 'typeorm';
+import { Role } from '../../role/entities/role.entity';
+import { Address } from '../../address/entities/address.entity';
+import { Order } from '../../orders/entities/order.entity';
+import { Cart } from '../../carts/entities/cart.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 
-@Entity()
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn({ name: 'id_user', type: 'integer' })
+  id: number;
 
-  @Column()
-  firstName: string;
+  @Column({ type: 'character varying', length: 50, unique: true })
+  username: string;
 
-  @Column()
-  lastName: string;
+  @Column({ type: 'character varying', length: 255, select: false }) // select: false agar password tidak ikut terambil saat query
+  password: string;
 
-  @Column({ default: true })
-  isActive: boolean;
+  @Column({ type: 'character varying', length: 100, unique: true })
+  email: string;
 
-  @CreateDateColumn({
-    type: 'timestamp with time zone',
-    nullable: false,
-  })
-  createdAt: Date;
+  @Column({ name: 'phone_number', type: 'character varying', length: 20, nullable: true })
+  phoneNumber: string;
 
-  @UpdateDateColumn({
-    type: 'timestamp with time zone',
-    nullable: false,
-  })
-  updatedAt: Date;
+  @ManyToOne(() => Role, (role) => role.users, { eager: true }) // eager: true agar role otomatis ter-load saat query user
+  @JoinColumn({ name: 'id_role' })
+  role: Role;
 
-  @DeleteDateColumn({
-    type: 'timestamp with time zone',
-    nullable: true,
-  })
-  deletedAt: Date;
+  @ManyToOne(() => Address, (address) => address.users, { nullable: true })
+  @JoinColumn({ name: 'id_address' })
+  address: Address;
 
-  @VersionColumn()
-  version: number;
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
+
+  @OneToMany(() => Cart, (cart) => cart.user)
+  carts: Cart[];
 }
