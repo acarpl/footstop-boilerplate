@@ -9,7 +9,6 @@ import { AddressModule } from './address/address.module';
 import { GambarModule } from './gambar/gambar.module';
 import { CartsModule } from './carts/carts.module';
 import { OrdersModule } from './orders/orders.module';
-import { OrdersDetailsModule } from './orders-details.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AuthModule } from './auth/auth.module';
 import { OrdersDetailsModule } from './orders-details/orders-details.module';

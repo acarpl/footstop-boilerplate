@@ -23,8 +23,9 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
+  pdate(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  // Data yang masuk akan divalidasi sesuai aturan, tetapi semua field boleh kosong.
+  return this.productsService.update(+id, updateProductDto);
   }
 
   @Delete(':id')
