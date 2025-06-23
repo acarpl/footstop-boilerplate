@@ -12,7 +12,6 @@ import { PaymentsModule } from './payments/payments.module';
 import { AuthModule } from './auth/auth.module';
 import { OrdersDetailsModule } from './orders-details/orders-details.module';
 import { LoggerModule } from 'nestjs-pino';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
