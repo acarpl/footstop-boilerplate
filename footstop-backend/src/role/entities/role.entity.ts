@@ -3,12 +3,12 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity('role')
 export class Role {
-  @PrimaryGeneratedColumn({ name: 'id_role', type: 'integer' })
-  id: number;
+  @PrimaryGeneratedColumn()
+  id_role: number;
 
-  @Column({ name: 'nama_role', type: 'character varying', length: 50 })
-  namaRole: string;
+  @Column({ type: 'varchar', length: 50, unique: true })
+  nama_role: string;
 
-  @OneToMany(() => User, (user) => user.role)
+  @OneToMany(() => User, user => user.role)
   users: User[];
 }
