@@ -12,7 +12,7 @@ export class User {
   @Column({ type: 'character varying', length: 50, unique: true })
   username: string;
 
-  @Column({ type: 'character varying', length: 255, select: false }) // select: false agar password tidak ikut terambil saat query
+  @Column({ type: 'character varying', length: 255, select: false })
   password: string;
 
   @Column({ type: 'character varying', length: 100, unique: true })
@@ -21,7 +21,7 @@ export class User {
   @Column({ name: 'phone_number', type: 'character varying', length: 20, nullable: true })
   phoneNumber: string;
 
-  @ManyToOne(() => Role, (role) => role.users, { eager: true }) // eager: true agar role otomatis ter-load saat query user
+  @ManyToOne(() => Role, (role) => role.users, { eager: true })
   @JoinColumn({ name: 'id_role' })
   role: Role;
 

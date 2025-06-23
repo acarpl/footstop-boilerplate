@@ -1,9 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 
-@Controller('address')
+@Controller('address') // Ini akan membuat base route menjadi /address
 export class AddressController {
   constructor(private readonly addressService: AddressService) {}
 
@@ -18,17 +27,20 @@ export class AddressController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.addressService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.addressService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAddressDto: UpdateAddressDto) {
-    return this.addressService.update(+id, updateAddressDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateAddressDto: UpdateAddressDto,
+  ) {
+    return this.addressService.update(id, updateAddressDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.addressService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.addressService.remove(id);
   }
 }

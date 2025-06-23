@@ -1,7 +1,6 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RoleModule } from './role/role.module';
 import { BrandsModule } from './brands/brands.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -12,12 +11,23 @@ import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AuthModule } from './auth/auth.module';
 import { OrdersDetailsModule } from './orders-details/orders-details.module';
-// Import module lain akan ditambahkan di sini nanti
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Membuat ConfigService tersedia di seluruh aplikasi
+    }),
+    LoggerModule.forRoot({ // ✅ Tambahkan LoggerModule disini
+      pinoHttp: {
+        level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+          },
+        },
+      },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

@@ -1,14 +1,13 @@
 import { User } from '#/users/entities/user.entity';
 
-export const userMasterData: User[] = [
+export const userMasterData = [
   {
-    id: '23131e76-ee28-407c-aed7-a5d573cb1cd3',
-    firstName: 'Hasta',
-    lastName: 'Ragil',
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: null,
-    version: 1,
+    username: 'admin',
+    password: '123456',
+    email: 'admin@mail.com',
+    phoneNumber: '081234567890',
+    role: { id: 1 },
+    address: { id: 1 }, 
   },
+  // Kamu bisa tambah data lagi
 ];
