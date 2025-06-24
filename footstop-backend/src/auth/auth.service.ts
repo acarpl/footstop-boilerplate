@@ -51,7 +51,7 @@ export class AuthService {
 
     // SOLUSI 2 & 3: Gunakan nama properti yang benar
     const payload = {
-      sub: user.id,
+      sub: user.id_user,
       username: user.username,
       role: user.role.nama_role, // Pastikan relasi 'role' non-nullable jika memang wajib
     };

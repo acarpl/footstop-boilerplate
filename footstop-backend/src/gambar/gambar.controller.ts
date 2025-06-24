@@ -1,34 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Param, Delete, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { GambarService } from './gambar.service';
-import { CreateGambarDto } from './dto/create-gambar.dto';
-import { UpdateGambarDto } from './dto/update-gambar.dto';
 
 @Controller('gambar')
 export class GambarController {
   constructor(private readonly gambarService: GambarService) {}
 
-  @Post()
-  create(@Body() createGambarDto: CreateGambarDto) {
-    return this.gambarService.create(createGambarDto);
-  }
+  // Endpoint utama untuk upload gambar
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file')) // 'file' adalah nama field di form-data
+  uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('idProduct', ParseIntPipe) idProduct: number,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
 
-  @Get()
-  findAll() {
-    return this.gambarService.findAll();
-  }
+    // Buat URL lengkap untuk mengakses file
+    const fileUrl = `http://localhost:3000/uploads/${file.filename}`;
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.gambarService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGambarDto: UpdateGambarDto) {
-    return this.gambarService.update(+id, updateGambarDto);
+    return this.gambarService.create({
+      url: fileUrl,
+      idProduct: idProduct,
+    });
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.gambarService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.gambarService.remove(id);
   }
 }

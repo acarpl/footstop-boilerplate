@@ -5,7 +5,6 @@ import { RoleController } from './role.controller';
 import { Role } from './entities/role.entity'; 
 
 @Module({
-  // 3. TAMBAHKAN BARIS INI
   imports: [TypeOrmModule.forFeature([Role])],
 
   controllers: [RoleController],

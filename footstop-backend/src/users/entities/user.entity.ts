@@ -7,7 +7,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMan
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn({ name: 'id_user', type: 'integer' })
-  id: number;
+  id_user: number;
 
   @Column({ type: 'character varying', length: 50, unique: true })
   username: string;

@@ -1,26 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateGambarDto } from './dto/create-gambar.dto';
-import { UpdateGambarDto } from './dto/update-gambar.dto';
+import { Gambar } from './entities/gambar.entity';
 
 @Injectable()
 export class GambarService {
-  create(createGambarDto: CreateGambarDto) {
-    return 'This action adds a new gambar';
+  constructor(
+    @InjectRepository(Gambar)
+    private readonly gambarRepository: Repository<Gambar>,
+  ) {}
+
+  async create(createGambarDto: CreateGambarDto): Promise<Gambar> {
+    const { idProduct, url } = createGambarDto;
+    
+    // TODO: Verifikasi apakah produk dengan idProduct ada sebelum menyimpan
+
+    const gambar = this.gambarRepository.create({
+      url,
+      product: { idProduct: idProduct },
+    });
+    return this.gambarRepository.save(gambar);
   }
 
-  findAll() {
-    return `This action returns all gambar`;
+  async findOne(id: number): Promise<Gambar> {
+    const gambar = await this.gambarRepository.findOneBy({ idGambar: id });
+    if (!gambar) {
+      throw new NotFoundException(`Image with ID #${id} not found`);
+    }
+    return gambar;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} gambar`;
-  }
-
-  update(id: number, updateGambarDto: UpdateGambarDto) {
-    return `This action updates a #${id} gambar`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} gambar`;
+  async remove(id: number): Promise<Gambar> {
+    // TODO: Hapus juga file fisik dari folder /uploads
+    const gambar = await this.findOne(id);
+    return this.gambarRepository.remove(gambar);
   }
 }

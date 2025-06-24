@@ -3,12 +3,13 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity('brands')
 export class Brand {
-  @PrimaryGeneratedColumn({ name: 'id_brand', type: 'integer' })
-  id: number;
+  @PrimaryGeneratedColumn()
+  idBrand: number;
 
-  @Column({ name: 'brand_name', type: 'character varying', length: 100 })
+  @Column({ type: 'varchar', length: 100, unique: true })
   brandName: string;
 
+  // Mendefinisikan hubungan: Satu merek bisa memiliki banyak produk
   @OneToMany(() => Product, (product) => product.brand)
   products: Product[];
 }

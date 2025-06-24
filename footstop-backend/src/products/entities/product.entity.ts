@@ -1,38 +1,43 @@
 import { Brand } from '../../brands/entities/brand.entity';
 import { Category } from '../../categories/entities/category.entity';
-import { Gambar } from '../../gambar/entities/gambar.entity';
-import { Cart } from '../../carts/entities/cart.entity';
-import { OrdersDetail } from '../../orders-details/entities/orders-detail.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Gambar } from '../../gambar/entities/gambar.entity'; // Akan kita buat nanti
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 
 @Entity('products')
 export class Product {
-  @PrimaryGeneratedColumn({ name: 'id_product', type: 'integer' })
-  id: number;
+  @PrimaryGeneratedColumn()
+  idProduct: number;
 
-  @Column({ name: 'product_name', type: 'character varying', length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   productName: string;
 
-  @Column({ type: 'character varying', length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   size: string;
 
   @Column({ type: 'numeric', precision: 12, scale: 2 })
   price: number;
 
-  @ManyToOne(() => Brand, (brand) => brand.products)
-  @JoinColumn({ name: 'id_brand' })
+  // --- RELASI Many-to-One ---
+
+  // Relasi ke Brand
+  @ManyToOne(() => Brand, (brand) => brand.products, { eager: true }) // eager: true akan otomatis join saat find
+  @JoinColumn({ name: 'id_brand' }) // Menentukan kolom foreign key di tabel 'products'
   brand: Brand;
 
-  @ManyToOne(() => Category, (category) => category.products)
+  // Relasi ke Category
+  @ManyToOne(() => Category, (category) => category.products, { eager: true })
   @JoinColumn({ name: 'id_category' })
   category: Category;
-  
+
+  // --- RELASI One-to-Many ---
+  // Satu produk bisa punya banyak gambar
   @OneToMany(() => Gambar, (gambar) => gambar.product)
   images: Gambar[];
-
-  @OneToMany(() => Cart, (cart) => cart.product)
-  carts: Cart[];
-
-  @OneToMany(() => OrdersDetail, (detail) => detail.product)
-  orderDetails: OrdersDetail[];
 }

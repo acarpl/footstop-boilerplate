@@ -1,14 +1,15 @@
-import { Product } from '../../products/entities/product.entity';
+import { Product } from '../../products/entities/product.entity'; // Kita akan buat ini nanti
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity('categories')
 export class Category {
-  @PrimaryGeneratedColumn({ name: 'id_category', type: 'integer' })
-  id: number;
+  @PrimaryGeneratedColumn()
+  idCategory: number;
 
-  @Column({ name: 'category_name', type: 'character varying', length: 100 })
+  @Column({ type: 'varchar', length: 100, unique: true })
   categoryName: string;
 
+  // Satu kategori bisa memiliki banyak produk
   @OneToMany(() => Product, (product) => product.category)
   products: Product[];
 }

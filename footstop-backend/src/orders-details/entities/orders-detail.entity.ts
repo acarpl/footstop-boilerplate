@@ -4,26 +4,28 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 't
 
 @Entity('orders_details')
 export class OrdersDetail {
-  @PrimaryGeneratedColumn({ name: 'id_order_details', type: 'integer' })
-  id: number;
-  
+  @PrimaryGeneratedColumn()
+  idOrderDetails: number;
+
   @Column({ type: 'integer' })
   quantity: number;
 
-  @Column({ name: 'price_per_unit', type: 'numeric', precision: 12, scale: 2 })
+  @Column({ type: 'numeric', precision: 12, scale: 2 })
   pricePerUnit: number;
 
   @Column({ type: 'numeric', precision: 14, scale: 2 })
   subtotal: number;
   
-  @Column({ type: 'character varying', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   size: string;
-  
-  @ManyToOne(() => Order, (order) => order.details)
+
+  // Relasi ke Order
+  @ManyToOne(() => Order, (order) => order.orderDetails, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_order' })
   order: Order;
 
-  @ManyToOne(() => Product, (product) => product.orderDetails)
+  // Relasi ke Product
+  @ManyToOne(() => Product, { eager: true }) // eager agar detail produk ikut
   @JoinColumn({ name: 'id_product' })
   product: Product;
 }

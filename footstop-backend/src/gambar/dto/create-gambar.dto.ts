@@ -1,1 +1,10 @@
-export class CreateGambarDto {}
+import { IsNumber, IsNotEmpty, IsUrl } from 'class-validator';
+export class CreateGambarDto {
+  @IsUrl()
+  @IsNotEmpty()
+  url: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  idProduct: number;
+}

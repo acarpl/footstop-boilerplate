@@ -14,7 +14,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const result = await this.usersRepository.insert(createUserDto as any);
-    return this.usersRepository.findOneBy({ id: result.identifiers[0].id });
+    return this.usersRepository.findOneBy({ id_user: result.identifiers[0].id });
   }
 
   async findAll(): Promise<User[]> {
@@ -22,7 +22,7 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.usersRepository.findOneBy({ id: Number(id) });
+    const user = await this.usersRepository.findOneBy({ id_user: Number(id) });
     if (!user) {
       throw new NotFoundException(`User with ID #${id} not found`);
     }
@@ -35,7 +35,7 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepository.preload({
-      id: Number(id),
+      id_user: Number(id),
       ...updateUserDto,
     });
 
