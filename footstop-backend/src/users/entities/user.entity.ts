@@ -21,7 +21,7 @@ export class User {
   @Column({ name: 'phone_number', type: 'character varying', length: 20, nullable: true })
   phoneNumber: string;
 
-  @ManyToOne(() => Role, (role) => role.users, { eager: true })
+  @ManyToOne(() => Role, role => role.users, { eager: true })
   @JoinColumn({ name: 'id_role' })
   role: Role;
 

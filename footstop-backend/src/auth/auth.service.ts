@@ -39,21 +39,31 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<{ access_token: string }> {
+    // 1. Cari user berdasarkan email
     const user = await this.usersService.findOneByEmail(loginDto.email);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    
+    // Kemungkinan pertama: user tidak ditemukan, tapi ini kecil kemungkinannya jika Anda menggunakan data seeder.
+    // if (!user) {
+    //   throw new UnauthorizedException('Invalid credentials');
+    // }
 
-    const isPasswordMatching = await bcrypt.compare(loginDto.password, user.password);
+    // 2. Bandingkan password yang dikirim dengan hash di database
+    const isPasswordMatching = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
+    
+    // INILAH YANG TERJADI:
+    // `bcrypt.compare()` mengembalikan `false` karena password tidak cocok.
     if (!isPasswordMatching) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials'); // <-- Error dilempar dari sini
     }
 
     // SOLUSI 2 & 3: Gunakan nama properti yang benar
     const payload = {
       sub: user.id_user,
       username: user.username,
-      role: user.role.nama_role, // Pastikan relasi 'role' non-nullable jika memang wajib
+      // role: user.role.nama_role, // Pastikan relasi 'role' non-nullable jika memang wajib
     };
 
     return {

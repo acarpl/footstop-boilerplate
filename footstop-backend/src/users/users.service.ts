@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -12,9 +12,9 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const result = await this.usersRepository.insert(createUserDto as any);
-    return this.usersRepository.findOneBy({ id_user: result.identifiers[0].id });
+  async create(userLikeObject: DeepPartial<User>): Promise<User> {
+    const user = this.usersRepository.create(userLikeObject);
+    return this.usersRepository.save(user);
   }
 
   async findAll(): Promise<User[]> {
@@ -29,8 +29,13 @@ export class UsersService {
     return user;
   }
 
-  async findOneByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({ email });
+  async findOneByEmail(email: string): Promise<User | undefined> {
+    // Gunakan query builder untuk secara eksplisit menambahkan kolom 'password'
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password') // <-- TAMBAHKAN BARIS INI
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {

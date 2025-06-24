@@ -43,15 +43,11 @@ async function bootstrap() {
 
   const hostname = '0.0.0.0';
 
-  await app.listen(port, hostname, () => {
-    // logger.log(`Server listening on ${hostname}:${port}`);
-    // if (error) {
-    //   logger.error(error);
-    //   process.exit(1);
-    // } else {
-    //   logger.log(`Server listening on ${address}`);
-    // }
-  });
+  await app.listen(port, hostname);
+
+  // Menampilkan log setelah server benar-benar siap
+  logger.log(`Server running on http://${hostname}:${port}`, 'Bootstrap');
+  logger.log(`Swagger UI available at http://${hostname}:${port}/api`, 'Bootstrap');
 }
 
 bootstrap();
