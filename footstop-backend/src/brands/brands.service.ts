@@ -23,7 +23,7 @@ export class BrandsService {
 
   async findOne(id: number): Promise<Brand> {
     // Menggunakan idBrand sesuai entity
-    const brand = await this.brandRepository.findOneBy({ idBrand: id });
+    const brand = await this.brandRepository.findOneBy({ id_brand: id });
     if (!brand) {
       throw new NotFoundException(`Brand with ID #${id} not found`);
     }
@@ -32,7 +32,7 @@ export class BrandsService {
 
   async update(id: number, updateBrandDto: UpdateBrandDto): Promise<Brand> {
     const brand = await this.brandRepository.preload({
-      idBrand: id,
+      id_brand: id,
       ...updateBrandDto,
     });
     if (!brand) {

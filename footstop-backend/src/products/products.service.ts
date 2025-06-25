@@ -19,8 +19,8 @@ export class ProductsService {
     // Kita buat objek baru dengan struktur yang dikenali oleh entity Product.
     const product = this.productRepository.create({
       ...productData,
-      brand: { idBrand: idBrand },
-      category: { idCategory: idCategory },
+      brand: { id_brand: idBrand },
+      category: { id_category: idCategory },
     });
 
     return this.productRepository.save(product);
@@ -32,7 +32,7 @@ export class ProductsService {
   }
 
   async findOne(id: number): Promise<Product> {
-    const product = await this.productRepository.findOneBy({ idProduct: id });
+    const product = await this.productRepository.findOneBy({ id_product: id });
     if (!product) {
       throw new NotFoundException(`Product with ID #${id} not found`);
     }

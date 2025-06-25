@@ -14,13 +14,13 @@ export class CartsService {
 
   // FIX: Change parameter name for clarity
   async addItemToCart(id_user: number, createCartDto: CreateCartDto): Promise<Cart> {
-    const { idProduct, quantity, size } = createCartDto;
+    const { id_product, quantity, size } = createCartDto;
 
     const existingCartItem = await this.cartRepository.findOne({
       where: {
         // FIX: Use the correct property name
         user: { id_user },
-        product: { idProduct }, // Assuming 'idProduct' is correct in Product entity
+        product: { id_product },
         size: size,
       },
     });
@@ -32,7 +32,7 @@ export class CartsService {
       const newCartItem = this.cartRepository.create({
         // FIX: Use the correct property name
         user: { id_user },
-        product: { idProduct },
+        product: { id_product },
         quantity,
         size,
       });

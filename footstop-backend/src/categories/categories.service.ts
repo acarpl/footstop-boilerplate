@@ -23,7 +23,7 @@ export class CategoriesService {
   }
 
   async findOne(id: number): Promise<Category> {
-    const category = await this.categoryRepository.findOneBy({ idCategory: id });
+    const category = await this.categoryRepository.findOneBy({ id_category: id });
     if (!category) {
       throw new NotFoundException(`Category with ID #${id} not found`);
     }
@@ -32,7 +32,7 @@ export class CategoriesService {
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
     const category = await this.categoryRepository.preload({
-      idCategory: id,
+      id_category: id,
       ...updateCategoryDto,
     });
     if (!category) {

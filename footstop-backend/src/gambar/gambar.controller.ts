@@ -22,7 +22,7 @@ export class GambarController {
 
     return this.gambarService.create({
       url: fileUrl,
-      idProduct: idProduct,
+      id_product: idProduct,
     });
   }
 

@@ -4,5 +4,5 @@ export class CreateBrandDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  brandName: string;
+  brand_name: string;
 }

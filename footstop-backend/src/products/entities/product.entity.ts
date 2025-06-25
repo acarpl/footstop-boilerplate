@@ -13,10 +13,10 @@ import {
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn()
-  idProduct: number;
+  id_product: number;
 
   @Column({ type: 'varchar', length: 255 })
-  productName: string;
+  product_name: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   size: string;

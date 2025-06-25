@@ -6,5 +6,5 @@ export class CreateGambarDto {
 
   @IsNumber()
   @IsNotEmpty()
-  idProduct: number;
+  id_product: number;
 }

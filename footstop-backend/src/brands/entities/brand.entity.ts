@@ -4,10 +4,10 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 @Entity('brands')
 export class Brand {
   @PrimaryGeneratedColumn()
-  idBrand: number;
+  id_brand: number;
 
   @Column({ type: 'varchar', length: 100, unique: true })
-  brandName: string;
+  brand_name: string;
 
   // Mendefinisikan hubungan: Satu merek bisa memiliki banyak produk
   @OneToMany(() => Product, (product) => product.brand)

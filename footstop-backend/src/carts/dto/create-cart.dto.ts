@@ -3,7 +3,7 @@ import { IsNumber, IsNotEmpty, IsPositive, IsString, IsOptional } from 'class-va
 export class CreateCartDto {
   @IsNumber()
   @IsNotEmpty()
-  idProduct: number;
+  id_product: number;
 
   @IsNumber()
   @IsNotEmpty()

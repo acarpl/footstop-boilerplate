@@ -4,10 +4,10 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 @Entity('categories')
 export class Category {
   @PrimaryGeneratedColumn()
-  idCategory: number;
+  id_category: number;
 
   @Column({ type: 'varchar', length: 100, unique: true })
-  categoryName: string;
+  category_name: string;
 
   // Satu kategori bisa memiliki banyak produk
   @OneToMany(() => Product, (product) => product.category)

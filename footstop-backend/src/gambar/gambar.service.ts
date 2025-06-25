@@ -12,13 +12,13 @@ export class GambarService {
   ) {}
 
   async create(createGambarDto: CreateGambarDto): Promise<Gambar> {
-    const { idProduct, url } = createGambarDto;
+    const { id_product, url } = createGambarDto;
     
     // TODO: Verifikasi apakah produk dengan idProduct ada sebelum menyimpan
 
     const gambar = this.gambarRepository.create({
       url,
-      product: { idProduct: idProduct },
+      product: { id_product: id_product },
     });
     return this.gambarRepository.save(gambar);
   }
