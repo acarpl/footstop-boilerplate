@@ -21,16 +21,16 @@ export class PaymentsService {
    * Di dunia nyata, di sini Anda akan memanggil SDK payment gateway.
    */
   async initiatePayment(user: User, createPaymentDto: CreatePaymentDto) {
-    const { idOrder, paymentMethod } = createPaymentDto;
+    const { id_order, payment_method } = createPaymentDto;
 
     // 1. Verifikasi bahwa order ada dan milik user yang benar
-    const order = await this.orderRepository.findOneBy({ idOrder, user: { id_user: user.id_user } });
+    const order = await this.orderRepository.findOneBy({ id_order, user: { id_user: user.id_user } });
     if (!order) {
-      throw new NotFoundException(`Order with ID #${idOrder} not found.`);
+      throw new NotFoundException(`Order with ID #${id_order} not found.`);
     }
 
     // 2. Cek apakah order sudah dibayar
-    if (order.statusPengiriman !== 'Pending') {
+    if (order.status_pengiriman !== 'Pending') {
       throw new ConflictException('This order has already been processed.');
     }
 
@@ -41,13 +41,13 @@ export class PaymentsService {
     // return { paymentUrl: transaction.redirect_url };
     // ---------------------------------------------------
 
-    console.log(`Initiating payment for Order #${idOrder} using ${paymentMethod}.`);
+    console.log(`Initiating payment for Order #${id_order} using ${payment_method}.`);
     
     // Untuk pengembangan, kita kembalikan URL dummy
     return {
       message: 'Payment initiated successfully.',
-      paymentUrl: `https://dummy-payment-gateway.com/pay?orderId=${idOrder}&amount=${order.totalPrice}`,
-      orderId: order.idOrder,
+      paymentUrl: `https://dummy-payment-gateway.com/pay?orderId=${id_order}&amount=${order.total_price}`,
+      orderId: order.id_order,
     };
   }
 
@@ -63,21 +63,21 @@ export class PaymentsService {
 
     try {
       // 1. Cari order yang sesuai
-      const order = await queryRunner.manager.findOneBy(Order, { idOrder: orderId });
+      const order = await queryRunner.manager.findOneBy(Order, { id_order: orderId });
       if (!order) {
         throw new NotFoundException(`Webhook Error: Order with ID #${orderId} not found.`);
       }
       
       // 2. Buat catatan pembayaran baru
       const newPayment = queryRunner.manager.create(Payment, {
-        order: { idOrder: orderId },
-        paymentMethod: 'Simulated Gateway', // Atau ambil dari payload webhook
-        paymentStatus: 'Success',
+        order: { id_order: orderId },
+        payment_method: 'Simulated Gateway', // Atau ambil dari payload webhook
+        payment_status: 'Success',
       });
       await queryRunner.manager.save(newPayment);
 
       // 3. Update status order menjadi 'Dibayar' atau 'Diproses'
-      order.statusPengiriman = 'Dibayar'; // Atau 'Diproses'
+      order.status_pengiriman = 'Dibayar'; // Atau 'Diproses'
       await queryRunner.manager.save(order);
 
       await queryRunner.commitTransaction();

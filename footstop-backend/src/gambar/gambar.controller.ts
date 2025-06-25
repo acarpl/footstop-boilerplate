@@ -11,7 +11,7 @@ export class GambarController {
   @UseInterceptors(FileInterceptor('file')) // 'file' adalah nama field di form-data
   uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body('idProduct', ParseIntPipe) idProduct: number,
+    @Body('id_product', ParseIntPipe) id_product: number,
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
@@ -22,7 +22,7 @@ export class GambarController {
 
     return this.gambarService.create({
       url: fileUrl,
-      id_product: idProduct,
+      id_product: id_product,
     });
   }
 

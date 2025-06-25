@@ -5,13 +5,13 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 't
 @Entity('orders_details')
 export class OrdersDetail {
   @PrimaryGeneratedColumn()
-  idOrderDetails: number;
+  id_order_details: number;
 
   @Column({ type: 'integer' })
   quantity: number;
 
   @Column({ type: 'numeric', precision: 12, scale: 2 })
-  pricePerUnit: number;
+  price_per_unit: number;
 
   @Column({ type: 'numeric', precision: 14, scale: 2 })
   subtotal: number;

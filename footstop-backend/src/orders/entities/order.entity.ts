@@ -13,20 +13,20 @@ import {
 @Entity('orders')
 export class Order {
   @PrimaryGeneratedColumn()
-  idOrder: number;
+  id_order: number;
 
   // Otomatis diisi saat order dibuat
   @CreateDateColumn({ type: 'timestamp with time zone' })
-  orderDate: Date;
+  order_date: Date;
 
   @Column({ type: 'text' })
   address: string;
 
   @Column({ type: 'numeric', precision: 14, scale: 2 })
-  totalPrice: number;
+  total_price: number;
 
   @Column({ type: 'varchar', length: 50, default: 'Pending' })
-  statusPengiriman: string;
+  status_pengiriman: string;
 
   // Relasi ke User
   @ManyToOne(() => User)

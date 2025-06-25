@@ -11,7 +11,7 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  productName: string;
+  product_name: string;
 
   @IsNumber()
   @IsPositive()

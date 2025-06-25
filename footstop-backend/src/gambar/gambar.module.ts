@@ -4,14 +4,12 @@ import { GambarController } from './gambar.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Gambar } from './entities/gambar.entity';
 import { MulterModule } from '@nestjs/platform-express';
+import { multerOptions } from '../utils/multer-config';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Gambar]),
-    // Konfigurasi Multer: file yang di-upload akan disimpan di folder 'uploads'
-    MulterModule.register({
-      dest: './uploads', // Folder tujuan penyimpanan file
-    }),
+    MulterModule.register(multerOptions),
   ],
   controllers: [GambarController],
   providers: [GambarService],

@@ -35,7 +35,7 @@ export class OrdersService {
       }
 
       // 2. Hitung total harga
-      const totalPrice = cartItems.reduce((sum, item) => {
+      const total_price = cartItems.reduce((sum, item) => {
         return sum + item.quantity * item.product.price;
       }, 0);
 
@@ -43,7 +43,7 @@ export class OrdersService {
       const newOrder = this.orderRepository.create({
         user,
         address: createOrderDto.shippingAddress,
-        totalPrice,
+        total_price,
       });
       const savedOrder = await queryRunner.manager.save(newOrder);
 
@@ -54,7 +54,7 @@ export class OrdersService {
           product: item.product,
           quantity: item.quantity,
           size: item.size,
-          pricePerUnit: item.product.price,
+          price_per_unit: item.product.price,
           subtotal: item.quantity * item.product.price,
         });
       });
@@ -80,18 +80,18 @@ export class OrdersService {
   findAllForUser(id_user: number): Promise<Order[]> {
     return this.orderRepository.find({
       where: { user: { id_user } },
-      order: { orderDate: 'DESC' }, // Urutkan dari yang terbaru
+      order: { order_date: 'DESC' }, // Urutkan dari yang terbaru
     });
   }
 
-  async findOneForUser(id_user: number, idOrder: number): Promise<Order> {
+  async findOneForUser(id_user: number, id_order: number): Promise<Order> {
     const order = await this.orderRepository.findOne({
-        where: { idOrder, user: { id_user } },
+        where: { id_order, user: { id_user } },
         relations: ['orderDetails', 'orderDetails.product'], // Muat detail dan produknya
     });
     
     if (!order) {
-        throw new NotFoundException(`Order with ID #${idOrder} not found.`);
+        throw new NotFoundException(`Order with ID #${id_order} not found.`);
     }
     return order;
   }

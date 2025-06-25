@@ -24,7 +24,7 @@ export class GambarService {
   }
 
   async findOne(id: number): Promise<Gambar> {
-    const gambar = await this.gambarRepository.findOneBy({ idGambar: id });
+    const gambar = await this.gambarRepository.findOneBy({ id_gambar: id });
     if (!gambar) {
       throw new NotFoundException(`Image with ID #${id} not found`);
     }
