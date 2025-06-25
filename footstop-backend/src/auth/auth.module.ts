@@ -1,25 +1,28 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from '../users/users.module'; // Impor UsersModule
+import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtStrategy } from './jwt.strategy'; // <-- 1. IMPORT STRATEGY
 
 @Module({
   imports: [
-    UsersModule, // <-- Agar bisa inject UsersService
-    PassportModule,
+    UsersModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }), // Eksplisit lebih baik
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'), // .env
-        signOptions: { expiresIn: '1d' }, // 1 day expiration
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1d' },
       }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService], // Agar bisa inject AuthService
+  // 2. TAMBAHKAN JwtStrategy ke dalam array providers
+  providers: [AuthService, JwtStrategy],
+  exports: [JwtStrategy, PassportModule], // 3. Ekspor agar bisa digunakan di modul lain jika perlu
 })
 export class AuthModule {}

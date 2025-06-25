@@ -29,6 +29,14 @@ export class UsersService {
     return user;
   }
 
+  async findOneById(id: number): Promise<User> {
+    const user = await this.usersRepository.findOneBy({ id_user: id });
+    if (!user) {
+      throw new NotFoundException(`User with ID #${id} not found`);
+    }
+    return user;
+  }
+
   async findOneByEmail(email: string): Promise<User | undefined> {
     // Gunakan query builder untuk secara eksplisit menambahkan kolom 'password'
     return this.usersRepository
