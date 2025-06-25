@@ -5,7 +5,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 't
 @Entity('carts')
 export class Cart {
   @PrimaryGeneratedColumn()
-  idCart: number;
+  id_cart: number;
 
   @Column({ type: 'integer' })
   quantity: number;

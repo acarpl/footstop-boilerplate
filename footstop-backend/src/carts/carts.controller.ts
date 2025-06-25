@@ -23,6 +23,14 @@ export class CartsController {
   findAllForUser(@GetUser() user: User) {
     return this.cartsService.findAllForUser(user.id_user);
   }
+  
+  @Get(':id')
+  findOneForUser(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User
+  ) {
+    return this.cartsService.findOneForUser(user.id_user, id);
+  }
 
   @Patch(':id')
   updateItemQuantity(

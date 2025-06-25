@@ -49,24 +49,32 @@ export class CartsService {
   }
 
   // FIX: Change parameter name
-  async updateItemQuantity(id_user: number, idCart: number, updateCartDto: UpdateCartDto): Promise<Cart> {
+  findOneForUser(id_user: number, id_cart: number): Promise<Cart> {
+    return this.cartRepository.findOne({
+      // FIX: Use the correct property name
+      where: { id_cart, user: { id_user } },
+    });
+  }
+
+  // FIX: Change parameter name
+  async updateItemQuantity(id_user: number, id_cart: number, updateCartDto: UpdateCartDto): Promise<Cart> {
     // FIX: Use the correct property name
-    const cartItem = await this.cartRepository.findOneBy({ idCart, user: { id_user }});
+    const cartItem = await this.cartRepository.findOneBy({ id_cart, user: { id_user }});
     // ... (rest of the function is ok)
     if (!cartItem) {
-        throw new NotFoundException(`Cart item with ID #${idCart} not found for this user.`);
+        throw new NotFoundException(`Cart item with ID #${id_cart} not found for this user.`);
     }
     cartItem.quantity = updateCartDto.quantity;
     return this.cartRepository.save(cartItem);
   }
 
   // FIX: Change parameter name
-  async removeItemFromCart(id_user: number, idCart: number): Promise<void> {
+  async removeItemFromCart(id_user: number, id_cart: number): Promise<void> {
     // FIX: Use the correct property name
-    const result = await this.cartRepository.delete({ idCart, user: { id_user } });
+    const result = await this.cartRepository.delete({ id_cart, user: { id_user } });
     // ... (rest of the function is ok)
     if (result.affected === 0) {
-      throw new NotFoundException(`Cart item with ID #${idCart} not found for this user.`);
+      throw new NotFoundException(`Cart item with ID #${id_cart} not found for this user.`);
     }
   }
 }
