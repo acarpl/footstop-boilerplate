@@ -12,7 +12,7 @@ const dummyProducts: Record<string, any> = {
     name: "Converse 70's - Black",
     price: "Rp 1,770,000",
     rating: 4.5,
-    image: "/converse.png",
+    image: "products/converse-black.png",
     description:
       "Converse klasik dengan tampilan retro dan kualitas modern. Didesain untuk kenyamanan dan gaya sepanjang hari.",
     sizes: [38, 39, 40, 41, 42, 43],
