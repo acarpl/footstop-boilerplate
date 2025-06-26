@@ -1,11 +1,17 @@
+'use client';
+
+import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { Select } from "antd";
+import Footer from '#/components/Footer';
+import Navbar from '#/components/Navbar';
 
 const products = new Array(6).fill({
   name: "Converse 70's - Black",
   price: "Rp 1,770,000",
   rating: 4.5,
-  image: "/converse.png", // Ganti sesuai path gambarmu
+  image: "products/converse-black.png",
+  slug: "converse-70s-black", // digunakan untuk detail page
 });
 
 const categories = [
@@ -15,10 +21,12 @@ const categories = [
 ];
 
 export default function ShopPage() {
+  const router = useRouter();
+
   return (
     <div className="bg-gray-200 min-h-screen py-6 px-4">
+      <Navbar />
       <div className="max-w-7xl mx-auto">
-        {/* Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar Filter */}
           <aside className="bg-white rounded-lg shadow p-4 h-fit">
@@ -46,7 +54,7 @@ export default function ShopPage() {
             {/* Banner */}
             <div className="rounded-lg overflow-hidden">
               <img
-                src="/banner.jpg" // Ganti sesuai path gambar kamu
+                src="/banner.jpg"
                 alt="Banner"
                 className="w-full h-40 object-cover"
               />
@@ -60,7 +68,8 @@ export default function ShopPage() {
               {products.map((product, index) => (
                 <div
                   key={index}
-                  className="bg-white rounded-xl p-4 shadow hover:shadow-md transition"
+                  onClick={() => router.push(`/product/${product.slug}`)}
+                  className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition hover:scale-[1.03] cursor-pointer"
                 >
                   <img
                     src={product.image}
@@ -88,6 +97,7 @@ export default function ShopPage() {
           </main>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
