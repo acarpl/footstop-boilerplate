@@ -7,10 +7,12 @@ import { CorrelationIdMiddleware } from './utils/correlation-id.middleware';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
+import * as cookieParser from 'cookie-parser';
 
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.use(cookieParser());
 
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
@@ -44,6 +46,8 @@ async function bootstrap() {
   const hostname = '0.0.0.0';
 
   await app.listen(port, hostname);
+  
+  app.enableCors();
 
   // Menampilkan log setelah server benar-benar siap
   logger.log(`Server running on http://${hostname}:${port}`, 'Bootstrap');
