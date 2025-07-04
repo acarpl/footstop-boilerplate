@@ -19,8 +19,8 @@ export default function InfoPage() {
             Kebijakan Privasi ini berlaku untuk situs web Footstop di{" "}
             <a href="https://www.footstop.co.id" target="_blank" rel="noreferrer" className="text-blue-600 underline">
               www.footstop.co.id
-            </a> ("Situs"), termasuk Toko Online Footstop Indonesia dan, jika disebutkan di situs tersebut, akun media sosial yang dikelola oleh Footstop untuk wilayah Indonesia.<br />
-            Situs ini dioperasikan oleh PT FOOTSTOP INDONESIA, berkantor pusat di Gedung Metro Plaza Lt. 8, Jl. Jendral Sudirman No. 10, Jakarta Pusat 10220 (“Footstop”, "kami", atau “kita”).
+            </a> (&quot;Situs&quot;), termasuk Toko Online Footstop Indonesia dan, jika disebutkan di situs tersebut, akun media sosial yang dikelola oleh Footstop untuk wilayah Indonesia.<br />
+            Situs ini dioperasikan oleh PT FOOTSTOP INDONESIA, berkantor pusat di Gedung Metro Plaza Lt. 8, Jl. Jendral Sudirman No. 10, Jakarta Pusat 10220 (&quot;Footstop&quot;).
           </p>
 
           <section>
@@ -144,7 +144,7 @@ export default function InfoPage() {
             <p>Untuk berhenti berlangganan email promosi:</p>
             <ul className="list-disc list-inside ml-6 space-y-1">
               <li>Login ke akun Anda dan ubah preferensi, atau</li>
-              <li>Klik tautan "unsubscribe" di email kami, atau</li>
+              <li>Klik tautan &quot;unsubscribe&quot; di email kami, atau</li>
               <li>Kirim email ke <a href="mailto:cs@footstop.co.id" className="text-blue-600 underline">cs@footstop.co.id</a></li>
             </ul>
           </section>

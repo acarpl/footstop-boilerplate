@@ -26,7 +26,7 @@ export default function AboutPage() {
       {/* Slogan Section */}
       <section className="text-center py-10 px-6">
         <h2 className="text-3xl md:text-5xl font-bold uppercase leading-tight">
-          We Serve & Styling <br className="md:hidden" /> Ur' Feet*
+          We Serve & Styling <br className="md:hidden" /> Ur&apos;s Feets
         </h2>
         <p className="italic text-sm md:text-base mt-2 text-gray-500">
           *No matter what kind of feet you have.

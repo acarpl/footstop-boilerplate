@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -22,7 +26,9 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.usersRepository.findOneBy({ id_user: Number(id) });
+    const user = await this.usersRepository.findOneBy({
+      id_user: Number(id),
+    });
     if (!user) {
       throw new NotFoundException(`User with ID #${id} not found`);
     }
@@ -30,7 +36,9 @@ export class UsersService {
   }
 
   async findOneById(id: number): Promise<User> {
-    const user = await this.usersRepository.findOneBy({ id_user: id });
+    const user = await this.usersRepository.findOneBy({
+      id_user: id,
+    });
     if (!user) {
       throw new NotFoundException(`User with ID #${id} not found`);
     }
@@ -38,10 +46,9 @@ export class UsersService {
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {
-    // Gunakan query builder untuk secara eksplisit menambahkan kolom 'password'
     return this.usersRepository
       .createQueryBuilder('user')
-      .addSelect('user.password') // <-- TAMBAHKAN BARIS INI
+      .addSelect('user.password') // menambahkan password yang by default tidak ikut di-select
       .where('user.email = :email', { email })
       .getOne();
   }
@@ -56,13 +63,7 @@ export class UsersService {
       throw new NotFoundException(`User with ID #${id} not found`);
     }
 
-    await this.usersRepository.save(user);
-    return user;
-  }
-
-  async remove(id: string): Promise<User> {
-    const user = await this.findOne(id);
-    return this.usersRepository.remove(user);
+    return this.usersRepository.save(user);
   }
 
   async updateRefreshToken(userId: number, refreshToken: string) {
@@ -70,11 +71,16 @@ export class UsersService {
         await this.usersRepository.update(userId, {
             refreshTokenHash: hashedRefreshToken,
         });
-  }
+    }
 
     async removeRefreshToken(userId: number) {
         return this.usersRepository.update(userId, {
             refreshTokenHash: null,
         });
+    }
+
+  async remove(id: string): Promise<User> {
+    const user = await this.findOne(id);
+    return this.usersRepository.remove(user);
   }
 }

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
+import { QueryProductDto } from './dto/query-product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -26,11 +27,57 @@ export class ProductsService {
     return this.productRepository.save(product);
   }
 
-  findAll(): Promise<Product[]> {
-    // Karena kita menggunakan eager: true di entity, relasi brand dan category akan otomatis ikut.
-    return this.productRepository.find();
-  }
+  async findAll(queryDto: QueryProductDto) {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      idCategory,
+      idBrand,
+    } = queryDto;
 
+    const queryBuilder = this.productRepository.createQueryBuilder('product');
+
+    // 2. Lakukan JOIN ke relasi agar bisa memfilter dan menampilkan datanya
+    // Kita gunakan leftJoinAndSelect agar data brand dan category ikut di dalam hasil
+    queryBuilder.leftJoinAndSelect('product.brand', 'brand');
+    queryBuilder.leftJoinAndSelect('product.category', 'category');
+
+    // 3. Tambahkan kondisi WHERE secara dinamis
+    if (search) {
+      // Mencari di nama produk DAN nama brand secara case-insensitive
+      queryBuilder.andWhere(
+        '(product.productName ILIKE :search OR brand.brandName ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    if (idCategory) {
+      queryBuilder.andWhere('product.category.id_category = :idCategory', {
+        idCategory,
+      });
+    }
+
+    if (idBrand) {
+      queryBuilder.andWhere('product.brand.id_brand = :idBrand', { idBrand });
+    }
+
+    // 4. Atur paginasi
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    // 5. Eksekusi query dan dapatkan hasil serta total data
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    // 6. Kembalikan hasil dalam format yang informatif
+    return {
+      data,
+      total,
+      page,
+      limit,
+      lastPage: Math.ceil(total / limit),
+    };
+  }
+  
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepository.findOneBy({ id_product: id });
     if (!product) {

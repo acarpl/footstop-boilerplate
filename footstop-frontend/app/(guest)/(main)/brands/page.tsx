@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Navbar from '#/components/Navbar';
 import Footer from '#/components/Footer';
+import Image from 'next/image';
 
 const brands = [
   { name: "Adidas", logo: "/brands/adidas.png" },
@@ -41,7 +42,7 @@ export default function BrandPage() {
       <div className="max-w-7xl mx-auto py-8 px-4 space-y-8">
         {/* Banner */}
         <div className="bg-white rounded-xl overflow-hidden shadow-md">
-          <img
+          <Image
             src="/banners/new-arrivals-banner.jpg"
             alt="Step Worldwide"
             className="w-full h-48 object-cover"
@@ -64,7 +65,7 @@ export default function BrandPage() {
               className="bg-[#943939] rounded-xl flex items-center justify-center p-6 hover:scale-105 transition duration-300"
               variants={itemVariants}
             >
-              <img
+              <Image
                 src={brand.logo}
                 alt={brand.name}
                 className="h-12 object-contain"

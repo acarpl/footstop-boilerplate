@@ -10,6 +10,7 @@ import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import Image from 'next/image';
 
 const products = new Array(6).fill({
   name: "Converse 70's - Black",
@@ -67,13 +68,13 @@ export default function ShopPage() {
               className="rounded-xl overflow-hidden shadow-lg h-[200px] sm:h-[250px] md:h-[300px]"
             >
               <SwiperSlide className="relative h-full">
-                <img src="/images/bestseller.jpg" alt="Best Seller" className="object-cover w-full h-full" />
+                <Image src="/images/bestseller.jpg" alt="Best Seller" className="object-cover w-full h-full" />
                 <div className="absolute top-6 left-6 bg-black/60 text-white px-4 py-2 rounded-xl shadow backdrop-blur-sm">
                   <h2 className="text-lg sm:text-2xl font-semibold">🔥 Best Seller</h2>
                 </div>
               </SwiperSlide>
               <SwiperSlide className="relative h-full">
-                <img src="/images/newproduct.jpg" alt="New Arrival" className="object-cover w-full h-full" />
+                <Image src="/images/newproduct.jpg" alt="New Arrival" className="object-cover w-full h-full" />
                 <div className="absolute top-6 left-6 bg-black/60 text-white px-4 py-2 rounded-xl shadow backdrop-blur-sm">
                   <h2 className="text-lg sm:text-2xl font-semibold">🆕 New Arrivals</h2>
                 </div>
@@ -91,7 +92,7 @@ export default function ShopPage() {
                   onClick={() => router.push(`/product/${product.slug}`)}
                   className="bg-white rounded-lg p-4 shadow-md text-center transform transition duration-300 ease-in-out hover:scale-105 hover:bg-gray-700 hover:text-white cursor-pointer"
                 >
-                  <img
+                  <Image
                     src={product.image}
                     alt={product.name}
                     className="w-full h-40 object-contain mb-4"

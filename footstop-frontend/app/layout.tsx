@@ -2,6 +2,7 @@ import './globals.css';
 import 'antd/dist/reset.css';
 import {Provider} from "./provider";
 import Script from 'next/script';
+import { AuthProvider } from '../context/AuthContext';
 
 export default function RootLayout({
   children,

@@ -3,6 +3,7 @@ import React from "react";
 // Niatnya mau pake react-icons tapi daripada kebanyakan dependencies mending pake yang ada aja
 import { Facebook, Twitter, Instagram, Github } from "lucide-react";
 import Link from "next/link";
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -10,7 +11,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Logo & Tagline */}
         <div className="flex items-start space-x-6">
-          <img
+          <Image
             src="/icons/Footstop.png"
             alt="FootStop Logo"
             className="h-14 w-auto mt-1"
@@ -111,7 +112,7 @@ export default function Footer() {
         key={index}
         className="p-1.5 bg-white rounded-md border border-gray-300 shadow-sm"
       >
-        <img src={icon.src} alt={icon.alt} className="h-5 w-auto" />
+        <Image src={icon.src} alt={icon.alt} className="h-5 w-auto" />
       </div>
     ))}
   </div>

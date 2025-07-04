@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Star } from "lucide-react";
+import Image from 'next/image';
 
 type ProductDetailProps = {
   slug: string;
@@ -36,18 +37,18 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
     <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-2 gap-12">
       {/* Gambar */}
       <div>
-        <img
+        <Image
           src={product.image}
           alt={product.name}
           className="w-full h-[400px] object-contain rounded-xl"
         />
         <div className="flex gap-4 mt-4">
-          <img
+          <Image
             src={product.image}
             alt="Thumbnail 1"
             className="w-20 h-20 object-contain border rounded-md"
           />
-          <img
+          <Image
             src={product.image}
             alt="Thumbnail 2"
             className="w-20 h-20 object-contain border rounded-md"
