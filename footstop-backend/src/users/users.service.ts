@@ -64,4 +64,17 @@ export class UsersService {
     const user = await this.findOne(id);
     return this.usersRepository.remove(user);
   }
+
+  async updateRefreshToken(userId: number, refreshToken: string) {
+        const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+        await this.usersRepository.update(userId, {
+            refreshTokenHash: hashedRefreshToken,
+        });
+  }
+
+    async removeRefreshToken(userId: number) {
+        return this.usersRepository.update(userId, {
+            refreshTokenHash: null,
+        });
+  }
 }

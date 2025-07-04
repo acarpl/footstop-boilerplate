@@ -5,7 +5,8 @@ import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtStrategy } from './jwt.strategy'; // <-- 1. IMPORT STRATEGY
+import { JwtStrategy } from './jwt.strategy';
+import { RefreshTokenStrategy } from './refresh-token.strategy';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { JwtStrategy } from './jwt.strategy'; // <-- 1. IMPORT STRATEGY
   ],
   controllers: [AuthController],
   // 2. TAMBAHKAN JwtStrategy ke dalam array providers
-  providers: [AuthService, JwtStrategy],
-  exports: [JwtStrategy, PassportModule], // 3. Ekspor agar bisa digunakan di modul lain jika perlu
+  providers: [AuthService, JwtStrategy, RefreshTokenStrategy],
+  exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}
