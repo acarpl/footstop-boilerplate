@@ -50,6 +50,7 @@ export class UsersService {
       .createQueryBuilder('user')
       .addSelect('user.password') // menambahkan password yang by default tidak ikut di-select
       .where('user.email = :email', { email })
+      .leftJoinAndSelect('user.role', 'role')
       .getOne();
   }
 

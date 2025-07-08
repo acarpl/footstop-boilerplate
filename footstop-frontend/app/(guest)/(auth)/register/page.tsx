@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button, Card, Form, Input, Row, Col, Typography, message } from 'antd'; // 1. Import 'message'
 import { useRouter } from 'next/navigation'; // 2. Import useRouter
 import apiClient from '../../../../lib/apiClient'; // 3. Import API client
+import { AxiosError } from 'axios';
 
 const Register = () => {
     const [loading, setLoading] = useState(false);
@@ -28,10 +29,13 @@ const Register = () => {
             }, 1500);
 
         } catch (err) {
-            const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
-            message.error(errorMessage);
-            setLoading(false);
-        }
+            let errorMessage = 'An unexpected error occurred.'; // Pesan default
+        
+            // Periksa apakah 'err' adalah instance dari AxiosError
+            if (err instanceof AxiosError) {
+                // Jika ya, sekarang TypeScript tahu bahwa 'err' punya properti 'response'
+                errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
+            }
     };
 
     return (
@@ -67,5 +71,5 @@ const Register = () => {
         </div>
     );
 };
-
+};
 export default Register;

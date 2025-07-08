@@ -14,7 +14,8 @@ export default function Footer() {
           <Image
             src="/icons/Footstop.png"
             alt="FootStop Logo"
-            className="h-14 w-auto mt-1"
+            width={50}
+            height={50}
           />
           <div className="text-black font-semibold space-y-1">
             <p>Your First</p>
@@ -112,7 +113,7 @@ export default function Footer() {
         key={index}
         className="p-1.5 bg-white rounded-md border border-gray-300 shadow-sm"
       >
-        <Image src={icon.src} alt={icon.alt} className="h-5 w-auto" />
+        <Image src={icon.src} alt={icon.alt} width={50} height={50} style={{ objectFit: 'contain' }} />
       </div>
     ))}
   </div>

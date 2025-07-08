@@ -43,14 +43,15 @@ const products = [
 
 // Animation variants
 const productVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: (i: number) => ({
+  hidden: { opacity: 0, x: 100 },
+  visible: (i: number): any => ({
     opacity: 1,
-    y: 0,
+    x: 0,
     transition: {
-      delay: i * 0.1,
+      delay: i * 0.15,
       type: 'spring',
-      stiffness: 70,
+      stiffness: 80,
+      damping: 15,
     },
   }),
 };

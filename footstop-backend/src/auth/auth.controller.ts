@@ -42,9 +42,9 @@ export class AuthController {
     // 3. GUNAKAN OPSI COOKIE YANG BENAR
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // true di produksi
-      path: '/',
-      sameSite: 'strict' as const,
+      secure: false, // true di produksi
+      path: '/  ',
+      sameSite: 'lax' as const,
     };
 
     response.cookie('accessToken', tokens.accessToken, cookieOptions);

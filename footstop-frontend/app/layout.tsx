@@ -3,6 +3,8 @@ import 'antd/dist/reset.css';
 import {Provider} from "./provider";
 import Script from 'next/script';
 import { AuthProvider } from '../context/AuthContext';
+import Navbar from '#/components/Navbar';
+import { App } from 'antd';
 
 export default function RootLayout({
   children,
@@ -20,7 +22,19 @@ export default function RootLayout({
 
       <body>
         <Script src="/api/env" strategy={"beforeInteractive"}></Script>
-        <Provider>{children}</Provider>
+        <App> {/* Bungkus dengan <App> jika Anda menggunakan message.success/error */}
+          <AuthProvider> {/* <-- AuthProvider sekarang menjadi pembungkus terluar */}
+            
+            {/* Navbar sekarang berada DI DALAM AuthProvider */}
+            <Navbar /> 
+            
+            {/* Halaman konten (children) juga berada di dalam */}
+            <main>{children}</main>
+            
+            {/* Anda bisa menambahkan Footer di sini juga */}
+
+          </AuthProvider>
+        </App>
       </body>
     </html>
   )

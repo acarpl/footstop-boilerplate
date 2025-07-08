@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 // Data untuk kategori
 const categoriesData = [
-  {
+    {
     name: 'Snikers',
     image: '/images/categories/sneakers.png',
     alt: 'Kategori Sneakers',
@@ -29,7 +29,7 @@ const categoriesData = [
   },
 ];
 
-// Variants untuk animasi masuk
+// Variants untuk animasi masuk (dengan perbaikan)
 const cardVariants = {
   hidden: { opacity: 0, x: 100 },
   visible: (i: number) => ({
@@ -42,7 +42,7 @@ const cardVariants = {
       damping: 15,
     },
   }),
-};
+} as const; // Menggunakan 'as const' untuk keamanan tipe dengan Framer Motion
 
 export default function Categories() {
   return (
@@ -63,7 +63,8 @@ export default function Categories() {
               <Card
                 hoverable
                 className="bg-white rounded-2xl border-none shadow-md overflow-hidden"
-                bodyStyle={{ padding: '1.5rem' }}
+                // Peringatan Ant Design menyarankan ini:
+                styles={{ body: { padding: '1.5rem' } }} 
               >
                 <h3 className="font-bold text-2xl mb-4 text-gray-800">{category.name}</h3>
                 <div className="relative h-48 md:h-56 w-full">
@@ -71,7 +72,7 @@ export default function Categories() {
                     src={category.image}
                     alt={category.alt}
                     fill
-                    className="object-contain"
+                    style={{ objectFit: 'contain' }}
                   />
                 </div>
               </Card>
