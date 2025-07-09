@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Panggil endpoint profile. Browser akan otomatis mengirim cookie.
       const response = await apiClient.get<User>('/auth/profile');
       setUser(response.data);
+      console.log(response.data);
     } catch (error) {
       // Jika gagal (error 401), berarti tidak ada sesi login yang valid.
       setUser(null);

@@ -4,6 +4,8 @@ import Hero from '#/components/Hero';
 import FeaturedProducts from '#/components/FeaturedProducts';
 import Categories from '#/components/Categories';
 import { motion } from 'framer-motion';
+import { TokenUtil } from '#/utils/token';
+TokenUtil.loadToken();
 
 export default function HomePage() {
   console.log('API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);

@@ -50,7 +50,9 @@ export class AuthController {
     response.cookie('accessToken', tokens.accessToken, cookieOptions);
     response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
 
-    return { message: 'Login successful' };
+    return { message: 'Login successful',
+              accessToken: tokens.accessToken
+     };
   }
 
   @Post('logout')

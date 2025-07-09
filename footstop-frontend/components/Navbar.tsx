@@ -12,7 +12,7 @@ export default function Navbar() {
   const { user, logout, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-
+ console.log(user);
   // Loading state with proper skeleton
   if (loading) {
     return (

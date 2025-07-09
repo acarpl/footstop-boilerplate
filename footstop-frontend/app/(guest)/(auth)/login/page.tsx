@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import apiClient from '../../../../lib/apiClient';
 import { AxiosError } from 'axios';
 import { useAuth } from '../../../../context/AuthContext';
+import { TokenUtil } from '#/utils/token';
 
 const Login = () => {
   const [loading, setLoading] = useState(false); // Untuk tombol "Log In"
@@ -26,17 +27,19 @@ const Login = () => {
 
     try {
       // Kirim permintaan login ke backend
-      await apiClient.post('/auth/login', {
+      const response = await apiClient.post('/auth/login', {
         email: values.email,
         password: values.password,
       });
 
       // Jika sukses, tampilkan notifikasi
       message.success('Login berhasil! Mengarahkan ke dashboard...');
+      TokenUtil.setAccessToken(response.data.accessToken);
+      TokenUtil.persistToken();
 
       // Redirect ke halaman dashboard setelah 1 detik
       setTimeout(() => {
-        window.location.href = '/homelogin';
+        window.location.href = '/dashboard';
       }, 1000);
     } catch (err) {
       // Tangani error dari Axios jika login gagal
