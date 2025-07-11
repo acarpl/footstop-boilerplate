@@ -39,7 +39,7 @@ const Login = () => {
 
       // Redirect ke halaman dashboard setelah 1 detik
       setTimeout(() => {
-        window.location.href = '/dashboard';
+        window.location.href = '/home';
       }, 1000);
     } catch (err) {
       // Tangani error dari Axios jika login gagal
