@@ -60,7 +60,24 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({children}) => 
 
   return (
     <Layout>
+      <Header className="header flex">
+        <div className={"text-white"}>y</div>
+        <Menu theme="dark" mode="horizontal" defaultSelectedKeys={[]} items={items1} className={"flex-1"}/>
+      </Header>
       <Layout>
+        <Sider width={200} style={{background: colorBgContainer}}>
+          <Menu
+            mode="inline"
+            defaultSelectedKeys={['1']}
+            defaultOpenKeys={['sub1']}
+            style={{height: '100%', borderRight: 0}}
+            items={menu.concat(items2)}
+            onClick={({key}) => {
+              router.push(key);
+              // console.log(`key ${key} route not found`);
+            }}
+          />
+        </Sider>
         <Layout style={{padding: '0 24px 24px', height: 'calc(100vh - 64px)'}}>
           <Content
             style={{

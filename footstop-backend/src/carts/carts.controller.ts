@@ -19,7 +19,7 @@ export class CartsController {
     return this.cartsService.addItemToCart(user.id_user, createCartDto);
   }
 
-  @Get() // <-- Pastikan ini benar
+  @Get()
   findAllForUser(@GetUser() user: User) {
     return this.cartsService.findAllForUser(user.id_user);
   }

@@ -26,9 +26,7 @@ const Login = () => {
 
       // Redirect ke halaman utama setelah jeda singkat
       setTimeout(() => {
-        // Menggunakan router.push lebih disarankan daripada window.location.href
-        // untuk navigasi di dalam aplikasi Next.js
-        router.push('/home'); 
+        window.location.href = '/dashboard';
       }, 1000);
 
     } catch (err) {

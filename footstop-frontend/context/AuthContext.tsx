@@ -1,13 +1,14 @@
 // context/AuthContext.tsx
 
+// context/AuthContext.tsx
+
 'use client';
 
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import apiClient from '../lib/apiClient'; // Pastikan path ini benar
 
 // 1. Tipe User yang lebih spesifik dan lengkap
 interface User {
-  phone_number: any;
   id_user: number;
   username: string;
   email: string;
@@ -37,6 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    */
   const fetchUser = async () => {
     try {
+      // Panggil endpoint profile. Browser akan otomatis mengirim cookie.
       const response = await apiClient.get<User>('/auth/profile');
       setUser(response.data);
     } catch (error) {
@@ -47,9 +49,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Jalankan pemeriksaan sesi sekali saat aplikasi dimuat
   useEffect(() => {
+    // FIX 1: Hapus semua logika localStorage.
+    // Sebagai gantinya, panggil fetchUser untuk memeriksa sesi via cookie.
     const checkUserStatus = async () => {
       await fetchUser();
-      setLoading(false);
+      setLoading(false); // Hentikan loading setelah selesai memeriksa.
     };
     checkUserStatus();
   }, []);
@@ -62,11 +66,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (email: string, password: string): Promise<void> => {
     return new Promise(async (resolve, reject) => {
       try {
+        // 1. Panggil API login. Backend akan mengatur cookie.
         await apiClient.post('/auth/login', { email, password });
         // Setelah login berhasil, langsung perbarui state dengan data user baru
         await fetchUser(); 
+        
+        // 3. Beri tahu komponen pemanggil bahwa semuanya berhasil.
         resolve(); 
       } catch (err) {
+        // 4. Jika gagal, kirim error.
         reject(err);
       }
     });
@@ -77,6 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    */
   const logout = async () => {
     try {
+      // Beritahu backend untuk menghapus sesi/refresh token.
       await apiClient.post('/auth/logout');
     } catch (error) {
       console.error('Logout API call failed:', error);
@@ -101,7 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Hook kustom untuk menggunakan context
+// Hook kustom untuk menggunakan context, sudah benar.
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {

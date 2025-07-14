@@ -1,4 +1,3 @@
-
 import './globals.css';
 import 'antd/dist/reset.css';
 import {Provider} from "./provider";
@@ -21,7 +20,8 @@ export default function RootLayout({
       */}
       <head />
 
-      <body><Script src="/api/env" strategy={"afterInteractive"}></Script>
+      <body>
+        <Script src="/api/env" strategy={"beforeInteractive"}></Script>
         <App> {/* Bungkus dengan <App> jika Anda menggunakan message.success/error */}
           <AuthProvider> {/* <-- AuthProvider sekarang menjadi pembungkus terluar */}
             

@@ -11,14 +11,12 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import Image from 'next/image';
-import { TokenUtil } from "#/utils/token";
-TokenUtil.loadToken();
 
 const products = new Array(6).fill({
   name: "Converse 70's - Black",
   price: "Rp 1,770,000",
   rating: 4.5,
-  image: "/products/converse-black.png",
+  image: "products/converse-black.png",
   slug: "converse-70s-black",
 });
 
@@ -70,13 +68,13 @@ export default function ShopPage() {
               className="rounded-xl overflow-hidden shadow-lg h-[200px] sm:h-[250px] md:h-[300px]"
             >
               <SwiperSlide className="relative h-full">
-                <Image src="/images/bestseller.jpg" alt="Best Seller" className="object-cover w-full h-full" width={100} height={100} />
+                <Image src="/images/bestseller.jpg" alt="Best Seller" className="object-cover w-full h-full" />
                 <div className="absolute top-6 left-6 bg-black/60 text-white px-4 py-2 rounded-xl shadow backdrop-blur-sm">
                   <h2 className="text-lg sm:text-2xl font-semibold">🔥 Best Seller</h2>
                 </div>
               </SwiperSlide>
               <SwiperSlide className="relative h-full">
-                <Image src="/images/newproduct.jpg" alt="New Arrival" className="object-cover w-full h-full" width={100} height={100} />
+                <Image src="/images/newproduct.jpg" alt="New Arrival" className="object-cover w-full h-full" />
                 <div className="absolute top-6 left-6 bg-black/60 text-white px-4 py-2 rounded-xl shadow backdrop-blur-sm">
                   <h2 className="text-lg sm:text-2xl font-semibold">🆕 New Arrivals</h2>
                 </div>
@@ -97,7 +95,7 @@ export default function ShopPage() {
                   <Image
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-40 object-contain mb-4" width={100} height={100}
+                    className="w-full h-40 object-contain mb-4"
                   />
                   <h3 className="text-base font-semibold mb-2">{product.name}</h3>
                   <div className="flex justify-center items-center mb-2 text-yellow-400 text-sm">
