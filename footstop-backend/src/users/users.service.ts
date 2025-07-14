@@ -11,6 +11,7 @@ import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
+  userRepository: any;
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
@@ -67,18 +68,36 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async updateRefreshToken(userId: number, refreshToken: string) {
-        const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-        await this.usersRepository.update(userId, {
-            refreshTokenHash: hashedRefreshToken,
-        });
-    }
+  // src/users/users.service.ts
 
-    async removeRefreshToken(userId: number) {
-        return this.usersRepository.update(userId, {
-            refreshTokenHash: null,
-        });
-    }
+async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
+    const saltRounds = 10;
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, saltRounds);
+    
+    // Baris ini sekarang seharusnya berfungsi karena this.userRepository tidak lagi undefined
+    await this.userRepository 
+      .createQueryBuilder()
+      .update(User)
+      .set({ refreshTokenHash: hashedRefreshToken })
+      .where("id_user = :id", { id: userId })
+      .execute();
+  }
+
+  /**
+   * Menghapus (nullify) refresh token hash dari database.
+   * Dipanggil saat logout.
+   * @param userId - ID pengguna.
+   */
+  async removeRefreshToken(userId: number): Promise<void> {
+    // Metode ini juga bisa diubah ke Query Builder untuk konsistensi
+    await this.usersRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ refreshTokenHash: null })
+      .where("id_user = :id", { id: userId })
+      .execute();
+  }
+
 
   async remove(id: string): Promise<User> {
     const user = await this.findOne(id);

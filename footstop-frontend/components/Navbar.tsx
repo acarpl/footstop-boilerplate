@@ -1,17 +1,51 @@
 "use client";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useState } from "react";
-import { Menu, X, Search, ShoppingCart, User as UserIcon } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import Image from 'next/image';
+import {
+  Menu,
+  X,
+  LogOut,
+  Search,
+  ShoppingCart,
+  User as UserIcon
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   const { user, logout, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
- console.log(user);
-  // Loading state with proper skeleton
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !(dropdownRef.current as HTMLElement).contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/');
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  const isActive = (path: string) => pathname === path;
+
   if (loading) {
     return (
       <nav className="sticky top-0 z-50 w-full max-w-7xl mx-auto bg-white/30 backdrop-blur-md border border-white/20 rounded-b-3xl px-4 py-3 shadow-lg">
@@ -24,56 +58,30 @@ export default function Navbar() {
     );
   }
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push('/');
-      setIsOpen(false); // Close mobile menu
-    } catch (error) {
-      console.error('Logout failed:', error);
-      // You might want to show a toast notification here
-    }
-  };
-
-  const isActive = (path: string) => pathname === path;
-
   return (
     <nav className="sticky top-0 z-50 w-full max-w-7xl mx-auto bg-white/30 backdrop-blur-md border border-white/20 rounded-b-3xl px-4 py-3 shadow-lg">
       <div className="flex items-center justify-between">
         {/* Logo */}
-        <Link 
-          href="/" 
-          className="text-2xl font-bold text-red-600 hover:text-red-700 transition-colors"
-        >
+        <Link href="/" className="text-2xl font-bold text-red-600 hover:text-red-700 transition-colors">
           Footstop
         </Link>
 
         {/* Desktop Navigation */}
         <ul className="hidden md:flex gap-6 ml-8">
-          <li className="relative group">
-            <Link 
-              href="/shop" 
-              className={`hover:text-red-600 transition-colors ${isActive('/shop') ? 'text-red-600 font-semibold' : ''}`}
-            >
-              Shop
-            </Link>
-          </li>
-          <li className="relative group">
-            <Link 
-              href="/about" 
-              className={`hover:text-red-600 transition-colors ${isActive('/about') ? 'text-red-600 font-semibold' : ''}`}
-            >
-              About
-            </Link>
-          </li>
-          <li className="relative group">
-            <Link 
-              href="/contact" 
-              className={`hover:text-red-600 transition-colors ${isActive('/contact') ? 'text-red-600 font-semibold' : ''}`}
-            >
-              Contact
-            </Link>
-          </li>
+          {["/shop", "/sale", "/new", "/brands"].map((path, idx) => (
+            <li key={idx}>
+              <Link
+                href={path}
+                className={`hover:text-red-600 transition-colors ${
+                  isActive(path) ? "text-red-600 font-semibold" : ""
+                }`}
+              >
+                {path === "/shop" ? "Shop" :
+                 path === "/sale" ? "BestSeller" :
+                 path === "/new" ? "NewArrivals" : "Brands"}
+              </Link>
+            </li>
+          ))}
         </ul>
 
         {/* Desktop Right Side */}
@@ -88,31 +96,54 @@ export default function Navbar() {
             />
           </div>
 
-          {/* Auth-based Navigation */}
+          {/* Auth */}
           {user ? (
             <>
-              <Link 
-                href="/cart" 
-                className="relative p-2 hover:bg-gray-200 rounded-full transition"
-                aria-label="Shopping Cart"
-              >
+              <Link href="/cart" className="relative p-2 hover:bg-gray-200 rounded-full transition" aria-label="Cart">
                 <ShoppingCart size={20} />
-                {/* Cart counter can be added here */}
               </Link>
-              <Link 
-                href="/profile" 
-                className="p-2 hover:bg-gray-200 rounded-full transition"
-                aria-label="User Profile"
-              >
-                <UserIcon size={20} />
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
-                aria-label="Logout"
-              >
-                Log Out
-              </button>
+
+              <div className="relative" ref={dropdownRef}>
+                <button onClick={() => setShowDropdown(!showDropdown)} className="p-2 hover:bg-gray-200 rounded-full transition">
+                  <UserIcon size={20} />
+                </button>
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
+                    <div className="flex items-center p-4 border-b">
+                      <Image
+                        src="/profile.jpg"
+                        alt="Profile"
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                      />
+                      <div className="flex flex-col ml-3">
+                        <div className="font-medium">Admin</div>
+                        <div className="text-sm text-gray-600">Rp 0</div>
+                      </div>
+                    </div>
+                    <ul className="py-2">
+                      <li>
+                        <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100">Account Profile</Link>
+                      </li>
+                      <li>
+                        <Link href="/settings" className="block px-4 py-2 hover:bg-gray-100">Settings</Link>
+                      </li>
+                      <li>
+                        <Link href="/orders" className="block px-4 py-2 hover:bg-gray-100">Order List</Link>
+                      </li>
+                      <li>
+                        <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-gray-100">
+                          <div className="flex items-center gap-2">
+                            <LogOut className="w-5 h-5" />
+                            Logout
+                          </div>
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <>
@@ -145,58 +176,43 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden mt-4 animate-slide-down">
           <ul className="flex flex-col gap-3">
-            <li>
-              <Link 
-                href="/shop" 
-                className={`block py-2 px-3 rounded-md hover:bg-gray-100 transition-colors ${isActive('/shop') ? 'text-red-600 font-semibold' : ''}`}
-                onClick={() => setIsOpen(false)}
-              >
-                Shop
-              </Link>
-            </li>
-            <li>
-              <Link 
-                href="/about" 
-                className={`block py-2 px-3 rounded-md hover:bg-gray-100 transition-colors ${isActive('/about') ? 'text-red-600 font-semibold' : ''}`}
-                onClick={() => setIsOpen(false)}
-              >
-                About
-              </Link>
-            </li>
-            <li>
-              <Link 
-                href="/contact" 
-                className={`block py-2 px-3 rounded-md hover:bg-gray-100 transition-colors ${isActive('/contact') ? 'text-red-600 font-semibold' : ''}`}
-                onClick={() => setIsOpen(false)}
-              >
-                Contact
-              </Link>
-            </li>
-            
+            {["/shop", "/about", "/contact"].map((path, idx) => (
+              <li key={idx}>
+                <Link
+                  href={path}
+                  className={`block py-2 px-3 rounded-md hover:bg-gray-100 transition-colors ${isActive(path) ? "text-red-600 font-semibold" : ""}`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {path === "/shop" ? "Shop" :
+                   path === "/about" ? "About" : "Contact"}
+                </Link>
+              </li>
+            ))}
+
             <hr className="my-2" />
-            
+
             {user ? (
               <>
                 <li>
-                  <Link 
-                    href="/profile" 
-                    className="block py-2 px-3 rounded-md hover:bg-gray-100 transition-colors"
+                  <Link
+                    href="/account"
+                    className="block py-2 px-3 rounded-md hover:bg-gray-100"
                     onClick={() => setIsOpen(false)}
                   >
-                    My Profile
+                    Account
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/cart" 
-                    className="block py-2 px-3 rounded-md hover:bg-gray-100 transition-colors"
+                  <Link
+                    href="/cart"
+                    className="block py-2 px-3 rounded-md hover:bg-gray-100"
                     onClick={() => setIsOpen(false)}
                   >
                     My Cart
                   </Link>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={handleLogout}
                     className="block w-full text-left py-2 px-3 rounded-md hover:bg-gray-100 transition-colors"
                   >
@@ -207,8 +223,8 @@ export default function Navbar() {
             ) : (
               <>
                 <li>
-                  <Link 
-                    href="/register" 
+                  <Link
+                    href="/register"
                     className="block py-2 px-3 rounded-md hover:bg-gray-100 transition-colors"
                     onClick={() => setIsOpen(false)}
                   >
@@ -216,8 +232,8 @@ export default function Navbar() {
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/login" 
+                  <Link
+                    href="/login"
                     className="block py-2 px-3 rounded-md hover:bg-gray-100 transition-colors"
                     onClick={() => setIsOpen(false)}
                   >

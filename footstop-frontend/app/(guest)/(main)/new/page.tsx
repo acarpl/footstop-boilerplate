@@ -1,6 +1,7 @@
 "use client";
 import ProductCard from "#/components/product/ProductCard";
 import Navbar from '#/components/Navbar'
+import footer from '#/components/Footer'
 import Image from "next/image";
 
 const dummyProducts = Array(6).fill({
@@ -41,6 +42,7 @@ export default function NewArrivalPage() {
           ))}
         </section>
       </div>
+      <footer />
     </main>
   );
 }

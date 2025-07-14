@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) { // Secara default, nama strateginya adalah 'jwt'
   constructor(

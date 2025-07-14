@@ -1,6 +1,6 @@
 import { Brand } from '../../brands/entities/brand.entity';
 import { Category } from '../../categories/entities/category.entity';
-import { Gambar } from '../../gambar/entities/gambar.entity'; // Akan kita buat nanti
+import { Gambar } from '../../gambar/entities/gambar.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,

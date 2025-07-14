@@ -1,59 +1,44 @@
+// app/(guest)/(auth)/login/page.tsx
+
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Button,
-  Card,
-  Checkbox,
-  Form,
-  Input,
-  Typography,
-  message,
-} from 'antd';
+import { Button, Card, Checkbox, Form, Input, Typography, message } from 'antd';
 import { useRouter } from 'next/navigation';
-import apiClient from '../../../../lib/apiClient';
 import { AxiosError } from 'axios';
-import { useAuth } from '../../../../context/AuthContext';
-import { TokenUtil } from '#/utils/token';
+import { useAuth } from '../../../../context/AuthContext'; // Sesuaikan path jika perlu
 
 const Login = () => {
-  const [loading, setLoading] = useState(false); // Untuk tombol "Log In"
-  const router = useRouter(); // Router dari Next.js (app directory)
-  const { login } = useAuth(); // Ambil fungsi login dari context
+  const [loading, setLoading] = useState(false);
+  const router = useRouter(); // Gunakan router Next.js untuk navigasi
+  const { login } = useAuth(); // Ambil fungsi login dari AuthContext
 
   // Fungsi yang dijalankan saat form berhasil disubmit
-  const onFinish = async (values: { email: string; password: string }) => {
-    setLoading(true); // Mulai loading saat login diproses
-
+  const onFinish = async (values: { email: string; password: string; }) => {
+    setLoading(true);
     try {
-      // Kirim permintaan login ke backend
-      const response = await apiClient.post('/auth/login', {
-        email: values.email,
-        password: values.password,
-      });
+      // Panggil fungsi login terpusat dari context.
+      // Fungsi ini akan menangani panggilan API dan pembaruan state global.
+      await login(values.email, values.password);
 
-      // Jika sukses, tampilkan notifikasi
-      message.success('Login berhasil! Mengarahkan ke dashboard...');
-      TokenUtil.setAccessToken(response.data.accessToken);
-      TokenUtil.persistToken();
+      // Jika promise di atas berhasil (tidak melempar error), maka login sukses.
+      message.success('Login successful! Redirecting...');
 
-      // Redirect ke halaman dashboard setelah 1 detik
+      // Redirect ke halaman utama setelah jeda singkat
       setTimeout(() => {
-        window.location.href = '/home';
+        // Menggunakan router.push lebih disarankan daripada window.location.href
+        // untuk navigasi di dalam aplikasi Next.js
+        router.push('/home'); 
       }, 1000);
+
     } catch (err) {
-      // Tangani error dari Axios jika login gagal
-      let errorMessage = 'Terjadi kesalahan saat login.';
-
+      // Tangani error jika promise dari fungsi login di-reject
+      let errorMessage = 'An unexpected error occurred.';
       if (err instanceof AxiosError) {
-        // Ambil pesan error dari response backend jika ada
-        errorMessage =
-          err.response?.data?.message ||
-          'Login gagal. Periksa kembali email dan password Anda.';
+        errorMessage = err.response?.data?.message || 'Login failed. Please check credentials.';
       }
-
       message.error(errorMessage);
-      setLoading(false); // Hentikan loading jika gagal
+      setLoading(false); // Pastikan loading dihentikan jika gagal
     }
   };
 
@@ -70,55 +55,34 @@ const Login = () => {
         className="shadow-xl rounded-2xl"
         style={{ width: 350, textAlign: 'center' }}
       >
-        {/* Judul Brand */}
         <Typography.Title level={3} style={{ color: '#E53935' }}>
           FOOTSTOP
         </Typography.Title>
-
-        {/* Subjudul */}
         <Typography.Text strong>Welcome Back!</Typography.Text>
-
-        {/* Form Login */}
         <Form
           layout="vertical"
           onFinish={onFinish}
           style={{ marginTop: 20 }}
         >
-          {/* Input Email */}
           <Form.Item
-            label="email"
+            label="E-mail"
             name="email"
             rules={[
-              {
-                required: true,
-                type: 'email',
-                message: 'Masukkan alamat email yang valid!',
-              },
+              { required: true, type: 'email', message: 'Please enter a valid email address!' },
             ]}
           >
-            <Input placeholder="contoh: kamu@example.com" />
+            <Input placeholder="e.g., you@example.com" />
           </Form.Item>
-
-          {/* Input Password */}
           <Form.Item
-            label="password"
+            label="Password"
             name="password"
-            rules={[
-              {
-                required: true,
-                message: 'Masukkan password Anda!',
-              },
-            ]}
+            rules={[{ required: true, message: 'Please enter your password!' }]}
           >
-            <Input.Password placeholder="Ketik password kamu di sini" />
+            <Input.Password placeholder="Type your password here" />
           </Form.Item>
-
-          {/* Checkbox Remember Me */}
           <Form.Item name="remember" valuePropName="checked">
-            <Checkbox>Ingat saya</Checkbox>
+            <Checkbox>Remember me</Checkbox>
           </Form.Item>
-
-          {/* Tombol Login */}
           <Form.Item>
             <Button
               type="primary"
@@ -130,12 +94,10 @@ const Login = () => {
               Log In
             </Button>
           </Form.Item>
-
-          {/* Link ke halaman register */}
           <Typography.Text>
-            Belum punya akun?{' '}
+            Don't have an account?{' '}
             <a href="/register" className="text-red-600">
-              Daftar di sini!
+              Register here!
             </a>
           </Typography.Text>
         </Form>

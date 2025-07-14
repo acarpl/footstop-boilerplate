@@ -39,17 +39,17 @@ export class AuthController {
   ) {
     const tokens = await this.authService.login(loginDto);
     
-    // 3. GUNAKAN OPSI COOKIE YANG BENAR
-    const cookieOptions = {
-      httpOnly: true,
-      secure: false, // true di produksi
-      path: '/  ',
-      sameSite: 'lax' as const,
-    };
+   const cookieOptions = {
+  httpOnly: true,
+  // secure HARUS false untuk development di localhost (HTTP)
+  secure: process.env.NODE_ENV === 'production', 
+  // 'lax' adalah pilihan yang baik untuk development
+  sameSite: 'lax' as const, 
+  path: '/',
+};
 
     response.cookie('accessToken', tokens.accessToken, cookieOptions);
-    response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
-
+response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
     return { message: 'Login successful',
               accessToken: tokens.accessToken
      };
