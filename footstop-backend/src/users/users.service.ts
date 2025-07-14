@@ -1,20 +1,17 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DeepPartial } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { DeepPartial, Repository } from 'typeorm';
+import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
 
-@Injectable()
+@Injectable() // WAJIB
 export class UsersService {
-  userRepository: any;
+  usersRepository: any;
+  
   constructor(
     @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async create(userLikeObject: DeepPartial<User>): Promise<User> {
@@ -47,11 +44,12 @@ export class UsersService {
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {
-    return this.usersRepository
+    // Baris ini akan gagal jika this.userRepository adalah undefined
+    return this.userRepository
       .createQueryBuilder('user')
-      .addSelect('user.password') // menambahkan password yang by default tidak ikut di-select
-      .where('user.email = :email', { email })
       .leftJoinAndSelect('user.role', 'role')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
       .getOne();
   }
 
@@ -71,17 +69,13 @@ export class UsersService {
   // src/users/users.service.ts
 
 async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
-    const saltRounds = 10;
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, saltRounds);
-    
-    // Baris ini sekarang seharusnya berfungsi karena this.userRepository tidak lagi undefined
-    await this.userRepository 
-      .createQueryBuilder()
-      .update(User)
-      .set({ refreshTokenHash: hashedRefreshToken })
-      .where("id_user = :id", { id: userId })
-      .execute();
-  }
+  const saltRounds = 10;
+  const hash = crypto.createHash('sha256'); // Create a hash object using the SHA-256 algorithm
+  hash.update(refreshToken); // Update the hash object with the refresh token
+  const hashedRefreshToken = hash.digest('hex'); // Get the hashed refresh token as a hexadecimal string
+
+  // ...
+}
 
   /**
    * Menghapus (nullify) refresh token hash dari database.

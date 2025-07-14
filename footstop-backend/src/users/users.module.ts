@@ -1,3 +1,5 @@
+// src/users/users.module.ts
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
@@ -5,12 +7,11 @@ import { UsersController } from './users.controller';
 import { User } from './entities/user.entity';
 
 @Module({
-  // Baris ini adalah kunci.
-  // Ia mendaftarkan User entity, yang memungkinkan TypeORM membuat UserRepository.
+  // BARIS INI ADALAH KUNCINYA.
+  // Tanpa ini, NestJS tidak tahu cara membuat Repository<User>.
   imports: [TypeOrmModule.forFeature([User])],
   controllers: [UsersController],
   providers: [UsersService],
-  // Pastikan ini diekspor agar AuthModule bisa menggunakan UsersService
   exports: [UsersService],
 })
 export class UsersModule {}

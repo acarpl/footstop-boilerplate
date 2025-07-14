@@ -28,7 +28,7 @@ async function bootstrap() {
 
   // KONFIGURASI CORS YANG BENAR DAN SPESIFIK
   app.enableCors({
-    origin: 'http://localhost:3000', // Alamat frontend Anda
+    origin: 'http://localhost:3000',
     credentials: true,
   });
 

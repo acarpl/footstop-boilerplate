@@ -11,6 +11,7 @@ import { OrdersModule } from './orders/orders.module';
 import { ProductsModule } from './products/products.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import { OrdersDetailsModule } from './orders-details/orders-details.module';
 import { LoggerModule } from 'nestjs-pino';
 @Module({
@@ -54,6 +55,7 @@ import { LoggerModule } from 'nestjs-pino';
     ProductsModule,
     PaymentsModule,
     AuthModule,
+    UsersModule,
     // Module lain akan diimpor di sini
   ],
   controllers: [],

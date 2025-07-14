@@ -1,5 +1,5 @@
 'use client';
-
+import Navbar from '#/components/Navbar';
 import Hero from '#/components/Hero';
 import FeaturedProducts from '#/components/FeaturedProducts';
 import Categories from '#/components/Categories';
@@ -11,8 +11,6 @@ export default function HomePage() {
   console.log('API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
   
   return (
-    // Tidak perlu <div className="flex flex-col items-center">
-    // Tidak perlu <Navbar /> dan <Footer /> karena sudah ada di layout.tsx
     <>
       <Hero />
 

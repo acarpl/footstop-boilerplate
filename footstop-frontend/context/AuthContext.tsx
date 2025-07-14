@@ -1,28 +1,22 @@
-// context/AuthContext.tsx
-
-// context/AuthContext.tsx
-
 'use client';
 
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import apiClient from '../lib/apiClient'; // Pastikan path ini benar
 
-// 1. Tipe User yang lebih spesifik dan lengkap
+// Definisikan tipe untuk data User yang diterima dari API
 interface User {
+  phone_number: any;
   id_user: number;
   username: string;
   email: string;
-  role: {
-    id_role: number;
-    nama_role: string;
-  };
+  // Tambahkan properti lain jika ada, misal: role
 }
 
-// 2. Tipe Context yang lebih spesifik
+// Definisikan tipe untuk nilai yang disediakan oleh Context
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>; // Menggunakan string, bukan any
+  login: (email: any, password: any) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -32,75 +26,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  /**
-   * Mengambil data profil pengguna dari server untuk memverifikasi sesi aktif.
-   * Ini adalah "sumber kebenaran" untuk status login.
-   */
+  // Fungsi untuk mengambil data profil user dari backend
   const fetchUser = async () => {
     try {
-      // Panggil endpoint profile. Browser akan otomatis mengirim cookie.
       const response = await apiClient.get<User>('/auth/profile');
       setUser(response.data);
+      console.log("User data fetched successfully in Context:", response.data);
     } catch (error) {
-      // Jika error (misal 401), berarti tidak ada sesi, set user ke null.
+      // Ini normal terjadi jika user belum login
       setUser(null);
+      console.log("No active session found.");
     }
   };
 
-  // Jalankan pemeriksaan sesi sekali saat aplikasi dimuat
+  // Jalankan pemeriksaan sesi saat aplikasi pertama kali dimuat
   useEffect(() => {
-    // FIX 1: Hapus semua logika localStorage.
-    // Sebagai gantinya, panggil fetchUser untuk memeriksa sesi via cookie.
     const checkUserStatus = async () => {
       await fetchUser();
-      setLoading(false); // Hentikan loading setelah selesai memeriksa.
+      setLoading(false);
     };
     checkUserStatus();
-  }, []);
+  }, []); // Dependensi kosong berarti hanya berjalan sekali
 
-  /**
-   * Menangani proses login. Memanggil API, lalu memperbarui state user.
-   * @param email - Email pengguna
-   * @param password - Password pengguna
-   */
-  const login = (email: string, password: string): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
+  const login = async (email: any, password: any) => {
+    return new Promise<void>(async (resolve, reject) => {
       try {
-        // 1. Panggil API login. Backend akan mengatur cookie.
         await apiClient.post('/auth/login', { email, password });
-        // Setelah login berhasil, langsung perbarui state dengan data user baru
+        // Setelah login, langsung panggil fetchUser untuk memperbarui state
         await fetchUser(); 
-        
-        // 3. Beri tahu komponen pemanggil bahwa semuanya berhasil.
         resolve(); 
       } catch (err) {
-        // 4. Jika gagal, kirim error.
         reject(err);
       }
     });
   };
 
-  /**
-   * Menangani proses logout. Memanggil API dan membersihkan state.
-   */
   const logout = async () => {
     try {
-      // Beritahu backend untuk menghapus sesi/refresh token.
       await apiClient.post('/auth/logout');
-    } catch (error) {
-      console.error('Logout API call failed:', error);
-    } finally {
-      // Selalu bersihkan state dan arahkan ulang, bahkan jika API gagal
       setUser(null);
-      // Menggunakan window.location.href akan memaksa refresh penuh,
-      // memastikan semua state di-reset dengan bersih.
-      window.location.href = '/login'; 
+    } catch (error) {
+      console.error('Logout failed:', error);
+      setUser(null);
     }
   };
 
-  // Tampilkan loading screen sederhana selagi status otentikasi diperiksa
   if (loading) {
-    return <div>Loading...</div>; 
+    // Tampilkan pesan loading selagi memeriksa sesi
+    return <div>Loading Authentication...</div>;
   }
 
   return (
@@ -110,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Hook kustom untuk menggunakan context, sudah benar.
+// Hook kustom untuk menggunakan context
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
