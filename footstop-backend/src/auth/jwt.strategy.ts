@@ -5,6 +5,13 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 
+const cookieExtractor = (req: any) => {
+  if (req && req.cookies) {
+    return req.cookies['jwt'];
+  }
+  return null;
+};
+
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) { // Secara default, nama strateginya adalah 'jwt'
@@ -13,11 +20,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) { // Secara default,
     private readonly usersService: UsersService,
   ) {
     super({
-      // Memberitahu passport cara mengambil token dari header
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      // Jangan abaikan token kadaluwarsa
+      // Pastikan ia mencoba mengambil dari cookie
+      jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
       ignoreExpiration: false,
-      // Gunakan secret key dari .env untuk verifikasi
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
   }

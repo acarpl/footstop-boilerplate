@@ -1,7 +1,8 @@
 "use client";
 
+import { TokenUtil } from '#/utils/token';
 import React from 'react';
- 
+TokenUtil.loadToken();
 export default function CartPage() {
   return (
     <div>

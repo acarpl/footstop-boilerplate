@@ -1,3 +1,5 @@
+import { useAuth } from "#/context/AuthContext";
+
 export class TokenUtil {
   static accessToken?: string;
   static refreshToken?: string;
@@ -5,8 +7,7 @@ export class TokenUtil {
     if (typeof window === "undefined") {
       return;
     }
-
-    const accessToken = localStorage.getItem('access_token');
+    const accessToken = TokenUtil.accessToken;
     const refreshToken = localStorage.getItem('refresh_token');
 
     if (accessToken) {

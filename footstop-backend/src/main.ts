@@ -28,8 +28,8 @@ async function bootstrap() {
 
   // KONFIGURASI CORS YANG BENAR DAN SPESIFIK
   app.enableCors({
-    origin: 'http://localhost:3000',
-    credentials: true,
+  origin: 'http://localhost:3000', // URL frontend
+  credentials: true,
   });
 
   app.useGlobalPipes(
