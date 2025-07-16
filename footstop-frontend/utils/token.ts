@@ -1,4 +1,3 @@
-import { useAuth } from "#/context/AuthContext";
 
 export class TokenUtil {
   static accessToken?: string;

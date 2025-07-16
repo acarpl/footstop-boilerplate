@@ -33,14 +33,9 @@ export class UsersService {
     return user;
   }
 
-  async findOneById(id: number): Promise<User> {
-    const user = await this.usersRepository.findOneBy({
-      id_user: id,
-    });
-    if (!user) {
-      throw new NotFoundException(`User with ID #${id} not found`);
-    }
-    return user;
+   async findOneById(id_user: number): Promise<User | undefined> {
+    // Akan crash jika this.userRepository adalah undefined
+    return this.userRepository.findOneBy({ id_user });
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {

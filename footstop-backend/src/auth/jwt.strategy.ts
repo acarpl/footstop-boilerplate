@@ -4,26 +4,41 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
+import { Request } from 'express';
 
-const cookieExtractor = (req: any) => {
+// src/auth/jwt.strategy.ts (Backend)
+
+const cookieExtractor = (req: Request): string | null => {
+  let token = null;
   if (req && req.cookies) {
-    return req.cookies['jwt'];
+    // ===>>> TAMBAHKAN LOG INI <<<=========================================
+    console.log('\n--- COOKIE EXTRACTOR ---');
+    console.log('Cookies received by backend:', req.cookies); 
+    // ====================================================================
+    token = req.cookies['accessToken'];
   }
-  return null;
+  // Log token yang ditemukan (atau tidak)
+  console.log('Token extracted:', token ? 'Found' : 'Not Found');
+  console.log('------------------------\n');
+  return token;
 };
 
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) { // Secara default, nama strateginya adalah 'jwt'
+export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
   ) {
+    const secret = configService.get<string>('JWT_SECRET');
+    console.log('\n--- JWT STRATEGY ---');
+    console.log('JWT_SECRET loaded by ConfigService:', secret);
+    console.log('--------------------\n');
+
     super({
-      // Pastikan ia mencoba mengambil dari cookie
       jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET'),
+      secretOrKey: secret,
     });
   }
 

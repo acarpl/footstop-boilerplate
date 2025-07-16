@@ -4,6 +4,7 @@
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import apiClient from '../lib/apiClient'; // Pastikan path ini benar
+import axios from 'axios';
 
 // Definisikan tipe untuk data User agar lebih aman
 interface User {
@@ -29,49 +30,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   // FIX 2: Fungsi ini WAJIB ada. Tugasnya bertanya ke backend "siapa saya?".
-  const fetchUser = async () => {
+  // Di dalam AuthProvider
+const fetchUser = async () => {
     try {
-      // Panggil endpoint profile. Browser akan otomatis mengirim cookie.
+      console.log('--- AuthContext: fetchUser() called ---');
       const response = await apiClient.get<User>('/auth/profile');
+      
+      // Jika request berhasil, log data yang diterima
+      console.log('✅ AuthContext: /auth/profile SUCCESS. Data:', response.data);
       setUser(response.data);
-      console.log(response.data);
+
     } catch (error) {
-      // Jika gagal (error 401), berarti tidak ada sesi login yang valid.
+      // Jika request GAGAL, log errornya secara detail
+      console.error('❌ AuthContext: /auth/profile FAILED. Error details:', error);
+      
+      // Kita bisa lihat detail error dari axios
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error response:', error.response?.status, error.response?.data);
+      }
+      
       setUser(null);
     }
-  };
+};
 
-  useEffect(() => {
-    // FIX 1: Hapus semua logika localStorage.
-    // Sebagai gantinya, panggil fetchUser untuk memeriksa sesi via cookie.
+  // Di dalam AuthProvider
+useEffect(() => {
+    console.log('--- AuthContext: Initial mount, checking user status... ---');
     const checkUserStatus = async () => {
       await fetchUser();
-      setLoading(false); // Hentikan loading setelah selesai memeriksa.
+      setLoading(false);
+      console.log('--- AuthContext: Initial status check complete. ---');
     };
     checkUserStatus();
-  }, []); // [] berarti ini hanya berjalan sekali saat komponen dimuat.
+}, []);
 
-  // Fungsi login Anda sudah hampir benar, kita hanya perlu memastikannya
-  // memanggil fetchUser yang sudah kita definisikan.
-   const login = async (email: any, password: any) => {
-    return new Promise<void>(async (resolve, reject) => {
+   const login = (email: string, password: string): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      console.log('--- AuthContext: Attempting login ---');
       try {
-        // 1. Panggil API login. Backend akan mengatur cookie.
-        await apiClient.post('/auth/login', { email, password });
-        
-        // 2. SETELAH login berhasil, LANGSUNG panggil fetchUser.
-        // Ini akan mengambil data profil menggunakan cookie yang baru saja diatur
-        // dan langsung memperbarui state 'user' di context.
+        // 1. Panggil API login
+        const loginResponse = await apiClient.post('/auth/login', { email, password });
+        console.log('✅ AuthContext: Login API call successful.', loginResponse);
+
+        // 2. SETELAH login berhasil, panggil fetchUser
+        console.log('--- AuthContext: Fetching user profile after login... ---');
         await fetchUser(); 
         
-        // 3. Beri tahu komponen pemanggil bahwa semuanya berhasil.
+        console.log('✅ AuthContext: Login process complete, resolving promise.');
         resolve(); 
       } catch (err) {
-        // 4. Jika gagal, kirim error.
+        console.error('❌ AuthContext: Login API call or fetchUser FAILED.', err);
         reject(err);
       }
     });
-  };
+};
   // FIX 3: Fungsi logout harus memanggil API backend.
   const logout = async () => {
     try {

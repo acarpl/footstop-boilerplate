@@ -9,17 +9,16 @@ import {
   Res,
   Get,
   UseGuards,
-  Req, // 1. IMPORT Req
+  Req,
 } from '@nestjs/common';
-import { Response, Request } from 'express'; // Import Request & Response
+import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from './decorators/get-user.decorator';
 import { User } from '../users/entities/user.entity';
-// 2. IMPORT REFRESH TOKEN GUARD (yang akan kita buat)
-// import { RefreshTokenGuard } from './guards/refresh-token.guard'; 
+import { RefreshTokenGuard } from './guards/refresh-token.guard'; 
 
 @Controller('auth')
 export class AuthController {
@@ -73,7 +72,7 @@ response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
 
   // CATATAN: Endpoint 'refresh' ini memerlukan pembuatan Guard dan Strategy baru.
   // Anda bisa mengomentarinya terlebih dahulu jika belum membuatnya.
-  /*
+  
   @Post('refresh')
   @UseGuards(RefreshTokenGuard) 
   @HttpCode(HttpStatus.OK)
@@ -90,8 +89,6 @@ response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
     
     return { message: 'Tokens refreshed' };
   }
-  */
-
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
   getProfile(@GetUser() user: User) {
