@@ -27,7 +27,7 @@ export default function Navbar() {
       handleSearch();
     }
   };
-
+  
  console.log(user, TokenUtil.accessToken);
   // Loading state with proper skeleton
   if (loading) {
@@ -98,14 +98,14 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-4 ml-auto">
           {/* Search Bar */}
           <div className="group relative">
-            <Search className="..." size={16} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-gray-600 transition-colors" size={16} />
             <input
               type="text"
               placeholder="Search products..."
-              className="..."
-              value={searchQuery} // Ikat nilai input ke state
-              onChange={(e) => setSearchQuery(e.target.value)} // Update state saat diketik
-              onKeyDown={handleKeyDown} // Panggil handler saat tombol ditekan
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+              onKeyDown={handleKeyDown} 
             />
           </div>
 
