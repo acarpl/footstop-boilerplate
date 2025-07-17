@@ -15,28 +15,6 @@ import Image from 'next/image';
 
 import { getProducts, getCategories, getBrands } from '../../../../lib/services/productService';
 
-const dummyProducts = [
-  {
-    id_product: "dummy-1",
-    product_name: "Kaos Polos Hitam",
-    price: 79000,
-    gambar: [{ url: "/images/kaos-hitam.png" }],
-  },
-  {
-    id_product: "dummy-2",
-    product_name: "Jaket Hoodie Keren",
-    price: 189000,
-    gambar: [{ url: "/images/hoodie-keren.png" }],
-  },
-  {
-    id_product: "dummy-3",
-    product_name: "Celana Cargo Coklat",
-    price: 149000,
-    gambar: [{ url: "/images/cargo-coklat.png" }],
-  },
-];
-
-
 export default function ShopPage() {
   const router = useRouter();
 
@@ -54,39 +32,30 @@ export default function ShopPage() {
   });
 
   useEffect(() => {
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Load kategori dan brand
-      if (categories.length === 0) {
-        const fetchedCategories = await getCategories();
-        setCategories(fetchedCategories);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (categories.length === 0) {
+          const fetchedCategories = await getCategories();
+          setCategories(fetchedCategories);
+        }
+        if (brands.length === 0) {
+          const fetchedBrands = await getBrands();
+          setBrands(fetchedBrands);
+        }
+
+        const productData = await getProducts(filters);
+        setProducts(productData.data);
+        setTotalProducts(productData.total);
+      } catch (error) {
+        console.error("Error loading shop data:", error);
+      } finally {
+        setLoading(false);
       }
-      if (brands.length === 0) {
-        const fetchedBrands = await getBrands();
-        setBrands(fetchedBrands);
-      }
+    };
 
-      // Coba ambil produk dari backend
-      const productData = await getProducts(filters);
-
-      if (!productData || !productData.data || productData.data.length === 0) {
-        throw new Error("Produk kosong atau null dari backend");
-      }
-
-      setProducts(productData.data);
-      setTotalProducts(productData.total);
-    } catch (err) {
-      console.error("Fallback to dummy:", err);
-      setProducts(dummyProducts);
-      setTotalProducts(dummyProducts.length);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchData();
-}, [filters]);
+    fetchData();
+  }, [filters]);
 
   const handleBrandChange = (id_brand: any) => {
     setFilters(prev => ({ ...prev, id_brand, page: 1 }));
@@ -102,15 +71,8 @@ export default function ShopPage() {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-              < Navbar />
+      < Navbar />
       <div className="max-w-7xl mx-auto py-6 px-4">
-        {/*Ini Peringatan Dummy : Frontend Offline no Backend*/}
-                      {products[0]?.id_product?.startsWith('dummy') && (
-                <div className="bg-yellow-100 text-yellow-800 p-2 rounded text-center text-sm">
-                  Menampilkan data dummy karena server tidak merespons.
-                </div>
-              )}
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar */}
           <aside className="bg-white rounded-lg shadow p-4 h-fit">
@@ -142,75 +104,53 @@ export default function ShopPage() {
           </aside>
 
           {/* Produk */}
-                <main className="md:col-span-3 space-y-6">
-                  <h2 className="text-3xl font-bold text-red-600 text-center">Choose Your Own Style</h2>
+          <main className="md:col-span-3 space-y-6">
+            <h2 className="text-3xl font-bold text-red-600 text-center">Choose Your Own Style</h2>
 
-                  {products[0]?.id_product?.startsWith('dummy') && (
-                    <div className="bg-yellow-100 text-yellow-800 p-2 rounded text-center text-sm">
-                      Menampilkan data dummy karena server tidak merespons.
+            {loading ? (
+              <div className="text-center p-10">
+                <Spin size="large" />
+              </div>
+            ) : products.length === 0 ? (
+              <Empty description="No products found matching your criteria." />
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {products.map((product) => (
+                    <div
+                      key={product.id_product}
+                      onClick={() => router.push(`/product/${product.id_product}`)}
+                      className="bg-white rounded-lg p-4 shadow-md text-center transform transition duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
+                    >
+                      <Image
+                        src={product.gambar?.[0]?.url || "/placeholder.png"}
+                        alt={product.product_name}
+                        width={200}
+                        height={200}
+                        className="w-full h-40 object-contain mb-4"
+                      />
+                      <h3 className="text-base font-semibold mb-2 h-12">{product.product_name}</h3>
+                      <p className="text-red-500 font-bold">
+                        Rp {parseInt(product.price).toLocaleString()}
+                      </p>
                     </div>
-                  )}
-                            {/*ini gua ganti*/}
-                  {loading ? (
-                    <div className="text-center p-10">
-                      <Spin size="large" />
-                    </div>
-                  ) : (
-                    <>
-                      {/* Jika produk kosong dan bukan dummy */}
-                      {products.length === 0 && !products[0]?.id_product?.startsWith('dummy') ? (
-                        <Empty description="No products found matching your criteria." />
-                      ) : (
-                        <>
-                          {products[0]?.id_product?.startsWith('dummy') && (
-                            <div className="bg-yellow-100 text-yellow-800 p-2 rounded text-center text-sm">
-                              Menampilkan data dummy karena server tidak merespons.
-                            </div>
-                          )}
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            {products.map((product) => (
-                              <div
-                                key={product.id_product}
-                                onClick={() => router.push(`/product/${product.id_product}`)}
-                                className="bg-white rounded-lg p-4 shadow-md text-center transform transition duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
-                              >
-                                <Image
-                                  src={product.gambar?.[0]?.url || "/placeholder.png"}
-                                  alt={product.product_name}
-                                  width={200}
-                                  height={200}
-                                  className="w-full h-40 object-contain mb-4"
-                                />
-                                <h3 className="text-base font-semibold mb-2 h-12">{product.product_name}</h3>
-                                <p className="text-red-500 font-bold">
-                                  Rp {parseInt(product.price).toLocaleString()}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="flex justify-center mt-8">
-                            <Pagination
-                              current={filters.page}
-                              pageSize={filters.limit}
-                              total={totalProducts}
-                              onChange={handlePageChange}
-                              showSizeChanger
-                            />
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
-
-                  
-                </main>
-
+                  ))}
+                </div>
+                <div className="flex justify-center mt-8">
+                  <Pagination
+                    current={filters.page}
+                    pageSize={filters.limit}
+                    total={totalProducts}
+                    onChange={handlePageChange}
+                    showSizeChanger
+                  />
+                </div>
+              </>
+            )}
+          </main>
         </div>
-        
       </div>
-      < Footer />
+    <Footer />
     </div>
   );
 }
