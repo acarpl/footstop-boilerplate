@@ -87,13 +87,10 @@ useEffect(() => {
   // FIX 3: Fungsi logout harus memanggil API backend.
   const logout = async () => {
     try {
-      // Beritahu backend untuk menghapus sesi/refresh token.
       await apiClient.post('/auth/logout');
-      // Set state user menjadi null di frontend.
       setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
-      // Bahkan jika API gagal, tetap paksa logout di frontend.
       setUser(null);
     }
   };

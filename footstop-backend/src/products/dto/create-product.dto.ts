@@ -24,9 +24,9 @@ export class CreateProductDto {
   // Kita menerima ID untuk relasi
   @IsNumber()
   @IsNotEmpty()
-  idBrand: number;
+  id_brand: number;
 
   @IsNumber()
   @IsNotEmpty()
-  idCategory: number;
+  id_category: number;
 }

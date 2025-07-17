@@ -92,7 +92,6 @@ response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
   getProfile(@GetUser() user: User) {
-    // Properti password sudah tidak ada karena `select: false` di entity
     return user;
   }
 }

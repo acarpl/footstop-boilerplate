@@ -1,47 +1,89 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
-import { Select } from "antd";
+import { Select, Checkbox, Spin, Empty, Pagination } from "antd";
 import Footer from '#/components/Footer';
 import Navbar from '#/components/Navbar';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import Image from 'next/image';
 
-const products = new Array(6).fill({
-  name: "Converse 70's - Black",
-  price: "Rp 1,770,000",
-  rating: 4.5,
-  image: "products/converse-black.png",
-  slug: "converse-70s-black",
-});
-
-const categories = [
-  "Sneakers", "Boots", "Loafers", "Sandals", "Formal", "Running",
-  "Training", "Slip-on", "Hiking", "Football", "Basket", "Classic Series",
-  "Sportswear", "Outerwear", "Accessories", "Colabs"
-];
+import { getProducts, getCategories, getBrands } from '../../../../lib/services/productService';
 
 export default function ShopPage() {
   const router = useRouter();
 
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalProducts, setTotalProducts] = useState(0);
+
+  const [filters, setFilters] = useState({
+    page: 1,
+    limit: 9,
+    id_category: null,
+    id_brand: null,
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (categories.length === 0) {
+          const fetchedCategories = await getCategories();
+          setCategories(fetchedCategories);
+        }
+        if (brands.length === 0) {
+          const fetchedBrands = await getBrands();
+          setBrands(fetchedBrands);
+        }
+
+        const productData = await getProducts(filters);
+        setProducts(productData.data);
+        setTotalProducts(productData.total);
+      } catch (error) {
+        console.error("Error loading shop data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [filters]);
+
+  const handleBrandChange = (id_brand: any) => {
+    setFilters(prev => ({ ...prev, id_brand, page: 1 }));
+  };
+
+  const handleCategoryChange = (id_category: any, checked: boolean) => {
+    setFilters(prev => ({ ...prev, id_category: checked ? id_category : null, page: 1 }));
+  };
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    setFilters(prev => ({ ...prev, page, limit: pageSize }));
+  };
+
   return (
-    <div className="bg-gray-200 min-h-screen">
-      <Navbar />
+    <div className="bg-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto py-6 px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Sidebar Filter */}
+          {/* Sidebar */}
           <aside className="bg-white rounded-lg shadow p-4 h-fit">
-            <h2 className="text-lg font-semibold mb-4">Filter</h2>
+            <h2 className="text-lg font-semibold mb-4">Categories</h2>
             <ul className="space-y-2 text-sm">
-              {categories.map((cat, index) => (
-                <li key={index} className="flex items-center space-x-2">
-                  <input type="checkbox" id={cat} className="accent-red-500" />
-                  <label htmlFor={cat}>{cat}</label>
+              {categories.map((cat) => (
+                <li key={cat.id_category} className="flex items-center space-x-2">
+                  <Checkbox
+                    onChange={(e) => handleCategoryChange(cat.id_category, e.target.checked)}
+                  >
+                    {cat.category_name}
+                  </Checkbox>
                 </li>
               ))}
             </ul>
@@ -49,74 +91,64 @@ export default function ShopPage() {
               <label className="text-sm font-medium">Brands</label>
               <Select
                 className="w-full mt-1"
-                placeholder="Select Brandnya"
-                options={categories.map(cat => ({ label: cat, value: cat }))}
+                placeholder="Select Brand"
+                onChange={handleBrandChange}
+                options={brands.map(brand => ({
+                  label: brand.brand_name,
+                  value: brand.id_brand
+                }))}
+                allowClear
               />
             </div>
           </aside>
 
-          {/* Product Section */}
+          {/* Produk */}
           <main className="md:col-span-3 space-y-6">
-            {/* Swiper Carousel */}
-            <Swiper
-              modules={[Navigation, Pagination, Autoplay]}
-              slidesPerView={1}
-              loop
-              autoplay={{ delay: 3000 }}
-              pagination={{ clickable: true }}
-              navigation
-              className="rounded-xl overflow-hidden shadow-lg h-[200px] sm:h-[250px] md:h-[300px]"
-            >
-              <SwiperSlide className="relative h-full">
-                <Image src="/images/bestseller.jpg" alt="Best Seller" className="object-cover w-full h-full" />
-                <div className="absolute top-6 left-6 bg-black/60 text-white px-4 py-2 rounded-xl shadow backdrop-blur-sm">
-                  <h2 className="text-lg sm:text-2xl font-semibold">🔥 Best Seller</h2>
-                </div>
-              </SwiperSlide>
-              <SwiperSlide className="relative h-full">
-                <Image src="/images/newproduct.jpg" alt="New Arrival" className="object-cover w-full h-full" />
-                <div className="absolute top-6 left-6 bg-black/60 text-white px-4 py-2 rounded-xl shadow backdrop-blur-sm">
-                  <h2 className="text-lg sm:text-2xl font-semibold">🆕 New Arrivals</h2>
-                </div>
-              </SwiperSlide>
-            </Swiper>
-
-            {/* Heading */}
             <h2 className="text-3xl font-bold text-red-600 text-center">Choose Your Own Style</h2>
 
-            {/* Product Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {products.map((product, index) => (
-                <div
-                  key={index}
-                  onClick={() => router.push(`/product/${product.slug}`)}
-                  className="bg-white rounded-lg p-4 shadow-md text-center transform transition duration-300 ease-in-out hover:scale-105 hover:bg-gray-700 hover:text-white cursor-pointer"
-                >
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-40 object-contain mb-4"
-                  />
-                  <h3 className="text-base font-semibold mb-2">{product.name}</h3>
-                  <div className="flex justify-center items-center mb-2 text-yellow-400 text-sm">
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <Star
-                        key={i}
-                        fill={i < Math.floor(product.rating) ? "currentColor" : "none"}
-                        stroke="currentColor"
-                        className="w-4 h-4"
+            {loading ? (
+              <div className="text-center p-10">
+                <Spin size="large" />
+              </div>
+            ) : products.length === 0 ? (
+              <Empty description="No products found matching your criteria." />
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {products.map((product) => (
+                    <div
+                      key={product.id_product}
+                      onClick={() => router.push(`/product/${product.id_product}`)}
+                      className="bg-white rounded-lg p-4 shadow-md text-center transform transition duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
+                    >
+                      <Image
+                        src={product.gambar?.[0]?.url || "/placeholder.png"}
+                        alt={product.product_name}
+                        width={200}
+                        height={200}
+                        className="w-full h-40 object-contain mb-4"
                       />
-                    ))}
-                    <span className="ml-1 text-sm">{product.rating}/5</span>
-                  </div>
-                  <p className="text-red-500 font-bold">{product.price}</p>
+                      <h3 className="text-base font-semibold mb-2 h-12">{product.product_name}</h3>
+                      <p className="text-red-500 font-bold">
+                        Rp {parseInt(product.price).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+                <div className="flex justify-center mt-8">
+                  <Pagination
+                    current={filters.page}
+                    pageSize={filters.limit}
+                    total={totalProducts}
+                    onChange={handlePageChange}
+                    showSizeChanger
+                  />
+                </div>
+              </>
+            )}
           </main>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
