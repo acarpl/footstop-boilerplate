@@ -14,14 +14,14 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
-    const { idBrand, idCategory, ...productData } = createProductDto;
+    const { id_brand, id_category, ...productData } = createProductDto;
 
     // TypeORM cukup pintar untuk menangani ini.
     // Kita buat objek baru dengan struktur yang dikenali oleh entity Product.
     const product = this.productRepository.create({
       ...productData,
-      brand: { id_brand: idBrand },
-      category: { id_category: idCategory },
+      brand: { id_brand: id_brand },
+      category: { id_category: id_category },
     });
 
     return this.productRepository.save(product);
@@ -87,14 +87,14 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
-    const { idBrand, idCategory, ...productData } = updateProductDto;
+    const { id_brand, id_category, ...productData } = updateProductDto;
 
     const updatePayload: any = { ...productData };
-    if (idBrand) {
-      updatePayload.brand = { idBrand };
+    if (id_brand) {
+      updatePayload.brand = { id_brand };
     }
-    if (idCategory) {
-      updatePayload.category = { idCategory };
+    if (id_category) {
+      updatePayload.category = { id_category };
     }
 
     const product = await this.productRepository.preload({
