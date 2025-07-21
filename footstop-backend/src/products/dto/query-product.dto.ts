@@ -21,10 +21,10 @@ export class QueryProductDto {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  idCategory?: number;
+  id_category?: number;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  idBrand?: number;
+  id_brand?: number;
 }

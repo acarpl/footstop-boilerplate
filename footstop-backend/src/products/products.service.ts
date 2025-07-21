@@ -32,8 +32,8 @@ export class ProductsService {
       page = 1,
       limit = 10,
       search,
-      idCategory,
-      idBrand,
+      id_category,
+      id_brand,
     } = queryDto;
 
     const queryBuilder = this.productRepository.createQueryBuilder('product');
@@ -52,14 +52,14 @@ export class ProductsService {
       );
     }
 
-    if (idCategory) {
+    if (id_category) {
       queryBuilder.andWhere('product.category.id_category = :idCategory', {
-        idCategory,
+        id_category,
       });
     }
 
-    if (idBrand) {
-      queryBuilder.andWhere('product.brand.id_brand = :idBrand', { idBrand });
+    if (id_brand) {
+      queryBuilder.andWhere('product.brand.id_brand = :idBrand', { id_brand });
     }
 
     // 4. Atur paginasi
