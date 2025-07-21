@@ -53,13 +53,13 @@ export class ProductsService {
     }
 
     if (id_category) {
-      queryBuilder.andWhere('product.category.id_category = :idCategory', {
+      queryBuilder.andWhere('product.category.id_category = :id_category', {
         id_category,
       });
     }
 
     if (id_brand) {
-      queryBuilder.andWhere('product.brand.id_brand = :idBrand', { id_brand });
+      queryBuilder.andWhere('product.brand.id_brand = :id_brand', { id_brand });
     }
 
     // 4. Atur paginasi
