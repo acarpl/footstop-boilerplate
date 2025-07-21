@@ -1,17 +1,33 @@
 "use client";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Menu, X, Search, ShoppingCart, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { TokenUtil } from '#/utils/token';
 TokenUtil.loadToken();
 
 export default function Navbar() {
+  const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+
+   const handleSearch = () => {
+    // Hanya navigasi jika ada query yang diketik (bukan spasi kosong)
+    if (searchQuery.trim() !== '') {
+      // Navigasi ke halaman shop dengan query parameter 'search'
+      router.push(`/shop?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSearch();
+    }
+  };
+  
  console.log(user, TokenUtil.accessToken);
   // Loading state with proper skeleton
   if (loading) {
@@ -96,6 +112,9 @@ export default function Navbar() {
               type="text"
               placeholder="Search products..."
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+              onKeyDown={handleKeyDown} 
             />
           </div>
 
