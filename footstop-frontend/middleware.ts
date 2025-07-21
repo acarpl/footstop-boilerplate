@@ -3,12 +3,18 @@ import type { NextRequest } from 'next/server';
 
 const AUTHENTICATED_PATHS = ['/cart', '/checkout', '/profile', '/dashboard'];
 const GUEST_PATHS = ['/login', '/register'];
+const ADMIN_PATH = ['/admin', 'admin/dashboard', '/admin/users', '/admin/orders', '/admin/products'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Hanya periksa keberadaan cookie accessToken.
   const hasAccessToken = request.cookies.has('accessToken');
+
+  if (ADMIN_PATH.some(path => pathname.startsWith(path)) && !hasAccessToken) {
+  // Langsung rujuk ke login
+  return NextResponse.redirect(new URL('/login', request.url));
+  }
 
   console.log(`--- Middleware on ${pathname}, Token Exists: ${hasAccessToken} ---`);
 
