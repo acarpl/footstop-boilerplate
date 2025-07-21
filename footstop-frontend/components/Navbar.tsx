@@ -94,10 +94,10 @@ export default function Navbar() {
           </li>
           <li className="relative group">
             <Link 
-              href="/profile" 
+              href="/Admin" 
               className={`hover:text-red-600 transition-colors ${isActive('/contact') ? 'text-red-600 font-semibold' : ''}`}
             >
-              profile
+              Admin
             </Link>
           </li>
         </ul>
