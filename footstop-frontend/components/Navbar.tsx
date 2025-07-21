@@ -76,7 +76,16 @@ export default function Navbar() {
               Contact
             </Link>
           </li>
+          <li className="relative group">
+            <Link 
+              href="/profile" 
+              className={`hover:text-red-600 transition-colors ${isActive('/contact') ? 'text-red-600 font-semibold' : ''}`}
+            >
+              profile
+            </Link>
+          </li>
         </ul>
+        
 
         {/* Desktop Right Side */}
         <div className="hidden md:flex items-center gap-4 ml-auto">
