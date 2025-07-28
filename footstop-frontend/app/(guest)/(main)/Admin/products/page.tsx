@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import ProductCard from '#/components/product/ProductCard';
-import { getProducts } from '#/lib/services/productService'; // sesuaikan
+import { getProducts } from '../../../../../lib/services/productService';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
