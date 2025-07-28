@@ -14,7 +14,7 @@ export default function AdminSidebar() {
 
   return (
     <aside className="w-64 bg-white border-r p-4">
-      <h2 className="text-xl font-bold mb-6">Admin Panel</h2>
+      <h2 className="text-xl font-bold mb-6">Admin Panels</h2>
       <ul className="space-y-2">
         {links.map(link => (
           <li key={link.name}>
