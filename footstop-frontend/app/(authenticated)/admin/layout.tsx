@@ -12,8 +12,9 @@ import {
 import type { MenuProps } from 'antd';
 import { Layout, Menu, theme, Avatar, Typography, Spin, Button } from 'antd';
 import { useAuth } from '../../../context/AuthContext';
+import Navbar from '#/components/Navbar';
 
-const { Header, Content, Sider } = Layout;
+const {  Header, Content, Sider } = Layout;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
