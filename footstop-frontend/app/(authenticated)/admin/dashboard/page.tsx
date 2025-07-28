@@ -13,12 +13,12 @@ export default function AdminDashboardPage() {
         const fetchData = async () => {
             try {
                 // Ganti ini dengan panggilan API asli nanti
-                // const data = await getDashboardStats();
-                const data = await new Promise(resolve => setTimeout(() => resolve({
-                    totalRevenue: 56430000,
-                    newOrders: 12,
-                    totalUsers: 150,
-                }), 1000));
+                const data = await getDashboardStats();
+                // const data = await new Promise(resolve => setTimeout(() => resolve({
+                //     totalRevenue: 56430000,
+                //     newOrders: 12,
+                //     totalUsers: 150,
+                // }), 1000));
                 
                 setStats(data);
             } catch (error) {
