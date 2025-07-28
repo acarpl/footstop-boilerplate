@@ -95,4 +95,21 @@ export class OrdersService {
     }
     return order;
   }
+
+  async findAllForAdmin(): Promise<Order[]> {
+    return this.orderRepository.find({
+      relations: ['user'], // Muat juga data user yang memesan
+      order: { order_date: 'DESC' },
+    });
+  }
+
+  async updateStatus(idOrder: number, newStatus: string): Promise<Order> {
+    const order = await this.orderRepository.findOneBy({ id_order: idOrder });
+    if (!order) {
+      throw new NotFoundException(`Order with ID #${idOrder} not found.`);
+    }
+
+    order.status_pengiriman = newStatus;
+    return this.orderRepository.save(order);
+  }
 }

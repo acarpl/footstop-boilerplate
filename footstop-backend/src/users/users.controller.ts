@@ -12,6 +12,9 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UseGuards } from '@nestjs/common';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -27,16 +30,12 @@ export class UsersController {
   }
 
   @Get()
-  async findAll() {
-    const [data, count] = await this.usersService.findAll();
+    @UseGuards(RolesGuard)
+    @Roles('admin')
+    findAll() { // Tambah @Query() DTO untuk paginasi
+        return this.usersService.findAll();
+    }
 
-    return {
-      data,
-      count,
-      statusCode: HttpStatus.OK,
-      message: 'success',
-    };
-  }
 
   @Get(':id')
   async findOneById(@Param('id', ParseIntPipe) id: string) {

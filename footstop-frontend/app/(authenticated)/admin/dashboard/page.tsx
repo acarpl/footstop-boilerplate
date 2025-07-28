@@ -1,55 +1,56 @@
+// app/(admin)/dashboard/page.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, Col, Row, Statistic, Spin, Typography, Empty } from 'antd';
+import { useEffect, useState } from 'react';
 import { getDashboardStats } from '../../../../lib/services/adminService';
+import { Card, Col, Row, Statistic, Spin, Typography } from 'antd';
 
 export default function AdminDashboardPage() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulasi pengambilan data dari backend
-        const fetchData = async () => {
-            try {
-                // Ganti ini dengan panggilan API asli nanti
-                const data = await getDashboardStats();
-                // const data = await new Promise(resolve => setTimeout(() => resolve({
-                //     totalRevenue: 56430000,
-                //     newOrders: 12,
-                //     totalUsers: 150,
-                // }), 1000));
-                
-                setStats(data);
-            } catch (error) {
-                console.error("Failed to fetch dashboard stats:", error);
-                // Jika API gagal, stats akan tetap null
-            } finally {
-                setLoading(false);
-            }
-        };
+        console.log("Dashboard component mounted. Fetching stats...");
 
-        fetchData();
+        getDashboardStats()
+            .then(data => {
+                console.log("✅ Stats fetched successfully:", data);
+                // Periksa apakah data memiliki properti yang kita harapkan
+                if (data && typeof data.totalRevenue !== 'undefined') {
+                    setStats(data);
+                } else {
+                    console.error("Data received is not in the expected format:", data);
+                    setStats(null); // Set ke null jika format salah
+                }
+            })
+            .catch(err => {
+                console.error("❌ Failed to fetch dashboard stats. Error object:", err);
+                if (err.response) {
+                    console.error("Error response data:", err.response.data);
+                }
+            })
+            .finally(() => {
+                console.log("Finished fetching. Setting loading to false.");
+                setLoading(false);
+            });
     }, []);
 
-    // 1. Tampilkan loading spinner selagi data diambil
+    console.log("Component rendering. Loading state:", loading, "Stats state:", stats);
+
     if (loading) {
-        return <div className="text-center p-10"><Spin size="large" /></div>;
+        return <div className="text-center"><Spin /></div>;
     }
 
-    // 2. SETELAH loading selesai, periksa apakah data 'stats' benar-benar ada.
-    // Ini adalah jaring pengaman jika API gagal atau mengembalikan data kosong.
+    // Periksa lagi di sini untuk memastikan stats tidak null
     if (!stats) {
-        return <Empty description="Could not load dashboard data. Please try again later." />;
+        return <div>Failed to load dashboard data. Please check the console for errors.</div>;
     }
 
-    // 3. Hanya jika loading selesai DAN stats ada, render konten utama.
     return (
         <div>
             <Typography.Title level={2}>Dashboard</Typography.Title>
             <Row gutter={16}>
                 <Col span={8}>
-                    {/* Sekarang aman untuk mengakses stats.totalRevenue */}
                     <Card><Statistic title="Total Revenue" value={`Rp ${stats.totalRevenue.toLocaleString()}`} /></Card>
                 </Col>
                 <Col span={8}>
@@ -59,7 +60,6 @@ export default function AdminDashboardPage() {
                     <Card><Statistic title="Total Users" value={stats.totalUsers} /></Card>
                 </Col>
             </Row>
-            {/* Anda bisa menambahkan komponen grafik atau tabel di sini */}
         </div>
     );
 }

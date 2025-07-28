@@ -94,7 +94,7 @@ export default function Navbar() {
           </li>
           <li className="relative group">
             <Link 
-              href="/Admin" 
+              href="/admin/dashboard" 
               className={`hover:text-red-600 transition-colors ${isActive('/contact') ? 'text-red-600 font-semibold' : ''}`}
             >
               Admin

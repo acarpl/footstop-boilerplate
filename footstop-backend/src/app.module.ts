@@ -14,6 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { OrdersDetailsModule } from './orders-details/orders-details.module';
 import { LoggerModule } from 'nestjs-pino';
+import { DashboardModule } from './dashboard/dashboard.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -56,6 +57,7 @@ import { LoggerModule } from 'nestjs-pino';
     PaymentsModule,
     AuthModule,
     UsersModule,
+    DashboardModule,
     // Module lain akan diimpor di sini
   ],
   controllers: [],
