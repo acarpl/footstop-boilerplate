@@ -17,6 +17,24 @@ export class OrdersService {
     private readonly dataSource: DataSource, // Inject DataSource untuk transaksi
   ) {}
 
+  async findOneForAdmin(id_order: number): Promise<Order> {
+    const order = await this.orderRepository.findOne({
+      where: { id_order },
+      // Ini adalah bagian kunci: kita memuat semua relasi yang dibutuhkan
+      relations: [
+        'user', // Ambil data user
+        'order_details', // Ambil daftar item detail
+        'order_details.product', // Di setiap item detail, ambil juga data produknya
+        'order_details.product.images' // Ambil juga gambar produknya
+      ],
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID #${id_order} not found.`);
+    }
+    return order;
+  }
+
   async create(user: User, createOrderDto: CreateOrderDto): Promise<Order> {
     const queryRunner = this.dataSource.createQueryRunner();
     
@@ -96,7 +114,7 @@ export class OrdersService {
     return order;
   }
 
-  async findAllForAdmin(): Promise<Order[]> {
+  async findAllForAdmin(p0: { page: number; limit: number; }): Promise<Order[]> {
     return this.orderRepository.find({
       relations: ['user'], // Muat juga data user yang memesan
       order: { order_date: 'DESC' },

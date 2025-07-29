@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, ParseIntPipe, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, ParseIntPipe, Patch, DefaultValuePipe, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -33,17 +33,27 @@ export class OrdersController {
     return this.ordersService.findOneForUser(user.id_user, id);
   }
 
-  @Get()
+  @Get('admin/all')
   @UseGuards(RolesGuard)
   @Roles('admin')
-  findAllForAdmin() { // Ganti Query() DTO jika perlu paginasi
-      return this.ordersService.findAllForAdmin();
+  findAllForAdmin(
+    @Query('page', new DefaultValuePipe(1), new ParseIntPipe()) page: number,
+    @Query('limit', new DefaultValuePipe(10), new ParseIntPipe()) limit: number,
+  ) {
+    return this.ordersService.findAllForAdmin({ page, limit });
   }
 
-  @Patch(':id/status')
+  @Get('admin/:id')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  findOneForAdmin(@Param('id', ParseIntPipe) id: number) {
+      return this.ordersService.findOneForAdmin(id);
+  }
+
+  @Patch('admin/:id/status')
   @UseGuards(RolesGuard)
   @Roles('admin')
   updateStatus(@Param('id', ParseIntPipe) id: number, @Body('status') status: string) {
-      return this.ordersService.updateStatus(id, status);
+    return this.ordersService.updateStatus(id, status);
   }
 }
