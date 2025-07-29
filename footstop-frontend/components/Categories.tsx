@@ -9,22 +9,22 @@ import Link from 'next/link';
 const categoriesData = [
     {
     name: 'Snikers',
-    image: '/images/categories/sneakers.png',
+    image: '/images/sneakers.png',
     alt: 'Kategori Sneakers',
   },
   {
     name: 'Formal',
-    image: '/images/categories/formal.png',
+    image: '/images/formal.png',
     alt: 'Kategori Sepatu Formal',
   },
   {
     name: 'Apparels',
-    image: '/images/categories/apparels.png',
+    image: '/images/image.png',
     alt: 'Kategori Pakaian',
   },
   {
     name: 'Sporty',
-    image: '/images/categories/sporty.png',
+    image: '/images/sporty.png',
     alt: 'Kategori Sepatu Sporty',
   },
 ];
