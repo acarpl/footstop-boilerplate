@@ -94,3 +94,23 @@ export const updateBrand = async (id_brand: number, brandData: { brand_name: str
 export const deleteBrand = async (id_brand: number) => {
   await apiClient.delete(`/brands/${id_brand}`);
 };
+
+export const getAllCategoriesAdmin = async () => {
+  // Mirip dengan brands, kita bisa menggunakan endpoint GET publik yang sudah ada.
+  const response = await apiClient.get('/categories');
+  return response.data;
+};
+
+export const createCategory = async (categoryData: { category_name: string }) => {
+  const response = await apiClient.post('/categories', categoryData);
+  return response.data;
+};
+
+export const updateCategory = async (categoryId: number, categoryData: { category_name: string }) => {
+  const response = await apiClient.patch(`/categories/${categoryId}`, categoryData);
+  return response.data;
+};
+
+export const deleteCategory = async (categoryId: number) => {
+  await apiClient.delete(`/categories/${categoryId}`);
+};
