@@ -66,3 +66,29 @@ export const updateUserByAdmin = async (userId: number, data: any) => {
 export const deleteUser = async (userId: number) => {
   await apiClient.delete(`/users/${userId}`);
 };
+
+export const getAllProducts = async (params: any) => {
+  const response = await apiClient.get('/products', { params });
+  return response.data;
+};
+export const createProduct = async (productData: any) => {
+  const response = await apiClient.post('/products', productData);
+  return response.data;
+};
+export const updateProduct = async (id_product: number, productData: any) => {
+  const response = await apiClient.patch(`/products/${id_product}`, productData);
+  return response.data;
+};
+export const deleteProduct = async (id_product: number) => {
+  await apiClient.delete(`/products/${id_product}`);
+};
+
+// --- Dependencies for Product Form ---
+export const getAllCategories = async () => {
+  const response = await apiClient.get('/categories');
+  return response.data;
+};
+export const getAllBrands = async () => {
+  const response = await apiClient.get('/brands');
+  return response.data;
+};
