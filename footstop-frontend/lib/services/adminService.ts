@@ -1,5 +1,3 @@
-// lib/services/adminService.ts
-
 import apiClient from '../apiClient';
 
 /**
@@ -77,3 +75,22 @@ export const getOrderDetailsForAdmin = async (id_order: number) => {
   const response = await apiClient.get(`/orders/admin/${id_order}`);
   return response.data;
 }
+
+export const getAllBrandsAdmin = async () => {
+  const response = await apiClient.get('/brands');
+  return response.data;
+};
+
+export const createBrand = async (brandData: { brand_name: string }) => {
+  const response = await apiClient.post('/brands', brandData);
+  return response.data;
+};
+
+export const updateBrand = async (id_brand: number, brandData: { brand_name: string }) => {
+  const response = await apiClient.patch(`/brands/${id_brand}`, brandData);
+  return response.data;
+};
+
+export const deleteBrand = async (id_brand: number) => {
+  await apiClient.delete(`/brands/${id_brand}`);
+};
