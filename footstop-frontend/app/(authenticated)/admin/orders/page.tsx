@@ -47,18 +47,12 @@ export default function AdminDashboardPage() {
 
     return (
         <div>
-            <Typography.Title level={2}>Dashboard Products</Typography.Title>
-            {/* <Row gutter={16}>
-                <Col span={8}>
-                    <Card><Statistic title="Total Revenue" value={`Rp ${stats.totalRevenue.toLocaleString()}`} /></Card>
-                </Col>
+            <Typography.Title level={2}>Dashboard Orders</Typography.Title>
+            <Row gutter={16}>
                 <Col span={8}>
                     <Card><Statistic title="New Orders (Today)" value={stats.newOrders} /></Card>
                 </Col>
-                <Col span={8}>
-                    <Card><Statistic title="Total Users" value={stats.totalUsers} /></Card>
-                </Col>
-            </Row> */}
+            </Row>
         </div>
     );
 }

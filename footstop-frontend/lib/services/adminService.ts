@@ -17,21 +17,6 @@ export const getDashboardStats = async () => {
 };
 
 /**
- * Mengambil daftar semua pengguna dengan paginasi.
- * @param {object} params - Query params, contoh: { page: 1, limit: 10 }.
- * @returns {Promise<object>} Promise yang resolve dengan daftar pengguna dan info paginasi.
- */
-export const getAllUsers = async (params: any) => {
-  try {
-    const response = await apiClient.get('/users', { params });
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch users:", error);
-    throw error;
-  }
-};
-
-/**
  * Mengambil daftar semua pesanan dengan paginasi dan filter.
  * @param {object} params - Query params, contoh: { page: 1, limit: 10, status: 'Processing' }.
  * @returns {Promise<object>} Promise yang resolve dengan daftar pesanan dan info paginasi.
@@ -60,4 +45,24 @@ export const updateOrderStatus = async (id_order: number, status_pengiriman: str
     console.error(`Failed to update order ${id_order}:`, error);
     throw error;
   }
+};
+
+export const getAllUsers = async (params: { page: number; limit: number }) => {
+  const response = await apiClient.get('/users', { params });
+  return response.data;
+};
+
+/**
+ * Mengupdate data pengguna oleh admin.
+ */
+export const updateUserByAdmin = async (userId: number, data: any) => {
+  const response = await apiClient.patch(`/users/${userId}`, data);
+  return response.data;
+};
+
+/**
+ * Menghapus pengguna oleh admin.
+ */
+export const deleteUser = async (userId: number) => {
+  await apiClient.delete(`/users/${userId}`);
 };

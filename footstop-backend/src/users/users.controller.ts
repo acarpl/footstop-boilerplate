@@ -1,70 +1,59 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
-  Put,
+  Patch,
   Param,
   Delete,
+  UseGuards,
   ParseIntPipe,
-  HttpStatus,
+  Query,
+  DefaultValuePipe,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UseGuards } from '@nestjs/common';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { User } from './entities/user.entity';
+import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
 
 @Controller('users')
+@UseGuards(AuthGuard('jwt'))
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    return {
-      data: await this.usersService.create(createUserDto),
-      statusCode: HttpStatus.CREATED,
-      message: 'success',
-    };
-  }
-
   @Get()
-    @UseGuards(RolesGuard)
-    @Roles('admin')
-    findAll() { // Tambah @Query() DTO untuk paginasi
-        return this.usersService.findAll();
-    }
-
-
-  @Get(':id')
-  async findOneById(@Param('id', ParseIntPipe) id: string) {
-    return {
-      data: await this.usersService.findOneById(Number(id)),
-      statusCode: HttpStatus.OK,
-      message: 'success',
-    };
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  findAll(
+    @Query('page', new DefaultValuePipe(1), new ParseIntPipe()) page: number,
+    @Query('limit', new DefaultValuePipe(10), new ParseIntPipe()) limit: number,
+  ) {
+    return this.usersService.findAllPaginated({ page, limit });
   }
 
-  @Put(':id')
-  async update(
-    @Param('id', ParseIntPipe) id: string,
-    @Body() updateUserDto: UpdateUserDto,
+  // Metode ini sekarang tidak akan error lagi karena sintaks di atasnya sudah benar.
+  @Patch('me')
+  updateMyProfile(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(user.id_user, updateUserDto);
+  }
+
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  updateUserByAdmin(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() adminUpdateUserDto: AdminUpdateUserDto,
   ) {
-    return {
-      data: await this.usersService.update(id, updateUserDto),
-      statusCode: HttpStatus.OK,
-      message: 'success',
-    };
+    return this.usersService.update(id, adminUpdateUserDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: string) {
-    await this.usersService.remove(id);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'success',
-    };
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  removeUser(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.remove(id);
   }
 }

@@ -7,7 +7,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable() // WAJIB
 export class UsersService {
-  usersRepository: any;
   
   constructor(
     @InjectRepository(User)
@@ -19,9 +18,7 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
-  }
+  usersRepository: any;
 
   async findOne(id: string): Promise<User> {
     const user = await this.usersRepository.findOneBy({
@@ -48,7 +45,7 @@ export class UsersService {
       .getOne();
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepository.preload({
       id_user: Number(id),
       ...updateUserDto,
@@ -72,6 +69,29 @@ async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
   // ...
 }
 
+async findAllPaginated({ page, limit }: { page: number; limit: number }) {
+  const skip = (page - 1) * limit;
+  const users = await this.userRepository.find({
+    skip,
+    take: limit,
+  });
+  const totalCount = await this.userRepository.count();
+  return {
+    data: users,
+    meta: {
+      page,
+      limit,
+      totalCount,
+    },
+  };
+}
+  async remove(id_user: number): Promise<void> {
+    const result = await this.userRepository.delete(id_user);
+    if (result.affected === 0) {
+      throw new NotFoundException(`User with ID #${id_user} not found.`);
+    }
+  }
+
   /**
    * Menghapus (nullify) refresh token hash dari database.
    * Dipanggil saat logout.
@@ -85,11 +105,5 @@ async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
       .set({ refreshTokenHash: null })
       .where("id_user = :id", { id: userId })
       .execute();
-  }
-
-
-  async remove(id: string): Promise<User> {
-    const user = await this.findOne(id);
-    return this.usersRepository.remove(user);
   }
 }
