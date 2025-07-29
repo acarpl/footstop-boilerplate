@@ -45,17 +45,30 @@ export class UsersService {
       .getOne();
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.usersRepository.preload({
-      id_user: Number(id),
-      ...updateUserDto,
-    });
+  async update(id_user: number, updateUserDto: any): Promise<User> {
+    // 1. Pisahkan ID relasi dari data utama
+    const { id_role, ...userData } = updateUserDto;
 
-    if (!user) {
-      throw new NotFoundException(`User with ID #${id} not found`);
+    // 2. Siapkan payload untuk preload.
+    // Inisialisasi dengan data non-relasi.
+    const preloadPayload: any = {
+      id_user: id_user,
+      ...userData,
+    };
+
+    // 3. Jika id_role dikirim, format dengan benar untuk relasi.
+    if (id_role) {
+      preloadPayload.role = { id_role: id_role };
     }
 
-    return this.usersRepository.save(user);
+    // 4. Gunakan payload yang sudah diformat dengan benar.
+    const user = await this.userRepository.preload(preloadPayload);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID #${id_user} not found.`);
+    }
+
+    return this.userRepository.save(user);
   }
 
   // src/users/users.service.ts
@@ -82,6 +95,7 @@ async findAllPaginated({ page, limit }: { page: number; limit: number }) {
       page,
       limit,
       totalCount,
+      relations: ['role', 'address'],
     },
   };
 }

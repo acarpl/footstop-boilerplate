@@ -30,6 +30,10 @@ interface User {
     id_role: number;
     nama_role: string;
   };
+  address: {
+    id_address: number;
+    name_address: string;
+  } | null;
 }
 
 // Definisikan tipe untuk data paginasi
@@ -42,9 +46,9 @@ interface PaginationState {
 export default function ManageUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Menggunakan 'open' bukan 'visible'
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [pagination, setPagination] = useState<PaginationState>({ current: 1, pageSize: 10, total: 0 });
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [form] = Form.useForm();
 
   // Fungsi untuk mengambil data dari backend
@@ -126,6 +130,12 @@ export default function ManageUsersPage() {
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Phone', dataIndex: 'phone_number', key: 'phone_number' },
     { title: 'Role', dataIndex: ['role', 'nama_role'], key: 'role' },
+    { 
+      title: 'Address', 
+      dataIndex: ['address', 'name_address'],
+      key: 'address',
+      render: (text) => text || 'N/A', 
+    },
     {
       title: 'Actions',
       key: 'actions',
