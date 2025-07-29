@@ -1,20 +1,53 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, Form, Input, Select, Spin, message, Popconfirm } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { getAllUsers, updateUserByAdmin, deleteUser } from '../../../../lib/services/adminService';
+import {
+  Table,
+  Button,
+  Space,
+  Modal,
+  Form,
+  Input,
+  Select,
+  Spin,
+  message,
+  Popconfirm,
+  Typography,
+} from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { getAllUsers, updateUserByAdmin, deleteUser } from '../../../../lib/services/adminService'; // Sesuaikan path jika perlu
+import type { TableProps } from 'antd'; // Import tipe untuk Ant Design
 
 const { Option } = Select;
 
+// 1. Definisikan tipe data untuk User agar konsisten
+interface User {
+  id_user: number;
+  username: string;
+  email: string;
+  phone_number: string;
+  role: {
+    id_role: number;
+    nama_role: string;
+  };
+}
+
+// Definisikan tipe untuk data paginasi
+interface PaginationState {
+  current: number;
+  pageSize: number;
+  total: number;
+}
+
 export default function ManageUsersPage() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [isModalOpen, setIsModalOpen] = useState(false); // Menggunakan 'open' bukan 'visible'
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [pagination, setPagination] = useState<PaginationState>({ current: 1, pageSize: 10, total: 0 });
   const [form] = Form.useForm();
 
+  // Fungsi untuk mengambil data dari backend
   const fetchUsers = async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
@@ -32,22 +65,26 @@ export default function ManageUsersPage() {
     }
   };
 
+  // Mengambil data saat komponen pertama kali dimuat
   useEffect(() => {
     fetchUsers(pagination.current, pagination.pageSize);
-  }, []); // Hanya fetch saat komponen pertama kali dimuat
+  }, []);
 
-  const handleTableChange = (pagination: { current: number | undefined; pageSize: number | undefined; }) => {
-    fetchUsers(pagination.current, pagination.pageSize);
+  // Handler saat paginasi di tabel berubah
+  const handleTableChange: TableProps<User>['onChange'] = (newPagination) => {
+    fetchUsers(newPagination.current, newPagination.pageSize);
   };
 
-  const showEditModal = (user: React.SetStateAction<null>) => {
+  // 2. Perbaiki tipe 'user' di sini
+  const showEditModal = (user: User) => {
     setEditingUser(user);
+    // Set nilai form dengan data user yang akan diedit
     form.setFieldsValue({
       username: user.username,
       phone_number: user.phone_number,
       id_role: user.role.id_role,
     });
-    setIsModalVisible(true);
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (userId: number) => {
@@ -61,19 +98,30 @@ export default function ManageUsersPage() {
   };
 
   const handleModalOk = async () => {
+    // 3. Tambahkan pengaman jika tidak ada user yang diedit
+    if (!editingUser) return;
+
     try {
       const values = await form.validateFields();
       await updateUserByAdmin(editingUser.id_user, values);
       message.success('User updated successfully.');
-      setIsModalVisible(false);
+      setIsModalOpen(false);
       fetchUsers(pagination.current, pagination.pageSize); // Refresh tabel
     } catch (error) {
-      message.error('Failed to update user.');
+      // Tidak perlu menampilkan pesan error di sini karena validateFields sudah menampilkannya di form
+      console.error('Validation Failed:', error);
     }
   };
+  
+  const handleModalCancel = () => {
+    setIsModalOpen(false);
+    setEditingUser(null);
+    form.resetFields();
+  };
 
-  const columns = [
-    { title: 'ID', dataIndex: 'id_user', key: 'id_user' },
+  // Definisi kolom untuk tabel Ant Design
+  const columns: TableProps<User>['columns'] = [
+    { title: 'ID', dataIndex: 'id_user', key: 'id_user', width: 80 },
     { title: 'Username', dataIndex: 'username', key: 'username' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Phone', dataIndex: 'phone_number', key: 'phone_number' },
@@ -81,16 +129,19 @@ export default function ManageUsersPage() {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: { id_user: any; }) => (
+      render: (_, record) => ( // Tipe 'record' akan otomatis diinfer dari dataSource
         <Space size="middle">
-          <Button icon={<EditOutlined />} onClick={() => showEditModal(record)}>Edit</Button>
+          <Button icon={<EditOutlined />} onClick={() => showEditModal(record)}>
+            Edit
+          </Button>
           <Popconfirm
-            title="Are you sure to delete this user?"
+            title="Delete the user"
+            description="Are you sure to delete this user?"
             onConfirm={() => handleDelete(record.id_user)}
             okText="Yes"
             cancelText="No"
           >
-            <Button icon={<DeleteOutlined />} danger>Delete</Button>
+            <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
         </Space>
       ),
@@ -99,9 +150,10 @@ export default function ManageUsersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1>Manage Users</h1>
-        <Button type="primary" icon={<PlusOutlined />}>Create User</Button>
+      <div className="flex justify-between items-center mb-6">
+        <Typography.Title level={2}>Manage Users</Typography.Title>
+        {/* Tombol Create User bisa diaktifkan nanti */}
+        {/* <Button type="primary" icon={<PlusOutlined />}>Create User</Button> */}
       </div>
       <Table
         columns={columns}
@@ -110,14 +162,17 @@ export default function ManageUsersPage() {
         loading={loading}
         pagination={pagination}
         onChange={handleTableChange}
+        scroll={{ x: true }} // Membuat tabel bisa di-scroll horizontal di layar kecil
       />
+      {/* Modal untuk mengedit user */}
       <Modal
-        title="Edit User"
-        visible={isModalVisible}
+        title={`Edit User: ${editingUser?.username || ''}`}
+        open={isModalOpen} // Menggunakan 'open'
         onOk={handleModalOk}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={handleModalCancel}
+        okText="Save Changes"
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" className="mt-4">
           <Form.Item name="username" label="Username" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
@@ -125,7 +180,7 @@ export default function ManageUsersPage() {
             <Input />
           </Form.Item>
           <Form.Item name="id_role" label="Role" rules={[{ required: true }]}>
-            <Select>
+            <Select placeholder="Select a role">
               <Option value={1}>admin</Option>
               <Option value={2}>customer</Option>
             </Select>
