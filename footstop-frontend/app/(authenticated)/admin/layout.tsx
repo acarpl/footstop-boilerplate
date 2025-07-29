@@ -29,6 +29,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { key: '/admin/users', icon: <UserOutlined />, label: 'Manage Users' },
     { key: '/admin/products', icon: <ShoppingOutlined />, label: 'Manage Products' },
     { key: '/admin/orders', icon: <UnorderedListOutlined />, label: 'Manage Orders' },
+    { key: '/admin/categories', icon: <UnorderedListOutlined />, label: 'Manage Categories' },
+    { key: '/admin/brands', icon: <UnorderedListOutlined />, label: 'Manage Brands' },
     { key: 'logout', icon: <LogoutOutlined />, label: 'Logout', danger: true },
   ];
 
