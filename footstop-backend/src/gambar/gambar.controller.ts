@@ -1,65 +1,37 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Param,
-  Delete,
-  ParseIntPipe,
-  UseInterceptors,
-  UploadedFile,
-  BadRequestException,
-} from '@nestjs/common';
+// src/gambar/gambar.controller.ts
+
+import { Controller, Post, Body, Param, Delete, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { GambarService } from './gambar.service';
-import { CreateGambarDto } from './dto/create-gambar.dto';
 
 @Controller('gambar')
+@UseGuards(AuthGuard('jwt'), RolesGuard) // Proteksi semua endpoint di controller ini
 export class GambarController {
   constructor(private readonly gambarService: GambarService) {}
 
-  // === [POST] Upload gambar (user / product) ===
   @Post('upload')
+  @Roles('admin') // Hanya admin yang bisa upload
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(
+  uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body('id_product') id_product: number,
-    @Body('id_user') id_user: number,
+    @Body('idProduct', ParseIntPipe) id_product: number,
   ) {
     if (!file) {
-      throw new BadRequestException('File gambar tidak ditemukan');
+      throw new BadRequestException('No file uploaded');
     }
-
-    if (!id_product && !id_user) {
-      throw new BadRequestException('id_user atau id_product harus diisi');
-    }
-
-    const fileUrl = `http://localhost:3000/uploads/${file.filename}`;
-
-    const dto: CreateGambarDto = {
-      url: fileUrl,
-      id_user: id_user ? +id_user : undefined,
-      id_product: id_product ? +id_product : undefined,
-    };
-
-    return this.gambarService.create(dto);
+    const fileUrl = `http://localhost:3001/uploads/${file.filename}`; // Sesuaikan port jika perlu
+    return this.gambarService.create({
+      url: fileUrl, id_product,
+      id_user: 0
+    });
   }
 
-  // === [GET] Semua gambar milik user tertentu ===
-  @Get('user/:id_user')
-  async getGambarUser(@Param('id_user', ParseIntPipe) id_user: number) {
-    return this.gambarService.findByUser(id_user);
-  }
-
-  // === [GET] Semua gambar milik produk tertentu ===
-  @Get('product/:id_product')
-  async getGambarProduct(@Param('id_product', ParseIntPipe) id_product: number) {
-    return this.gambarService.findByProduct(id_product);
-  }
-
-  // === [DELETE] Hapus gambar by ID ===
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number) {
+  @Roles('admin') // Hanya admin yang bisa hapus
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.gambarService.remove(id);
   }
 }

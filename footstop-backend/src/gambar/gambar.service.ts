@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateGambarDto } from './dto/create-gambar.dto';
 import { Gambar } from './entities/gambar.entity';
+import { unlink } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class GambarService {
@@ -49,13 +51,22 @@ export class GambarService {
     return gambar;
   }
 
-  async remove(id: number): Promise<Gambar> {
-    const gambar = await this.findOne(id);
+  async remove(id: number): Promise<void> {
+    const gambar = await this.gambarRepository.findOneBy({ id_gambar: id });
+    if (!gambar) {
+      throw new NotFoundException(`Image with ID #${id} not found`);
+    }
 
-    // 🔥 Bonus: jika ingin hapus file dari server
-    // const filePath = path.join(__dirname, '..', '..', 'uploads', path.basename(gambar.url));
-    // fs.unlinkSync(filePath); // uncomment kalau pakai
+    try {
+      // Hapus file fisik dari folder 'uploads'
+      const filename = gambar.url.split('/uploads/')[1];
+      unlink(join(process.cwd(), 'uploads', filename));
+    } catch (error) {
+      console.error("Failed to delete physical file:", error.message);
+      // Tetap lanjutkan untuk menghapus dari DB meskipun file fisik tidak ada
+    }
 
-    return this.gambarRepository.remove(gambar);
+    // Hapus record dari database
+    await this.gambarRepository.remove(gambar);
   }
 }

@@ -114,3 +114,22 @@ export const updateCategory = async (categoryId: number, categoryData: { categor
 export const deleteCategory = async (categoryId: number) => {
   await apiClient.delete(`/categories/${categoryId}`);
 };
+export const uploadProductImage = async (idProduct: number, file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('idProduct', String(idProduct));
+
+  const response = await apiClient.post('/gambar/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+/**
+ * Menghapus sebuah gambar produk.
+ */
+export const deleteProductImage = async (idGambar: number) => {
+  await apiClient.delete(`/gambar/${idGambar}`);
+};
