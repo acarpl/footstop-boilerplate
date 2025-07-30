@@ -1,5 +1,3 @@
-// lib/services/productService.js
-
 import apiClient from '../apiClient';
 
 /**
