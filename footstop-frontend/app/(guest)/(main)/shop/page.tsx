@@ -17,6 +17,7 @@ import { getProducts, getCategories, getBrands } from '../../../../lib/services/
 
 export default function ShopPage() {
   const router = useRouter();
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -122,11 +123,11 @@ export default function ShopPage() {
                       className="bg-white rounded-lg p-4 shadow-md text-center transform transition duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
                     >
                       <Image
-                        src={product.image}
+                        src={product.gambar?.[0]?.url || "/placeholder.png"}
                         alt={product.product_name}
-                        width={60}
-                        height={60}
-                        style={{ objectFit: 'cover', borderRadius: '4px' }}
+                        width={200}
+                        height={200}
+                        className="w-full h-40 object-contain mb-4"
                       />
                       <h3 className="text-base font-semibold mb-2 h-12">{product.product_name}</h3>
                       <p className="text-red-500 font-bold">
