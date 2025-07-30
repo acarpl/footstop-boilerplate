@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateGambarDto } from './dto/create-gambar.dto';
 import { Gambar } from './entities/gambar.entity';
-import { unlink } from 'fs';
+import { unlink } from 'fs/promises';
 import { join } from 'path';
 
 @Injectable()

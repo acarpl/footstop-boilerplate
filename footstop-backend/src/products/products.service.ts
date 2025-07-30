@@ -13,6 +13,18 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
+  // PASTIKAN METODE INI ADA
+  async findAllForAdmin(options: { page: number; limit: number }) {
+    const { page, limit } = options;
+    const [data, total] = await this.productRepository.findAndCount({
+      relations: ['brand', 'category', 'images'], // Pastikan semua relasi ada
+      order: { id_product: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, total, page, limit, lastPage: Math.ceil(total / limit) };
+  }
+
   async create(createProductDto: CreateProductDto): Promise<Product> {
     const { id_brand, id_category, ...productData } = createProductDto;
 
@@ -42,6 +54,7 @@ export class ProductsService {
     // Kita gunakan leftJoinAndSelect agar data brand dan category ikut di dalam hasil
     queryBuilder.leftJoinAndSelect('product.brand', 'brand');
     queryBuilder.leftJoinAndSelect('product.category', 'category');
+    queryBuilder.leftJoinAndSelect('product.images', 'images');
 
     // 3. Tambahkan kondisi WHERE secara dinamis
     if (search) {

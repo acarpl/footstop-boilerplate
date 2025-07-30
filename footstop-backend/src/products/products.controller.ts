@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, DefaultValuePipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -16,6 +16,17 @@ export class ProductsController {
   @Roles('admin') // <-- HANYA ADMIN
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
+  }
+
+    @Get('admin/all') // <-- RUTE YANG ANDA BUTUHKAN
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  findAllForAdmin(
+    @Query('page', new DefaultValuePipe(1), new ParseIntPipe()) page: number,
+    @Query('limit', new DefaultValuePipe(5), new ParseIntPipe()) limit: number,
+  ) {
+    // Pastikan Anda juga memiliki metode findAllForAdmin di ProductsService
+    return this.productsService.findAllForAdmin({ page, limit });
   }
 
   // Endpoint GET ini publik, jadi tidak perlu diamankan

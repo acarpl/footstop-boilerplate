@@ -118,12 +118,12 @@ export default function ManageProductsPage() {
       id_category: product.category.id_category,
     });
     // Konversi gambar yang ada ke format yang dimengerti oleh Ant Design Upload
-    const existingImages = product.images.map(img => ({
+    const existingImages = product.images?.map(img => ({
       uid: String(img.id_gambar),
       name: img.url.split('/').pop() || 'image.png',
       status: 'done',
       url: img.url,
-    }));
+    })) || [];
     setFileList(existingImages);
     setIsModalOpen(true);
   };
@@ -194,11 +194,31 @@ export default function ManageProductsPage() {
   const columns: TableProps<Product>['columns'] = [
     { title: 'ID', dataIndex: 'id_product', key: 'id_product', fixed: 'left', width: 80 },
     {
-        title: 'Image',
-        dataIndex: 'images',
-        key: 'image',
-        width: 100,
-        render: (images) => images?.[0]?.url ? <Image src={images[0].url} alt="product" width={60} height={60} style={{ objectFit: 'cover' }} /> : 'No Image'
+      title: 'Image',
+      dataIndex: 'images', // Kita tetap menargetkan array 'images'
+      key: 'image',
+      width: 100,
+      // Gunakan fungsi 'render' untuk mengubah data menjadi JSX
+      render: (images: Image[], record: Product) => {
+        // Cek pengaman: pastikan ada gambar dan URL-nya valid
+        if (!images || images.length === 0 || !images[0]?.url) {
+          return 'No Image';
+        }
+
+        // Ambil URL dari gambar pertama di dalam array
+        const imageUrl = images[0].url;
+
+        // Render komponen Image dari Next.js
+        return (
+          <Image
+            src={imageUrl}
+            alt={record.product_name} // Teks alt yang baik untuk SEO & aksesibilitas
+            width={60} // Tentukan lebar
+            height={60} // Tentukan tinggi
+            style={{ objectFit: 'cover', borderRadius: '4px' }} // Style agar gambar tidak gepeng
+          />
+        );
+      },
     },
     { title: 'Name', dataIndex: 'product_name', key: 'product_name' },
     { title: 'Brand', dataIndex: ['brand', 'brand_name'], key: 'brand' },
@@ -250,7 +270,12 @@ export default function ManageProductsPage() {
             <Input />
           </Form.Item>
           <Form.Item name="price" label="Price (Rp)" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} min={0} formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={value => value!.replace(/\$\s?|(,*)/g, '')} />
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+              formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              parser={value => parseInt(value!.replace(/\$\s?|(,*)/g, ''))}
+            />
           </Form.Item>
           <Form.Item name="size" label="Available Sizes (comma separated)">
             <Input placeholder="e.g., 40, 41, 42, 43" />
