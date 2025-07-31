@@ -100,24 +100,35 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
+    // 1. Ambil ID relasi dari DTO
     const { id_brand, id_category, ...productData } = updateProductDto;
 
-    const updatePayload: any = { ...productData };
+    // 2. Siapkan payload dasar untuk preload dengan data non-relasi
+    const preloadPayload: any = {
+      id_product: id,
+      ...productData,
+    };
+
+    // 3. Jika ID brand dikirim, format dengan benar untuk relasi
     if (id_brand) {
-      updatePayload.brand = { id_brand };
-    }
-    if (id_category) {
-      updatePayload.category = { id_category };
+      preloadPayload.brand = { id_brand: id_brand };
     }
 
-    const product = await this.productRepository.preload({
-      idProduct: id,
-      ...updatePayload,
-    });
+    // 4. Jika ID kategori dikirim, format dengan benar untuk relasi
+    if (id_category) {
+      preloadPayload.category = { id_category: id_category };
+    }
+    
+    // Log untuk debugging, Anda bisa menghapusnya nanti
+    console.log('Payload for preload:', preloadPayload);
+
+    // 5. Panggil preload dengan payload yang sudah bersih dan terstruktur
+    const product = await this.productRepository.preload(preloadPayload);
 
     if (!product) {
-      throw new NotFoundException(`Product with ID #${id} not found`);
+      throw new NotFoundException(`Product #${id} not found`);
     }
+
     return this.productRepository.save(product);
   }
 
