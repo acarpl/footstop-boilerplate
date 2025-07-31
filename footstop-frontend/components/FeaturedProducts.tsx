@@ -43,7 +43,7 @@ const generateRating = (productId: number): number => {
 // Function to generate random discount (optional)
 const generateDiscount = (productId: number): number => {
   // Use product ID as seed for consistent discounts
-  const discounts = [0, 0, 10, 15, 20, 0, 25, 30, 0, 0]; // Most products have no discount
+  const discounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Most products have no discount
   return discounts[productId % discounts.length];
 };
 
