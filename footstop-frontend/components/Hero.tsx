@@ -1,16 +1,16 @@
-'use client';
-
-import { Button } from 'antd';
-import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 export default function Hero() {
   return (
-    <div
-      className="w-full bg-gray-100 bg-cover bg-center py-64"
-      style={{
-        backgroundImage: 'url(/images/hero-section.png)',
-      }}
-    >
-    </div>
+   <div className="relative w-full h-screen pt-20">
+  <Image 
+    src="/images/hero-section.png" 
+    alt="Hero banner"
+    fill
+    style={{ objectFit: 'cover' }}
+    priority
+  />
+</div>
+
   );
 }
