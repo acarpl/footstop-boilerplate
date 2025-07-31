@@ -6,6 +6,7 @@ import FeaturedProducts from '#/components/FeaturedProducts';
 import Categories from '#/components/Categories';
 import { motion } from 'framer-motion';
 
+
 export default function HomePage() {
   console.log('API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
 
@@ -44,7 +45,10 @@ export default function HomePage() {
         <Categories />
       </motion.section>
 
-      <Footer />
+      <div className="w-full">
+        <Footer />
+      </div>
+
     </div>
   );
 }

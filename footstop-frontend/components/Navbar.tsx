@@ -30,6 +30,12 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  useEffect(() => {
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+  return () => { document.body.style.overflow = ''; };
+}, [isOpen]);
+
 
   const handleSearch = () => {
     if (searchQuery.trim() !== '') {
@@ -56,7 +62,7 @@ export default function Navbar() {
   if (loading) {
     return (
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-white/30 backdrop-blur-md text-black shadow-md border-b border-white/10' : 'bg-transparent text-white'}`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-6 py-3">
           <div className="bg-gray-300 h-10 w-28 rounded-full animate-pulse"></div>
           <div className="hidden md:flex bg-gray-300 h-6 w-64 rounded-md animate-pulse"></div>
           <div className="hidden md:flex bg-gray-300 h-10 w-48 rounded-md animate-pulse"></div>
@@ -71,9 +77,9 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="group relative">
           <img
-            src="/logo-shoe.svg"
+            src="/icons/logo-shoe.svg"
             alt="Footstop Logo"
-            className="h-8 w-8 transition-transform duration-300 group-hover:scale-110"
+            className={`h-8 w-8 transition-all duration-300 ${isScrolled ? 'scale-95' : 'scale-100'}`}
           />
           <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 text-xs bg-black text-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             Footstop
@@ -144,7 +150,22 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
+
         <div className="md:hidden mt-2 px-4 animate-slide-down">
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+          </div>
+
           <ul className="flex flex-col gap-3">
             {['/shop', '/about', '/contact'].map((path) => (
               <li key={path}>
