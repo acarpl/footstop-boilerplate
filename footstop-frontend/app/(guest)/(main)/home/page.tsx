@@ -13,7 +13,6 @@ export default function HomePage() {
   
   return (
     <div className="flex flex-col items-center">
-      <Navbar />
       <Hero />
 
       {/* HEADER MERAH – FEATURED */}
