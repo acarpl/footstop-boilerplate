@@ -10,7 +10,7 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="relative w-full h-72 md:h-[400px]">
         <Image
-          src="/images/about-hero.jpg"
+          src="/images/about-hero.png"
           alt="About Hero"
           fill
           className="object-cover object-center"
@@ -45,7 +45,7 @@ export default function AboutPage() {
       {/* Siapa Kami */}
       <section className="py-10 px-6 md:px-16 grid md:grid-cols-2 gap-10 items-center">
         <Image
-          src="/images/footstop-logo-block.png"
+          src="/images/footsop icon 1.svg"
           alt="Footstop Illustration"
           width={500}
           height={400}
@@ -64,7 +64,7 @@ export default function AboutPage() {
       {/* Apa yang Kami Tawarkan */}
       <section className="px-6 md:px-16 pb-10">
         <Image
-          src="/images/about-offers.jpg"
+          src="/images/about-offers.png"
           alt="Shoes"
           width={1200}
           height={500}
