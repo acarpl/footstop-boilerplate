@@ -1,176 +1,189 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Select, Checkbox, Spin, Empty, Pagination, App } from 'antd';
+import { useRouter } from "next/navigation";
+import { Star } from "lucide-react";
+import { Select, Checkbox, Spin, Empty, Pagination } from "antd";
+import Footer from '#/components/Footer';
+import Navbar from '#/components/Navbar';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 import Image from 'next/image';
 
-import {
-  getProducts,
-  getCategories,
-  getBrands,
-  type Product,
-  type Category,
-  type Brand,
-} from '../../lib/services/productService'; // Sesuaikan path jika perlu
+import { getProducts, getCategories, getBrands, Product, Category, Brand } from '../../../../lib/services/productService';
 
-const { Option } = Select;
-
-const ShopContent = () => {
+export default function ShopPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { message: messageApi } = App.useApp();
-
-  const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  
-  // State untuk filter
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [selectedBrands, setSelectedBrands] = useState<number[]>([]);
-  
-  // State untuk paginasi
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
+  const [loading, setLoading] = useState(true);
+  const [totalProducts, setTotalProducts] = useState(0);
+
+  const [filters, setFilters] = useState({
+    page: 1,
+    limit: 9,
+    id_category: null,
+    id_brand: null,
   });
 
-  // useEffect untuk mengambil data produk
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const params = {
-          page: pagination.current,
-          limit: pagination.pageSize,
-          idCategory: selectedCategory || undefined, // Kirim jika tidak null
-          // Backend mungkin perlu di-update untuk menerima 'idBrand' sebagai array
-          idBrand: selectedBrands.length > 0 ? selectedBrands.join(',') : undefined, 
-        };
+        if (categories.length === 0) {
+          const fetchedCategories = await getCategories();
+          setCategories(fetchedCategories);
+        }
+        if (brands.length === 0) {
+          const fetchedBrands = await getBrands();
+          setBrands(fetchedBrands);
+        }
 
-        const res = await getProducts(params);
-        setProducts(res.data);
-        setPagination(prev => ({ ...prev, total: res.total }));
+        const productData = await getProducts(filters);
+        setProducts(productData.data);
+        setTotalProducts(productData.total);
       } catch (error) {
-        messageApi.error('Failed to load products');
+        console.error("Error loading shop data:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
-  }, [selectedCategory, selectedBrands, pagination.current, pagination.pageSize]); // Dependensi
+  }, [filters]);
 
-  // useEffect untuk mengambil data filter (kategori & merek)
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const [catData, brandData] = await Promise.all([
-          getCategories(),
-          getBrands(),
-        ]);
-        setCategories(catData);
-        setBrands(brandData);
-      } catch (err) {
-        messageApi.error('Failed to load filter options');
-      }
-    };
-    fetchInitialData();
-  }, []);
-
-  // Handlers
-  const handleCategoryChange = (value: number) => {
-    setSelectedCategory(value);
-    setPagination(prev => ({ ...prev, current: 1 })); // Reset ke halaman 1
+  const handleBrandChange = (id_brand: any) => {
+    setFilters(prev => ({ ...prev, id_brand, page: 1 }));
   };
 
-  const handleBrandChange = (checkedValues: number[]) => {
-    setSelectedBrands(checkedValues);
-    setPagination(prev => ({ ...prev, current: 1 })); // Reset ke halaman 1
+  const handleCategoryChange = (id_category: any, checked: boolean) => {
+    setFilters(prev => ({ ...prev, id_category: checked ? id_category : null, page: 1 }));
   };
-  
-  const handlePageChange = (page: number) => {
-      setPagination(prev => ({...prev, current: page}));
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    setFilters(prev => ({ ...prev, page, limit: pageSize }));
+  };
+
+  // Function to get the first image URL from product
+  const getProductImageUrl = (product: Product): string => {
+    // Check if product has images array and get first image
+    if (product.images && product.images.length > 0) {
+      return product.images[0].url;
+    }
+    // Return placeholder if no image found
+    return '/placeholder-image.jpg';
   };
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <Select
-          placeholder="Filter by Category"
-          style={{ width: '100%', maxWidth: '250px' }}
-          onChange={handleCategoryChange}
-          allowClear
-        >
-          {categories.map((cat) => (
-            // 1. GUNAKAN NAMA PROPERTI YANG BENAR
-            <Option key={cat.id_category} value={cat.id_category}>
-              {cat.category_name}
-            </Option>
-          ))}
-        </Select>
+    <div className="bg-gray-100 min-h-screen">
+      <div className="max-w-7xl mx-auto py-6 px-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <aside className="bg-white rounded-lg shadow p-4 h-fit">
+            <h2 className="text-lg font-semibold mb-4">Categories</h2>
+            <ul className="space-y-2 text-sm">
+              {categories.map((cat) => (
+                <li key={cat.id_category} className="flex items-center space-x-2">
+                  <Checkbox
+                    onChange={(e) => handleCategoryChange(cat.id_category, e.target.checked)}
+                  >
+                    {cat.category_name}
+                  </Checkbox>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4">
+              <label className="text-sm font-medium">Brands</label>
+              <Select
+                className="w-full mt-1"
+                placeholder="Select Brand"
+                onChange={handleBrandChange}
+                options={brands.map(brand => ({
+                  label: brand.brand_name,
+                  value: brand.id_brand
+                }))}
+                allowClear
+              />
+            </div>
+          </aside>
 
-        <div className="flex items-center gap-4 flex-wrap">
-            <span className="font-semibold">Brands:</span>
-            <Checkbox.Group onChange={handleBrandChange}>
-            {brands.map((brand) => (
-                // 1. GUNAKAN NAMA PROPERTI YANG BENAR
-                <Checkbox key={brand.id_brand} value={brand.id_brand}>
-                {brand.brand_name}
-                </Checkbox>
-            ))}
-            </Checkbox.Group>
+          {/* Products */}
+          <main className="md:col-span-3 space-y-6">
+            <h2 className="text-3xl font-bold text-red-600 text-center">Choose Your Own Style</h2>
+
+            {loading ? (
+              <div className="text-center p-10">
+                <Spin size="large" />
+              </div>
+            ) : products.length === 0 ? (
+              <Empty description="No products found matching your criteria." />
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {products.map((product) => (
+                    <div
+                      key={product.id_product}
+                      onClick={() => router.push(`/product/${product.id_product}`)}
+                      className="bg-white rounded-lg shadow-md transform transition duration-300 hover:scale-105 hover:shadow-xl cursor-pointer overflow-hidden"
+                    >
+                      {/* Image Container with fixed aspect ratio */}
+                      <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
+                        <img
+                          src={getProductImageUrl(product)}
+                          alt={product.product_name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to placeholder if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/placeholder-image.jpg';
+                          }}
+                          loading="lazy"
+                        />
+                      </div>
+                      
+                      {/* Product Details */}
+                      <div className="p-4 text-center">
+                        <h3 className="text-base font-semibold mb-2 h-12 line-clamp-2">
+                          {product.product_name}
+                        </h3>
+                        <p className="text-red-500 font-bold">
+                          Rp {parseInt(product.price).toLocaleString()}
+                        </p>
+                        
+                        {/* Additional product info */}
+                        <div className="mt-2 text-sm text-gray-600">
+                          {product.brand && (
+                            <span className="block">{product.brand.brand_name}</span>
+                          )}
+                          {product.category && (
+                            <span className="block text-xs text-gray-500">
+                              {product.category.category_name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-center mt-8">
+                  <Pagination
+                    current={filters.page}
+                    pageSize={filters.limit}
+                    total={totalProducts}
+                    onChange={handlePageChange}
+                    showSizeChanger
+                  />
+                </div>
+              </>
+            )}
+          </main>
         </div>
       </div>
-
-      <div className="mt-6">
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Spin size="large" />
-          </div>
-        ) : products.length === 0 ? (
-          <Empty description="No products found" className="mt-20" />
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {products.map((product) => (
-              <div key={product.id_product} className="border p-2 rounded-md cursor-pointer hover:shadow-lg transition">
-                <Image
-                  // 2. AKSES URL GAMBAR DENGAN BENAR
-                  src={product.images?.[0]?.url || '/placeholder.png'}
-                  alt={product.product_name}
-                  width={200}
-                  height={200}
-                  className="w-full h-48 object-contain rounded"
-                />
-                <div className="mt-2 font-semibold truncate">{product.product_name}</div>
-                <div className="text-sm text-gray-600">
-                    {/* 3. PARSE HARGA SEBELUM FORMAT */}
-                    Rp {parseInt(product.price).toLocaleString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-8 flex justify-center">
-        <Pagination
-          current={pagination.current}
-          total={pagination.total}
-          pageSize={pagination.pageSize}
-          onChange={handlePageChange}
-        />
-      </div>
+      <Footer />
     </div>
   );
-};
-
-// Bungkus dengan <App> agar message berfungsi
-export default function Shop() {
-    return (
-        <App>
-            <ShopContent />
-        </App>
-    );
 }

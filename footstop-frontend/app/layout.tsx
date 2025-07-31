@@ -1,41 +1,29 @@
+// app/layout.tsx
+"use client"; // File ini wajib menjadi Client Component karena menggunakan provider
+
 import './globals.css';
 import 'antd/dist/reset.css';
-import {Provider} from "./provider";
-import Script from 'next/script';
-import { AuthProvider } from '../context/AuthContext';
-import Navbar from '#/components/Navbar';
-import { App } from 'antd';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+import React from 'react';
+import { App } from 'antd'; // 1. Import komponen App
+import { AuthProvider } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
+// ... import lain jika ada
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-    {/* ugh */}
-      {/*
-        <head /> will contain the components returned by the nearest parent
-        head.tsx. Find out more at https://beta.nextjs.org/docs/api-reference/file-conventions/head
-      */}
-      <head />
-
       <body>
-        <Script src="/api/env" strategy={"beforeInteractive"}></Script>
-        <App> {/* Bungkus dengan <App> jika Anda menggunakan message.success/error */}
-          <AuthProvider> {/* <-- AuthProvider sekarang menjadi pembungkus terluar */}
-            
-            {/* Navbar sekarang berada DI DALAM AuthProvider */}
-            <Navbar /> 
-            
-            {/* Halaman konten (children) juga berada di dalam */}
+        {/* 2. BUNGKUS SEMUANYA DENGAN <App> */}
+        {/* Ini akan menyediakan konteks untuk message, modal, dll. */}
+        <App>
+          <AuthProvider>
+            <Navbar />
             <main>{children}</main>
-            
-            {/* Anda bisa menambahkan Footer di sini juga */}
-
+            {/* <Footer /> */}
           </AuthProvider>
         </App>
       </body>
     </html>
-  )
+  );
 }
