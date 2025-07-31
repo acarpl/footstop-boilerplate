@@ -6,12 +6,12 @@ import { motion } from 'framer-motion';
 export default function Hero() {
   return (
     <div
-      className="w-full bg-gray-100 bg-cover bg-center py-20"
+      className="w-full bg-gray-100 bg-cover bg-center py-64"
       style={{
-        backgroundImage: 'url(/images/hero-shoes.jpeg)',
+        backgroundImage: 'url(/images/hero-section.png)',
       }}
     >
-      <div className="max-w-screen-xl mx-auto px-4">
+      {/* <div className="max-w-screen-xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -32,7 +32,7 @@ export default function Hero() {
             </Button>
           </motion.div>
         </motion.div>
-      </div>
+      </div> */}
     </div>
   );
 }
