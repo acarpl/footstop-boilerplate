@@ -2,28 +2,34 @@
 
 import { motion } from "framer-motion";
 import React from "react";
-import { Footprints } from "lucide-react";
 
 export default function Loading() {
   return (
-    <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center text-white">
-      {/* Abstract Shoe Spinner */}
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <motion.div
-        className="flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-tr from-red-600 via-gray-800 to-black shadow-2xl mb-6"
-        animate={{ rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 1.4, ease: "linear" }}
+        className="flex space-x-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
       >
-        <Footprints className="w-10 h-10 text-white" />
-      </motion.div>
-
-      {/* Typing Effect Title */}
-      <motion.div
-        className="text-xl md:text-2xl font-semibold tracking-widest overflow-hidden whitespace-nowrap border-r-2 border-red-500 pr-2"
-        initial={{ width: 0 }}
-        animate={{ width: "auto" }}
-        transition={{ duration: 2, ease: "easeInOut" }}
-      >
-        Memuat Footstop...
+        {[...Array(3)].map((_, i) => (
+          <motion.span
+            key={i}
+            className="w-3 h-3 rounded-full"
+            style={{
+              backgroundColor: i === 0 ? "#e11d48" : i === 1 ? "#6b7280" : "#000",
+            }}
+            animate={{
+              y: [0, -8, 0],
+            }}
+            transition={{
+              repeat: Infinity,
+              duration: 0.8,
+              delay: i * 0.15,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
       </motion.div>
     </div>
   );
