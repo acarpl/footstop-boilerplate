@@ -2,10 +2,11 @@
 import ProductCard from "#/components/product/ProductCard";
 import Navbar from '#/components/Navbar'
 import footer from '#/components/Footer'
+import FeaturedProducts from '#/components/FeaturedProducts';
 import Image from "next/image";
 
 const dummyProducts = Array(6).fill({
-  name: "Converse 70’s - Black",
+  name: "Converse 70's - Black",
   price: "Rp 1.770.000",
   image: "/products/converse-black.jpeg",
 });
@@ -27,20 +28,18 @@ export default function NewArrivalPage() {
         </h1>
       </div>
 
-      <div className="max-w-7xl mx-auto grid md:grid-cols-5 gap-6 px-6 py-10">
-        {/* Sidebar */}
-        <aside className="space-y-6 md:col-span-1">
-          <div className="text-red-600 font-bold text-3xl">New <br /> Arrival.</div>
-          <Image src="/banners/new-left.jpg" alt="Side" width={300} height={400} />
-          <div className="text-red-600 font-bold text-3xl">New <br /> Arrival.</div>
-        </aside>
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        {/* Sidebar - Now horizontal on top */}
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8">
+          <div className="text-red-600 font-bold text-3xl mb-4 md:mb-0">New <br /> Arrival.</div>
+          <Image src="/banners/new-left.jpg" alt="Side" width={200} height={250} className="md:mx-4" />
+          <div className="text-red-600 font-bold text-3xl mt-4 md:mt-0">New <br /> Arrival.</div>
+        </div>
 
-        {/* Products */}
-        <section className="md:col-span-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {dummyProducts.map((product, idx) => (
-            <ProductCard key={idx} product={product} />
-          ))}
-        </section>
+        {/* Products - Now takes full width */}
+        <div className="w-full">
+          <FeaturedProducts />
+        </div>
       </div>
       <footer />
     </main>
