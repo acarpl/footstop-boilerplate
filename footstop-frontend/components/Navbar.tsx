@@ -1,3 +1,5 @@
+//components/Navbar.tsx
+
 "use client";
 
 import Link from 'next/link';
@@ -61,7 +63,9 @@ export default function Navbar() {
 
   if (loading) {
     return (
-      <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-white/30 backdrop-blur-md text-black shadow-md border-b border-white/10' : 'bg-transparent text-white'}`}>
+<nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled 
+  ? 'bg-white/30 backdrop-blur-md text-black shadow-md border-b border-white/10' 
+  : 'bg-white/50 backdrop-blur-md text-black'}`}>
           <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-6 py-3">
           <div className="bg-gray-300 h-10 w-28 rounded-full animate-pulse"></div>
           <div className="hidden md:flex bg-gray-300 h-6 w-64 rounded-md animate-pulse"></div>
@@ -72,48 +76,57 @@ export default function Navbar() {
   }
 
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-white/30 backdrop-blur-md text-black shadow-md border-b border-white/10' : 'bg-transparent text-white'}`}>
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-        {/* Logo */}
-        <Link href="/" className="group relative">
-          <img
-            src="/icons/logo-shoe.svg"
-            alt="Footstop Logo"
-            className={`h-8 w-8 transition-all duration-300 ${isScrolled ? 'scale-95' : 'scale-100'}`}
+<nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled 
+  ? 'bg-white/30 backdrop-blur-md text-black shadow-md border-b border-white/10' 
+  : 'bg-white/50 backdrop-blur-md text-black'}`}>
+<div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+  
+        {/* LEFT: Logo */}
+        <div className="flex items-center gap-6">
+          <Link href="/" className="group relative">
+            <img src="/icons/logo-shoe.svg" alt="Footstop Logo"
+              className={`h-8 w-8 transition-all duration-300 ${isScrolled ? 'scale-95' : 'scale-100'}`} />
+            <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 text-xs bg-black text-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              Footstop
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <ul className="hidden md:flex gap-6">
+            {['/shop', '/new', '/sale', '/brands', '/admin/dashboard'].map((path) => (
+              <li key={path} className="relative group">
+                <Link
+                  href={path}
+                  className={`hover:text-red-600 transition-colors ${isActive(path) ? 'text-red-600 font-semibold' : ''}`}
+                >
+                  {path.includes('admin') ? 'Admin' : path.replace('/', '').charAt(0).toUpperCase() + path.slice(2)}
+                  <span className="rounded-md absolute bottom-[-4px] left-1/2 transform -translate-x-1/2 h-1 bg-red-800 w-0 group-hover:w-full transition-all duration-300 ease-in-out" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* CENTER: Searchbar */}
+        <div className="hidden md:flex items-center group bg-white border border-gray-300 rounded-full overflow-hidden transition-all duration-300 ease-in-out">
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="px-4 py-2 pl-4 text-sm text-black focus:outline-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
-          <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 text-xs bg-black text-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            Footstop
-          </span>
-        </Link>
+          <button
+            onClick={handleSearch}
+            className="opacity-0 group-hover:opacity-100 transform group-hover:translate-x-0 translate-x-2 transition-all duration-300 ease-in-out bg-black text-white px-3 py-2 rounded-r-full"
+          >
+            <Search size={16} />
+          </button>
+        </div>
 
-        {/* Desktop Navigation */}
-        <ul className="hidden md:flex gap-6 ml-8">
-          {['/shop', '/about', '/contact', '/admin/dashboard'].map((path) => (
-            <li key={path}>
-              <Link
-                href={path}
-                className={`hover:text-red-600 transition-colors ${isActive(path) ? 'text-red-600 font-semibold' : ''}`}
-              >
-                {path.includes('admin') ? 'Admin' : path.replace('/', '').charAt(0).toUpperCase() + path.slice(2)}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        {/* Right Section */}
-        <div className="hidden md:flex items-center gap-4 ml-auto">
-          <div className="group relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-          </div>
-
+        {/* RIGHT: Auth & Cart */}
+        <div className="hidden md:flex items-center gap-4">
           {user ? (
             <>
               <Link href="/cart" className="p-2 hover:bg-gray-200 rounded-full">
@@ -129,12 +142,12 @@ export default function Navbar() {
           ) : (
             <>
               <Link href="/register">
-                <button className="border border-red-600 text-red-600 px-4 py-2 rounded-md hover:bg-red-50">
+                <button className="px-4 py-2 border border-red-600 text-red-600 rounded-md hover:bg-red-50 hover:shadow-red-200 hover:shadow-sm transition">
                   Register
                 </button>
               </Link>
               <Link href="/login">
-                <button className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700">
+                <button className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 hover:shadow-red-300 hover:shadow-md transition">
                   Log In
                 </button>
               </Link>
@@ -142,7 +155,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Hamburger Icon */}
+        {/* Hamburger (Mobile) */}
         <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 hover:bg-gray-200 rounded-md">
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -153,18 +166,25 @@ export default function Navbar() {
 
         <div className="md:hidden mt-2 px-4 animate-slide-down">
           <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+            {/* Revisi searchbar mobile */}
+            <div className="group flex items-center bg-white border border-gray-300 rounded-full overflow-hidden transition-all duration-300 ease-in-out">
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2 text-sm text-black focus:outline-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
+              <button
+                onClick={handleSearch}
+                className="opacity-0 group-hover:opacity-100 transform group-hover:translate-x-0 translate-x-2 transition-all duration-300 ease-in-out bg-black text-white px-3 py-2"
+              >
+                <Search size={16} />
+              </button>
             </div>
           </div>
+
 
           <ul className="flex flex-col gap-3">
             {['/shop', '/about', '/contact'].map((path) => (
