@@ -92,12 +92,17 @@ export class ProductsService {
   }
   
   async findOne(id: number): Promise<Product> {
-    const product = await this.productRepository.findOneBy({ id_product: id });
+    const product = await this.productRepository.findOne({
+      where: { id_product: id },
+      // Pastikan relasi ini dimuat!
+      relations: ['brand', 'category', 'images'], 
+    });
     if (!product) {
       throw new NotFoundException(`Product with ID #${id} not found`);
     }
     return product;
-  }
+}
+
 
   async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
     // 1. Ambil ID relasi dari DTO

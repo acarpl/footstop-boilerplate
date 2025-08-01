@@ -1,104 +1,150 @@
 'use client';
 
-import Navbar from '#/components/Navbar';
-import Footer from '#/components/Footer';
-import Sidebar from '#/components/Sidebar';
-import Image from 'next/image';
-import { TokenUtil } from '#/utils/token';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Spin, Empty, Button, Typography, message, App } from 'antd';
 import { Trash } from "lucide-react";
 import Link from 'next/link';
+import Image from 'next/image';
 
-TokenUtil.loadToken();
+import { 
+    getCartItems, 
+    updateCartItemQuantity, 
+    removeCartItem,
+    type CartItem
+} from '../../../lib/services/cartService'; // Sesuaikan path
 
-export default function CartPage() {
-  return (
-    <>
-      <Navbar />
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
+// Hapus impor Sidebar, Navbar, Footer jika sudah ada di layout
+// import Sidebar from '#/components/Sidebar';
+// import Navbar from '#/components/Navbar';
+// import Footer from '#/components/Footer';
 
-        <div className="flex-1 p-10">
-          <h1 className="text-3xl font-bold text-red-500 mb-8">YOUR CART</h1>
+const CartPageContent = () => {
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { message: messageApi } = App.useApp();
+    const router = useRouter();
 
-          {/* Produk List */}
-          <div className="flex flex-col space-y-5">
-            {[{
-              name: 'Converse Run Star Trainer',
-              size: '42',
-              color: 'Sky Blue',
-              price: 1199000,
-              img: '/images/shoes.png'
-            }, {
-              name: 'Checkered Shirt',
-              size: 'Medium',
-              color: 'Red',
-              price: 1990000,
-              img: '/images/shirt.png'
-            }, {
-              name: 'Skinny Fit Jeans',
-              size: 'Large',
-              color: 'Blue',
-              price: 2500000,
-              img: '/images/jeans.png'
-            }].map((item, index) => (
-              <div key={index} className="flex items-center justify-between bg-white p-4 rounded-lg shadow">
-                <div className="flex items-center space-x-4">
-                  <Image src={item.img} alt={item.name} width={80} height={80} />
-                  <div>
-                    <p className="font-semibold">{item.name}</p>
-                    <p className="text-sm text-gray-500">Size: {item.size}</p>
-                    <p className="text-sm text-gray-500">Color: {item.color}</p>
-                    <p className="font-bold mt-1">Rp {item.price.toLocaleString()}</p>
-                  </div>
+    const fetchCart = async () => {
+        setLoading(true);
+        try {
+            const items = await getCartItems();
+            setCartItems(items);
+        } catch (error) {
+            messageApi.error("Failed to load your cart. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCart();
+    }, []);
+
+    const handleQuantityChange = async (idCart: number, currentQuantity: number, change: number) => {
+        const newQuantity = currentQuantity + change;
+        if (newQuantity < 1) return; // Kuantitas tidak boleh kurang dari 1
+
+        try {
+            await updateCartItemQuantity(idCart, newQuantity);
+            // Optimistic update: perbarui UI dulu sebelum fetch ulang
+            setCartItems(prevItems => 
+                prevItems.map(item => 
+                    item.id_cart === idCart ? { ...item, quantity: newQuantity } : item
+                )
+            );
+        } catch (error) {
+            messageApi.error("Failed to update quantity.");
+        }
+    };
+
+    const handleRemove = async (idCart: number) => {
+        try {
+            await removeCartItem(idCart);
+            messageApi.success("Item removed from cart.");
+            // Hapus item dari state untuk update UI instan
+            setCartItems(prevItems => prevItems.filter(item => item.id_cart !== idCart));
+        } catch (error) {
+            messageApi.error("Failed to remove item.");
+        }
+    };
+    
+    const subtotal = cartItems.reduce((sum, item) => sum + (item.quantity * parseInt(item.product.price)), 0);
+    // Logika diskon dan total bisa ditambahkan di sini
+    const total = subtotal; // Placeholder
+
+    if (loading) {
+        return <div className="flex justify-center items-center h-96"><Spin size="large" /></div>;
+    }
+
+    return (
+        <div className="flex-1 p-4 md:p-10">
+            <Typography.Title level={2} className="text-3xl font-bold text-red-500 mb-8">YOUR CART</Typography.Title>
+            
+            {cartItems.length === 0 ? (
+                <Empty description="Your cart is empty.">
+                    <Link href="/shop"><Button type="primary">Continue Shopping</Button></Link>
+                </Empty>
+            ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Daftar Produk */}
+                    <div className="lg:col-span-2 flex flex-col space-y-5">
+                        {cartItems.map((item) => (
+                            <div key={item.id_cart} className="flex items-center justify-between bg-white p-4 rounded-lg shadow">
+                                <div className="flex items-center space-x-4">
+                                    <Image
+                                        src={item.product.images?.[0]?.url || '/placeholder.png'}
+                                        alt={item.product.product_name}
+                                        width={80}
+                                        height={80}
+                                    />
+                                    <div>
+                                        <p className="font-semibold">{item.product.product_name}</p>
+                                        <p className="text-sm text-gray-500">Size: {item.size || 'N/A'}</p>
+                                        <p className="font-bold mt-1">Rp {parseInt(item.product.price).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                    <button onClick={() => handleQuantityChange(item.id_cart, item.quantity, -1)} className="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">-</button>
+                                    <span>{item.quantity}</span>
+                                    <button onClick={() => handleQuantityChange(item.id_cart, item.quantity, 1)} className="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">+</button>
+                                    <button onClick={() => handleRemove(item.id_cart)} className="text-red-500 hover:text-red-700 text-xl"><Trash /></button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Ringkasan Pesanan */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white p-6 rounded-lg shadow h-fit">
+                            <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                            <div className="space-y-2">
+                                <div className="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>Rp {subtotal.toLocaleString()}</span>
+                                </div>
+                                {/* ... (logika diskon dan ongkir) ... */}
+                                <div className="flex justify-between font-bold text-lg pt-4 border-t">
+                                    <span>Total</span>
+                                    <span>Rp {total.toLocaleString()}</span>
+                                </div>
+                            </div>
+                            <Link href="/checkout">
+                                <Button type="primary" block className="mt-5 h-12 text-lg">Go to Checkout →</Button>
+                            </Link>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <button className="bg-gray-200 rounded-full px-3">−</button>
-                  <span>1</span>
-                  <button className="bg-gray-200 rounded-full px-3">+</button>
-                  <button className="text-red-500 hover:text-red-700 text-xl"><Trash /></button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Order Summary */}
-          <div className="mt-10 bg-white p-6 rounded-lg shadow w-full max-w-md ml-auto">
-            <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>Rp 5,689,000</span>
-              </div>
-              <div className="flex justify-between text-red-500">
-                <span>Discount (-20%)</span>
-                <span>Rp 1,137,800</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Delivery Fee</span>
-                <span>Rp 0</span>
-              </div>
-              <div className="flex justify-between font-bold text-lg pt-4 border-t">
-                <span>Total</span>
-                <span>Rp 4,551,200</span>
-              </div>
-            </div>
-            <div className="flex mt-4">
-              <input
-                type="text"
-                placeholder="Add promo code"
-                className="border px-3 py-2 w-full rounded-l-md"
-              />
-              <button className="bg-black text-white px-4 rounded-r-md">Apply</button>
-            </div>
-                     <Link href="/checkout">
-                      <button className="mt-5 w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800">
-                          Go to Checkout →
-                      </button>
-                    </Link>
-          </div>
+            )}
         </div>
-      </div>
-      <Footer />
-    </>
-  );
+    );
+};
+
+// Bungkus dengan <App> untuk konteks message
+export default function CartPage() {
+    return (
+        <App>
+            <CartPageContent />
+        </App>
+    );
 }

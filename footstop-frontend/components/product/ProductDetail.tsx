@@ -1,29 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import Image from 'next/image';
+
+type Product = {
+  name: string;
+  price: string;
+  rating: number;
+  image: string;
+  description: string;
+  sizes: number[];
+};
 
 type ProductDetailProps = {
   slug: string;
 };
 
-const dummyProducts: Record<string, any> = {
-  "converse-70s-black": {
-    name: "Converse 70's - Black",
-    price: "Rp 1,770,000",
-    rating: 4.5,
-    image: "products/converse-black.png",
-    description:
-      "Converse klasik dengan tampilan retro dan kualitas modern. Didesain untuk kenyamanan dan gaya sepanjang hari.",
-    sizes: [38, 39, 40, 41, 42, 43],
-  },
-};
-
 export default function ProductDetail({ slug }: ProductDetailProps) {
-  const product = dummyProducts[slug];
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`/api/products/${slug}`);
+        const data = await res.json();
+        setProduct(data);
+      } catch (error) {
+        console.error("Gagal fetch produk", error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [slug]);
+
+  if (loading) {
+    return <div className="text-center py-20">Loading...</div>;
+  }
 
   if (!product) {
     return (
@@ -32,7 +51,6 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
       </div>
     );
   }
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-2 gap-12">
       {/* Gambar */}
