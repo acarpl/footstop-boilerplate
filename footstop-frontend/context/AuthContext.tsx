@@ -3,6 +3,7 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import apiClient from '../lib/apiClient'; // Pastikan path ini benar
 import axios from 'axios';
+import Loading from '#/components/loading';
 
 // --- Tipe User ---
 interface User {
@@ -105,7 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   if (loading) {
-    return <div>Loading Authentication...</div>;
+    return <div><Loading /></div>;
   }
 
   return (
