@@ -1,152 +1,191 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Spin, Empty, Button, Typography, App, message } from 'antd';
-import { Star, ShoppingCart } from 'lucide-react';
-import Image from 'next/image';
+import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
+import { Modal, Input, Button, Spin } from 'antd';
 
-import { getProductById, type Product } from '../../../../../lib/services/productService'; // Sesuaikan path
-import { addItemToCart } from '../../../../../lib/services/cartService'; // Untuk tombol Add to Cart
+import ProductGallery from '#/components/product/ProductGallery';
+import ProductInfo from '#/components/product/ProductInfo';
+import ReviewList from '#/components/product/ReviewList';
+import FAQList from '#/components/product/FAQList';
 
-const ProductDetailPageContent = ({ id }: { id: string }) => {
-  const [product, setProduct] = useState<Product | null>(null);
+export default function ProductDetailPage() {
+  const { id } = useParams();
+  const router = useRouter();
+
+  const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   const [quantity, setQuantity] = useState(1);
-  const { message: messageApi } = App.useApp();
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [userToken, setUserToken] = useState<string | null>(null);
 
+  const [isLoginModalVisible, setLoginModalVisible] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  // Ambil token & data produk
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const productData = await getProductById(id);
-        setProduct(productData);
-      } catch (error) {
-        console.error("Failed to load product details:", error);
-        setProduct(null); // Set ke null jika produk tidak ditemukan (404)
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [id]);
-
-  const handleAddToCart = async () => {
-    if (!selectedSize) {
-      messageApi.warning('Please select a size first!');
+    if (!id) {
+      setError('ID produk tidak tersedia.');
+      setLoading(false);
       return;
     }
+
+    setUserToken(localStorage.getItem('access_token'));
+    fetchProduct();
+  }, [id]);
+
+  const fetchProduct = async () => {
     try {
-      await addItemToCart({
-        idProduct: product!.id_product,
-        quantity: quantity,
-        size: selectedSize,
-      });
-      messageApi.success(`${product!.product_name} has been added to your cart.`);
-    } catch (error) {
-      // Menangani kasus jika user belum login
-      if (error.response?.status === 401) {
-          messageApi.error('Please log in to add items to your cart.');
-      } else {
-          messageApi.error('Failed to add item to cart.');
+      const res = await axios.get(`/api/products/${id}`);
+      const data = res.data;
+
+      if (!data || !data.id_product) {
+        throw new Error('Produk tidak ditemukan di backend.');
       }
+
+      console.log('✅ Produk:', data);
+      setProduct(data);
+    } catch (err) {
+      console.error('❌ Gagal ambil produk:', err);
+      setError('Produk tidak ditemukan atau gagal dimuat.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!userToken) {
+      setLoginModalVisible(true);
+      return;
+    }
+
+    if (!selectedSize) {
+      toast.error("Pilih ukuran terlebih dahulu!");
+      return;
+    }
+
+    try {
+      await axios.post(
+        '/api/cart',
+        {
+          product_id: product.id_product,
+          size: selectedSize,
+          quantity,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
+      toast.success("Berhasil ditambahkan ke cart!");
+    } catch (err) {
+      console.error("❌ Gagal add to cart:", err);
+      toast.error("Gagal menambahkan ke cart.");
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      const res = await axios.post('/api/login', { email, password });
+      const token = res.data.token;
+      localStorage.setItem('access_token', token);
+      setUserToken(token);
+      setLoginModalVisible(false);
+      toast.success("Login berhasil!");
+    } catch (err) {
+      toast.error("Login gagal! Periksa email atau password.");
     }
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-96"><Spin size="large" /></div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" tip="Memuat produk..." />
+      </div>
+    );
   }
 
-  if (!product) {
-    return <div className="text-center py-20"><Empty description="Product not found." /></div>;
+  if (error || !product) {
+    return (
+      <div className="text-center py-20 text-red-600 text-lg font-semibold">
+        {error || 'Produk tidak ditemukan.'}
+      </div>
+    );
   }
-  
-  // Ubah string ukuran menjadi array
-  const availableSizes = product.size ? product.size.split(',').map(s => s.trim()) : [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-2 gap-12">
-      {/* Galeri Gambar */}
-      <div>
-        <Image
-          src={product.images?.[0]?.url || '/placeholder.png'}
-          alt={product.product_name}
-          width={500}
-          height={500}
-          className="w-full h-auto object-contain rounded-xl shadow-lg"
+    <div className="max-w-6xl mx-auto px-4 py-10">
+      <Toaster />
+
+      {/* Bagian Atas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <ProductGallery images={product.images || []} />
+
+        <ProductInfo
+          product={product}
+          quantity={quantity}
+          setQuantity={setQuantity}
+          selectedSize={selectedSize}
+          setSelectedSize={setSelectedSize}
+          onAddToCart={handleAddToCart}
         />
-        <div className="flex gap-4 mt-4">
-          {product.images?.map((img) => (
-            <Image
-              key={img.id_gambar}
-              src={img.url}
-              alt="Product thumbnail"
-              width={80}
-              height={80}
-              className="w-20 h-20 object-contain border rounded-md cursor-pointer hover:border-red-500"
-            />
-          ))}
-        </div>
       </div>
 
-      {/* Detail Produk */}
-      <div>
-        <Typography.Title level={1}>{product.product_name}</Typography.Title>
-        <Typography.Text type="secondary">{product.brand.brand_name}</Typography.Text>
-        
-        {/* Harga */}
-        <p className="text-red-600 text-3xl font-bold mt-4">
-          Rp {parseInt(product.price).toLocaleString()}
-        </p>
+      {/* Bagian Tab */}
+      <div className="mt-10">
+        <ReviewList reviews={product.reviews || []} />
+        <FAQList faqs={product.faqs || []} />
+      </div>
 
-        {/* Deskripsi (placeholder, tambahkan di backend jika perlu) */}
-        <p className="text-gray-700 mt-4">
-          A classic silhouette with a modern twist. Designed for all-day comfort and style, making it a versatile addition to any wardrobe.
-        </p>
-        
-        {/* Pilih Ukuran */}
-        <div className="mt-6">
-          <h4 className="font-semibold text-gray-800 mb-2">Select Size</h4>
-          <div className="flex flex-wrap gap-2">
-            {availableSizes.map((size) => (
-              <button
-                key={size}
-                onClick={() => setSelectedSize(size)}
-                className={`w-12 h-12 rounded-md border text-sm transition ${
-                  selectedSize === size
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-black hover:border-black"
-                }`}
-              >
-                {size}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Modal Login */}
+      <Modal
+        open={isLoginModalVisible}
+        onCancel={() => setLoginModalVisible(false)}
+        footer={null}
+        centered
+      >
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-2">FOOTSTOP</h2>
+          <p className="text-lg font-semibold">Welcome Back!</p>
+          <p className="text-sm text-gray-500 mb-4">Log in to your account</p>
 
-        {/* Jumlah & Add to Cart */}
-        <div className="mt-8 flex items-center gap-4">
-          <div className="flex items-center border rounded-md overflow-hidden">
-            <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="px-4 py-2 text-lg hover:bg-gray-100">−</button>
-            <span className="px-5 py-2 font-semibold">{quantity}</span>
-            <button onClick={() => setQuantity((q) => q + 1)} className="px-4 py-2 text-lg hover:bg-gray-100">+</button>
-          </div>
-          <Button type="primary" size="large" icon={<ShoppingCart />} onClick={handleAddToCart} className="flex-1">
-            Add to Cart
+          <Input
+            placeholder="e.g. kamu@mail.com"
+            className="mb-3"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input.Password
+            placeholder="Masukkan Password"
+            className="mb-4"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button
+            type="primary"
+            className="w-full bg-red-600 hover:bg-red-700"
+            onClick={handleLogin}
+          >
+            Log in
           </Button>
+
+          <p className="mt-4 text-sm">
+            Belum punya akun?{' '}
+            <span
+              className="text-blue-600 underline cursor-pointer"
+              onClick={() => router.push('/register')}
+            >
+              Register di sini
+            </span>
+          </p>
         </div>
-      </div>
+      </Modal>
     </div>
   );
-};
-
-
-// Komponen Halaman utama yang membungkus dengan <App>
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-    return (
-        <App>
-            <ProductDetailPageContent id={params.id} />
-        </App>
-    );
 }
