@@ -65,3 +65,13 @@ export const getBrands = async (): Promise<Brand[]> => {
     throw error;
   }
 };
+
+export const getProductById = async (productId: number | string): Promise<Product> => {
+  try {
+    const response = await apiClient.get(`/products/${productId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Service Error: Failed to fetch product with ID ${productId}.`, error);
+    throw error;
+  }
+};
