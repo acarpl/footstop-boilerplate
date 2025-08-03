@@ -1,23 +1,25 @@
-'use client';
+// file: components/product/ProductGallery.tsx
+type Image = {
+  url: string;
+};
 
-import Image from 'next/image';
-
-interface ProductGalleryProps {
-  images: { url: string }[];
-}
-
-export default function ProductGallery({ images }: ProductGalleryProps) {
-  const mainImage = images?.[0]?.url || '/placeholder-image.jpg';
+export default function ProductGallery({ images }: { images: Image[] }) {
+  if (!images || images.length === 0) {
+    return <div className="text-center text-gray-500">No images available.</div>;
+  }
 
   return (
-    <div>
-      <Image
-        src={mainImage}
-        alt="Product Image"
-        width={500}
-        height={500}
-        className="rounded-lg w-full object-cover"
-      />
+    <div className="space-y-4">
+      {images.map((img, idx) => (
+        <img
+          key={idx}
+          src={img.url}
+          alt={`Product image ${idx + 1}`}
+          className="w-full rounded-lg object-cover max-h-96"
+          loading="lazy"
+          onError={(e) => (e.currentTarget.src = '/placeholder-image.jpg')}
+        />
+      ))}
     </div>
   );
 }

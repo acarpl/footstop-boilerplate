@@ -1,26 +1,23 @@
-'use client';
-
-interface FAQ {
+// file: components/product/FAQList.tsx
+type FAQ = {
   question: string;
   answer: string;
-}
+};
 
-interface FAQListProps {
-  faqs: FAQ[];
-}
+export default function FAQList({ faqs }: { faqs?: FAQ[] }) {
+  if (!faqs || faqs.length === 0) {
+    return <div className="text-gray-500">No FAQs available.</div>;
+  }
 
-export default function FAQList({ faqs }: FAQListProps) {
   return (
-    <div className="prose max-w-none space-y-2">
-      {faqs?.map((faq, index) => (
-        <div key={index}>
-          <h4 className="font-semibold">{faq.question}</h4>
+    <div className="space-y-4 mt-6">
+      <h2 className="text-xl font-semibold mb-3">FAQs</h2>
+      {faqs.map((faq, i) => (
+        <div key={i} className="border-b pb-2">
+          <p className="font-semibold">{faq.question}</p>
           <p>{faq.answer}</p>
         </div>
       ))}
-      {(!faqs || faqs.length === 0) && (
-        <p className="text-gray-500 text-sm">No FAQs available.</p>
-      )}
     </div>
   );
 }

@@ -11,11 +11,27 @@ import ProductInfo from '#/components/product/ProductInfo';
 import ReviewList from '#/components/product/ReviewList';
 import FAQList from '#/components/product/FAQList';
 
+type ProductType = {
+  id_product: number;
+  product_name: string;
+  size?: string;
+  price: number;
+  brand?: { brand_name: string };
+  category?: { category_name: string };
+  images?: { url: string }[];
+  reviews?: any[];
+  faqs?: any[];
+};
+
 export default function ProductDetailPage() {
-  const { slug } = useParams(); // pakai slug karena foldernya [slug]
+  const params = useParams();
   const router = useRouter();
 
-  const [product, setProduct] = useState<any>(null);
+  // Pastikan id param aman dipakai
+  const idParam = params?.id;
+  const productId = Array.isArray(idParam) ? idParam[0] : idParam;
+
+  const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,31 +43,30 @@ export default function ProductDetailPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Ambil token & data produk
   useEffect(() => {
-    if (!slug) {
-      setError('Slug produk tidak tersedia.');
+    if (!productId) {
+      setError('ID produk tidak tersedia.');
       setLoading(false);
       return;
     }
 
     setUserToken(localStorage.getItem('access_token'));
-    fetchProduct();
-  }, [slug]);
+    fetchProduct(productId);
+  }, [productId]);
 
-  const fetchProduct = async () => {
+  const fetchProduct = async (id: string) => {
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products/${slug}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products/${id}`);
       const data = res.data;
 
       if (!data || !data.id_product) {
         throw new Error('Produk tidak ditemukan di backend.');
       }
 
-      console.log('✅ Produk:', data);
       setProduct(data);
+      setError(null);
     } catch (err) {
-      console.error('❌ Gagal ambil produk:', err);
+      console.error('Gagal ambil produk:', err);
       setError('Produk tidak ditemukan atau gagal dimuat.');
     } finally {
       setLoading(false);
@@ -73,7 +88,7 @@ export default function ProductDetailPage() {
       await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/cart`,
         {
-          product_id: product.id_product,
+          product_id: product?.id_product,
           size: selectedSize,
           quantity,
         },
@@ -85,7 +100,7 @@ export default function ProductDetailPage() {
       );
       toast.success("Berhasil ditambahkan ke cart!");
     } catch (err) {
-      console.error("❌ Gagal add to cart:", err);
+      console.error("Gagal add to cart:", err);
       toast.error("Gagal menambahkan ke cart.");
     }
   };

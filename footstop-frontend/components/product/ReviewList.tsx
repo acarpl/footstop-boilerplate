@@ -1,39 +1,26 @@
-'use client';
+// file: components/product/ReviewList.tsx
+type Review = {
+  id?: number;
+  user?: string;
+  rating?: number;
+  comment?: string;
+};
 
-interface Review {
-  user_name: string;
-  rating: number;
-  comment: string;
-  created_at: string;
-}
+export default function ReviewList({ reviews }: { reviews?: Review[] }) {
+  if (!reviews || reviews.length === 0) {
+    return <div className="text-gray-500">No reviews yet.</div>;
+  }
 
-interface ReviewListProps {
-  reviews: Review[];
-}
-
-export default function ReviewList({ reviews }: ReviewListProps) {
   return (
     <div className="space-y-4">
-      {reviews?.map((review, index) => (
-        <div
-          key={index}
-          className="border p-4 rounded-lg bg-white shadow-sm"
-        >
-          <div className="flex justify-between items-center mb-2">
-            <div className="font-semibold">{review.user_name}</div>
-            <div className="text-sm text-gray-500">
-              Posted on {new Date(review.created_at).toLocaleDateString()}
-            </div>
-          </div>
-          <div className="text-yellow-500 mb-1">
-            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
-          </div>
-          <div className="text-gray-700">{review.comment}</div>
+      <h2 className="text-xl font-semibold mb-3">Reviews</h2>
+      {reviews.map((rev, i) => (
+        <div key={i} className="border-b pb-2">
+          <p className="font-semibold">{rev.user || 'Anonymous'}</p>
+          <p>Rating: {rev.rating ?? 'N/A'}/5</p>
+          <p>{rev.comment}</p>
         </div>
       ))}
-      {reviews?.length === 0 && (
-        <div className="text-gray-500 text-sm">No reviews yet.</div>
-      )}
     </div>
   );
 }
