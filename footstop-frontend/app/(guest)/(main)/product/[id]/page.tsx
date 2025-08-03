@@ -12,7 +12,7 @@ import ReviewList from '#/components/product/ReviewList';
 import FAQList from '#/components/product/FAQList';
 
 export default function ProductDetailPage() {
-  const { id } = useParams();
+  const { slug } = useParams(); // pakai slug karena foldernya [slug]
   const router = useRouter();
 
   const [product, setProduct] = useState<any>(null);
@@ -29,19 +29,19 @@ export default function ProductDetailPage() {
 
   // Ambil token & data produk
   useEffect(() => {
-    if (!id) {
-      setError('ID produk tidak tersedia.');
+    if (!slug) {
+      setError('Slug produk tidak tersedia.');
       setLoading(false);
       return;
     }
 
     setUserToken(localStorage.getItem('access_token'));
     fetchProduct();
-  }, [id]);
+  }, [slug]);
 
   const fetchProduct = async () => {
     try {
-      const res = await axios.get(`/api/products/${id}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products/${slug}`);
       const data = res.data;
 
       if (!data || !data.id_product) {
@@ -71,7 +71,7 @@ export default function ProductDetailPage() {
 
     try {
       await axios.post(
-        '/api/cart',
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/cart`,
         {
           product_id: product.id_product,
           size: selectedSize,
@@ -92,7 +92,10 @@ export default function ProductDetailPage() {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post('/api/login', { email, password });
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
+        email,
+        password,
+      });
       const token = res.data.token;
       localStorage.setItem('access_token', token);
       setUserToken(token);
