@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import Image from 'next/image';
+import { useRouter } from "next/navigation";
 
 type Product = {
   name: string;
@@ -23,6 +24,50 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
 
+//Route product ke keranjang dan pembayaran.
+const router = useRouter();
+
+const handleAddToCart = () => {
+  if (!selectedSize) {
+    alert("Pilih ukuran terlebih dahulu!");
+    return;
+  }
+
+  const cartItem = {
+    slug,
+    name: product?.name,
+    price: product?.price,
+    image: product?.image,
+    size: selectedSize,
+    quantity,
+  };
+
+  const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const updatedCart = [...existingCart, cartItem];
+  localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+  alert("Produk ditambahkan ke keranjang!");
+};
+
+const handleBuyNow = () => {
+  if (!selectedSize) {
+    alert("Pilih ukuran terlebih dahulu!");
+    return;
+  }
+
+  const checkoutItem = {
+    slug,
+    name: product?.name,
+    price: product?.price,
+    image: product?.image,
+    size: selectedSize,
+    quantity,
+  };
+
+  localStorage.setItem("checkoutItem", JSON.stringify(checkoutItem));
+  router.push("/checkout");
+};
+//aaa
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -36,7 +81,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
         setLoading(false);
       }
     };
-
+  //aaa
     fetchProduct();
   }, [slug]);
 
@@ -51,6 +96,9 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
       </div>
     );
   }
+
+    
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-2 gap-12">
       {/* Gambar */}
@@ -146,9 +194,20 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
               ＋
             </button>
           </div>
-          <button className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition">
-            Tambah ke Keranjang
-          </button>
+          <div className="flex gap-4 mt-4">
+            <button
+              onClick={handleAddToCart}
+              className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition"
+            >
+              Tambah ke Keranjang
+            </button>
+            <button
+              onClick={handleBuyNow}
+              className="px-6 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition"
+            >
+              Beli Sekarang
+            </button>
+          </div>
         </div>
       </div>
     </div>
