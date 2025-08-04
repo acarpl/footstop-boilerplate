@@ -138,7 +138,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
+    <div className="max-w-6xl mx-auto px-4 py-10 mt-10">
       <Toaster />
 
       {/* Bagian Atas */}
