@@ -5,20 +5,17 @@ import { useRouter } from 'next/navigation';
 import { Spin, Empty, Button, Typography, message, App } from 'antd';
 import { Trash } from "lucide-react";
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from 'next/image'; // 1. PASTIKAN IMAGE DIIMPOR DARI 'next/image'
 
 import { 
     getCartItems, 
     updateCartItemQuantity, 
     removeCartItem,
     type CartItem
-} from '../../../lib/services/cartService';
-import { getProductById, type Product } from '../../../lib/services/productService'; 
-import ProductGallery from '#/components/product/ProductGallery';
+} from '../../../lib/services/cartService'; // Sesuaikan path jika perlu
 
 const CartPageContent = () => {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const { message: messageApi } = App.useApp();
     const router = useRouter();
@@ -41,11 +38,10 @@ const CartPageContent = () => {
 
     const handleQuantityChange = async (idCart: number, currentQuantity: number, change: number) => {
         const newQuantity = currentQuantity + change;
-        if (newQuantity < 1) return; // Kuantitas tidak boleh kurang dari 1
+        if (newQuantity < 1) return;
 
         try {
             await updateCartItemQuantity(idCart, newQuantity);
-            // Optimistic update: perbarui UI dulu sebelum fetch ulang
             setCartItems(prevItems => 
                 prevItems.map(item => 
                     item.id_cart === idCart ? { ...item, quantity: newQuantity } : item
@@ -60,7 +56,6 @@ const CartPageContent = () => {
         try {
             await removeCartItem(idCart);
             messageApi.success("Item removed from cart.");
-            // Hapus item dari state untuk update UI instan
             setCartItems(prevItems => prevItems.filter(item => item.id_cart !== idCart));
         } catch (error) {
             messageApi.error("Failed to remove item.");
@@ -68,8 +63,7 @@ const CartPageContent = () => {
     };
     
     const subtotal = cartItems.reduce((sum, item) => sum + (item.quantity * parseInt(item.product.price)), 0);
-    // Logika diskon dan total bisa ditambahkan di sini
-    const total = subtotal; // Placeholder
+    const total = subtotal;
 
     if (loading) {
         return <div className="flex justify-center items-center h-96"><Spin size="large" /></div>;
@@ -89,24 +83,30 @@ const CartPageContent = () => {
                     <div className="lg:col-span-2 flex flex-col space-y-5">
                         {cartItems.map((item) => (
                             <div key={item.id_cart} className="flex items-center justify-between bg-white p-4 rounded-lg shadow">
-                                <div className="flex items-center space-x-4">
-                                    <Image
-                                        src={item.product.images?.[0]?.url || '/placeholder.png'}
-                                        alt={item.product.product_name}
-                                        width={80}
-                                        height={80}
-                                    />
-                                    <div>
+                                <div className="flex items-center space-x-4 flex-grow">
+                                    {/* ===>>> INI BAGIAN YANG DIPERBAIKI <<<==================================== */}
+                                    <div className="w-20 h-20 flex-shrink-0">
+                                      <Image
+                                          // 2. Akses URL gambar pertama dari array 'images'
+                                          src={item.product.images?.[0]?.url || '/placeholder.png'}
+                                          alt={item.product.product_name}
+                                          width={80}
+                                          height={80}
+                                          className="w-full h-full object-contain rounded-md"
+                                      />
+                                    </div>
+                                    {/* ========================================================================= */}
+                                    <div className="flex-grow">
                                         <p className="font-semibold">{item.product.product_name}</p>
                                         <p className="text-sm text-gray-500">Size: {item.size || 'N/A'}</p>
                                         <p className="font-bold mt-1">Rp {parseInt(item.product.price).toLocaleString()}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-3">
+                                <div className="flex items-center space-x-3 flex-shrink-0">
                                     <button onClick={() => handleQuantityChange(item.id_cart, item.quantity, -1)} className="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">-</button>
                                     <span>{item.quantity}</span>
                                     <button onClick={() => handleQuantityChange(item.id_cart, item.quantity, 1)} className="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">+</button>
-                                    <button onClick={() => handleRemove(item.id_cart)} className="text-red-500 hover:text-red-700 text-xl"><Trash /></button>
+                                    <button onClick={() => handleRemove(item.id_cart)} className="text-red-500 hover:text-red-700 text-xl ml-4"><Trash /></button>
                                 </div>
                             </div>
                         ))}
@@ -121,7 +121,6 @@ const CartPageContent = () => {
                                     <span>Subtotal</span>
                                     <span>Rp {subtotal.toLocaleString()}</span>
                                 </div>
-                                {/* ... (logika diskon dan ongkir) ... */}
                                 <div className="flex justify-between font-bold text-lg pt-4 border-t">
                                     <span>Total</span>
                                     <span>Rp {total.toLocaleString()}</span>
