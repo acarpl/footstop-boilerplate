@@ -12,15 +12,13 @@ import {
     updateCartItemQuantity, 
     removeCartItem,
     type CartItem
-} from '../../../lib/services/cartService'; // Sesuaikan path
-
-// Hapus impor Sidebar, Navbar, Footer jika sudah ada di layout
-// import Sidebar from '#/components/Sidebar';
-// import Navbar from '#/components/Navbar';
-// import Footer from '#/components/Footer';
+} from '../../../lib/services/cartService';
+import { getProductById, type Product } from '../../../lib/services/productService'; 
+import ProductGallery from '#/components/product/ProductGallery';
 
 const CartPageContent = () => {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const { message: messageApi } = App.useApp();
     const router = useRouter();
