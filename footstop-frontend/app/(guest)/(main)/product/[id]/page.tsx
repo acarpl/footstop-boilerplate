@@ -1,150 +1,95 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
-import { Modal, Input, Button, Spin } from 'antd';
+import { Spin, Empty, Button, App, message } from 'antd'; 
+import { getProductById, type Product } from '../../../../../lib/services/productService'; 
+import { addItemToCart } from '../../../../../lib/services/cartService';
+import { useAuth } from '../../../../../context/AuthContext'; 
 
+// Import komponen UI Anda
 import ProductGallery from '#/components/product/ProductGallery';
 import ProductInfo from '#/components/product/ProductInfo';
 import ReviewList from '#/components/product/ReviewList';
 import FAQList from '#/components/product/FAQList';
 
-type ProductType = {
-  id_product: number;
-  product_name: string;
-  size?: string;
-  price: number;
-  brand?: { brand_name: string };
-  category?: { category_name: string };
-  images?: { url: string }[];
-  reviews?: any[];
-  faqs?: any[];
-};
-
-export default function ProductDetailPage() {
+const ProductDetailPageContent = () => {
   const params = useParams();
   const router = useRouter();
+  const { message: messageApi } = App.useApp();
+  
+  // Ambil status user dari context
+  const { user } = useAuth(); 
 
   // Pastikan id param aman dipakai
   const idParam = params?.id;
   const productId = Array.isArray(idParam) ? idParam[0] : idParam;
 
-  const [product, setProduct] = useState<ProductType | null>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [userToken, setUserToken] = useState<string | null>(null);
-
-  const [isLoginModalVisible, setLoginModalVisible] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
   useEffect(() => {
     if (!productId) {
-      setError('ID produk tidak tersedia.');
       setLoading(false);
       return;
     }
-
-    setUserToken(localStorage.getItem('access_token'));
-    fetchProduct(productId);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const productData = await getProductById(productId);
+        setProduct(productData);
+      } catch (error) {
+        console.error("Failed to load product details:", error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [productId]);
 
-  const fetchProduct = async (id: string) => {
-    try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products/${id}`);
-      const data = res.data;
-
-      if (!data || !data.id_product) {
-        throw new Error('Produk tidak ditemukan di backend.');
-      }
-
-      setProduct(data);
-      setError(null);
-    } catch (err) {
-      console.error('Gagal ambil produk:', err);
-      setError('Produk tidak ditemukan atau gagal dimuat.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddToCart = async () => {
-    if (!userToken) {
-      setLoginModalVisible(true);
+    // 1. Cek apakah user sudah login menggunakan data dari context
+    if (!user) {
+      messageApi.error('Please log in to add items to your cart.');
+      // Arahkan ke halaman login
+      router.push('/login');
       return;
     }
 
     if (!selectedSize) {
-      toast.error("Pilih ukuran terlebih dahulu!");
+      messageApi.warning("Please select a size first!");
       return;
     }
 
     try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/cart`,
-        {
-          product_id: product?.id_product,
-          size: selectedSize,
-          quantity,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        }
-      );
-      toast.success("Berhasil ditambahkan ke cart!");
-    } catch (err) {
-      console.error("Gagal add to cart:", err);
-      toast.error("Gagal menambahkan ke cart.");
-    }
-  };
-
-  const handleLogin = async () => {
-    try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
-        email,
-        password,
+      // 2. Gunakan fungsi dari cartService
+      await addItemToCart({
+        id_product: product!.id_product,
+        size: selectedSize,
+        quantity,
       });
-      const token = res.data.token;
-      localStorage.setItem('access_token', token);
-      setUserToken(token);
-      setLoginModalVisible(false);
-      toast.success("Login berhasil!");
+      messageApi.success(`${product!.product_name} has been added to your cart!`);
     } catch (err) {
-      toast.error("Login gagal! Periksa email atau password.");
+      console.error("Failed to add to cart:", err);
+      messageApi.error("Failed to add item to cart.");
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spin size="large" tip="Memuat produk..." />
-      </div>
-    );
+    return <div className="flex justify-center items-center h-screen"><Spin size="large" /></div>;
   }
 
-  if (error || !product) {
-    return (
-      <div className="text-center py-20 text-red-600 text-lg font-semibold">
-        {error || 'Produk tidak ditemukan.'}
-      </div>
-    );
+  if (!product) {
+    return <div className="text-center py-20"><Empty description="Product not found." /></div>;
   }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 mt-10">
-      <Toaster />
-
-      {/* Bagian Atas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <ProductGallery images={product.images || []} />
-
         <ProductInfo
           product={product}
           quantity={quantity}
@@ -154,56 +99,21 @@ export default function ProductDetailPage() {
           onAddToCart={handleAddToCart}
         />
       </div>
-
-      {/* Bagian Tab */}
       <div className="mt-10">
+        {/* Pass data dummy jika belum ada API untuk ini */}
         <ReviewList reviews={product.reviews || []} />
         <FAQList faqs={product.faqs || []} />
       </div>
-
-      {/* Modal Login */}
-      <Modal
-        open={isLoginModalVisible}
-        onCancel={() => setLoginModalVisible(false)}
-        footer={null}
-        centered
-      >
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">FOOTSTOP</h2>
-          <p className="text-lg font-semibold">Welcome Back!</p>
-          <p className="text-sm text-gray-500 mb-4">Log in to your account</p>
-
-          <Input
-            placeholder="e.g. kamu@mail.com"
-            className="mb-3"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Input.Password
-            placeholder="Masukkan Password"
-            className="mb-4"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button
-            type="primary"
-            className="w-full bg-red-600 hover:bg-red-700"
-            onClick={handleLogin}
-          >
-            Log in
-          </Button>
-
-          <p className="mt-4 text-sm">
-            Belum punya akun?{' '}
-            <span
-              className="text-blue-600 underline cursor-pointer"
-              onClick={() => router.push('/register')}
-            >
-              Register di sini
-            </span>
-          </p>
-        </div>
-      </Modal>
+      {/* Modal Login sudah tidak diperlukan di sini lagi */}
     </div>
   );
+};
+
+// Bungkus dengan <App> untuk konteks message Ant Design
+export default function ProductDetailPage() {
+    return (
+        <App>
+            <ProductDetailPageContent />
+        </App>
+    );
 }

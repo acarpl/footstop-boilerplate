@@ -1,8 +1,4 @@
-// lib/services/cartService.ts
-
 import apiClient from '../apiClient';
-
-// --- Tipe Data untuk Keranjang ---
 interface Image {
   id_gambar: number;
   url: string;
@@ -19,10 +15,8 @@ export interface CartItem {
   size: string;
   product: Product;
 }
-
-// Tipe untuk data yang dikirim saat menambahkan item ke keranjang
 interface AddToCartPayload {
-    idProduct: number;
+    id_product: number;
     quantity: number;
     size: string;
 }
