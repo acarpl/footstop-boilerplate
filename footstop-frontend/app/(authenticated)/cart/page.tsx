@@ -84,7 +84,6 @@ const CartPageContent = () => {
                         {cartItems.map((item) => (
                             <div key={item.id_cart} className="flex items-center justify-between bg-white p-4 rounded-lg shadow">
                                 <div className="flex items-center space-x-4 flex-grow">
-                                    {/* ===>>> INI BAGIAN YANG DIPERBAIKI <<<==================================== */}
                                     <div className="w-20 h-20 flex-shrink-0">
                                       <Image
                                           // 2. Akses URL gambar pertama dari array 'images'
@@ -95,7 +94,6 @@ const CartPageContent = () => {
                                           className="w-full h-full object-contain rounded-md"
                                       />
                                     </div>
-                                    {/* ========================================================================= */}
                                     <div className="flex-grow">
                                         <p className="font-semibold">{item.product.product_name}</p>
                                         <p className="text-sm text-gray-500">Size: {item.size || 'N/A'}</p>
