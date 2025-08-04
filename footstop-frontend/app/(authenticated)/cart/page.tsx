@@ -78,7 +78,7 @@ const CartPageContent = () => {
     }
 
     return (
-        <div className="flex-1 p-4 md:p-10">
+        <div className="flex-1 p-4 md:p-10 mt-10">
             <Typography.Title level={2} className="text-3xl font-bold text-red-500 mb-8">YOUR CART</Typography.Title>
             
             {cartItems.length === 0 ? (
