@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   return (
     <>
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8 mt-10">
         <h1 className="text-3xl font-bold text-red-600 mb-8">LET’S DONE YOUR ORDER</h1>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-6">
