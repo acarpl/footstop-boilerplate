@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spin, Empty, Button, Typography, message, App, Card, Form, Input } from 'antd';
 import { getCartItems, type CartItem } from '../../../lib/services/cartService';
-import { createOrder } from '../../../lib/services/orderService';
+import { createOrder, createPaymentTransaction } from '../../../lib/services/orderService';
 import Image from 'next/image';
 
 const { TextArea } = Input;
@@ -40,12 +40,23 @@ const CheckoutPageContent = () => {
     const onFinish = async (values: { shippingAddress: string }) => {
         setIsSubmitting(true);
         try {
+            // Langkah 1: Buat pesanan di database kita, statusnya 'Pending'
             const newOrder = await createOrder(values.shippingAddress);
-            messageApi.success(`Order #${newOrder.id_order} created successfully!`);
-            // Arahkan ke halaman detail pesanan atau halaman "terima kasih"
-            router.push(`/orders/${newOrder.id_order}`);
+            messageApi.loading({ content: 'Creating payment session...', key: 'payment' });
+
+            // Langkah 2: Buat sesi pembayaran di Midtrans
+            const transaction = await createPaymentTransaction(newOrder.id_order);
+
+            // Langkah 3: Arahkan pengguna ke halaman pembayaran Midtrans
+            if (transaction.redirect_url) {
+                messageApi.success({ content: 'Redirecting to payment page...', key: 'payment' });
+                window.location.href = transaction.redirect_url;
+            } else {
+                throw new Error("No redirect URL received from payment gateway.");
+            }
+
         } catch (error) {
-            messageApi.error(error.response?.data?.message || "Failed to create order.");
+            messageApi.error({ content: error.response?.data?.message || "Checkout failed.", key: 'payment' });
         } finally {
             setIsSubmitting(false);
         }

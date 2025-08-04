@@ -9,30 +9,19 @@ import { User } from '../users/entities/user.entity';
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  /**
-   * Endpoint ini dipanggil oleh frontend untuk memulai pembayaran.
-   * Perlu login.
-   */
-  @Post('initiate')
+  // Ganti 'initiate' menjadi lebih spesifik
+  @Post('create-transaction')
   @UseGuards(AuthGuard('jwt'))
-  initiatePayment(
-    @Body() createPaymentDto: CreatePaymentDto,
+  createTransaction(
+    @Body('orderId') orderId: number,
     @GetUser() user: User,
   ) {
-    return this.paymentsService.initiatePayment(user, createPaymentDto);
+    return this.paymentsService.createMidtransTransaction(user, orderId);
   }
 
-  /**
-   * Endpoint ini dipanggil oleh SERVER payment gateway (webhook).
-   * TIDAK perlu login, tapi di dunia nyata perlu metode keamanan lain
-   * (misalnya, verifikasi signature/token dari payment gateway).
-   */
-  @Post('webhook')
-  handleWebhook(@Body() webhookPayload: { order_id: number; transaction_status: string }) {
-    // Di dunia nyata, Anda akan memvalidasi payload ini terlebih dahulu.
-    if (webhookPayload.transaction_status === 'settlement' || webhookPayload.transaction_status === 'capture') {
-      return this.paymentsService.handlePaymentSuccess(webhookPayload.order_id);
-    }
-    return { status: 'notification received' };
+  // Endpoint untuk menerima webhook dari Midtrans
+  @Post('midtrans-notification')
+  handleMidtransNotification(@Body() notificationPayload: any) {
+    return this.paymentsService.handleMidtransNotification(notificationPayload);
   }
 }

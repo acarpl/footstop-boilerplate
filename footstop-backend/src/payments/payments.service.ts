@@ -1,94 +1,104 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
-import { CreatePaymentDto } from './dto/create-payment.dto';
-import { Payment } from './entities/payment.entity';
+import { Repository } from 'typeorm';
+import * as midtransClient from 'midtrans-client'; // Import library
 import { Order } from '../orders/entities/order.entity';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class PaymentsService {
+  private snap: midtransClient.Snap;
+
   constructor(
-    @InjectRepository(Payment)
-    private readonly paymentRepository: Repository<Payment>,
+    private readonly configService: ConfigService,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    private readonly dataSource: DataSource,
-  ) {}
-
-  /**
-   * Metode untuk memulai proses pembayaran.
-   * Di dunia nyata, di sini Anda akan memanggil SDK payment gateway.
-   */
-  async initiatePayment(user: User, createPaymentDto: CreatePaymentDto) {
-    const { id_order, payment_method } = createPaymentDto;
-
-    // 1. Verifikasi bahwa order ada dan milik user yang benar
-    const order = await this.orderRepository.findOneBy({ id_order, user: { id_user: user.id_user } });
-    if (!order) {
-      throw new NotFoundException(`Order with ID #${id_order} not found.`);
-    }
-
-    // 2. Cek apakah order sudah dibayar
-    if (order.status_pengiriman !== 'Pending') {
-      throw new ConflictException('This order has already been processed.');
-    }
-
-    // --- SIMULASI INTERAKSI DENGAN PAYMENT GATEWAY ---
-    // Di sini Anda akan menggunakan library seperti 'midtrans-client'
-    // const midtrans = new Midtrans.Snap(...);
-    // const transaction = await midtrans.createTransaction(...);
-    // return { paymentUrl: transaction.redirect_url };
-    // ---------------------------------------------------
-
-    console.log(`Initiating payment for Order #${id_order} using ${payment_method}.`);
-    
-    // Untuk pengembangan, kita kembalikan URL dummy
-    return {
-      message: 'Payment initiated successfully.',
-      paymentUrl: `https://dummy-payment-gateway.com/pay?orderId=${id_order}&amount=${order.total_price}`,
-      orderId: order.id_order,
-    };
+    // Inject DataSource jika Anda perlu transaksi untuk handle webhook
+  ) {
+    // Inisialisasi Snap API client
+    this.snap = new midtransClient.Snap({
+      isProduction: configService.get<boolean>('MIDTRANS_IS_PRODUCTION'),
+      serverKey: configService.get<string>('MIDTRANS_SERVER_KEY'),
+      clientKey: configService.get<string>('MIDTRANS_CLIENT_KEY'),
+    });
   }
 
   /**
-   * Metode untuk menangani notifikasi webhook dari payment gateway.
-   * Ini adalah proses yang paling kritikal.
+   * [USER] Membuat sesi pembayaran di Midtrans untuk sebuah pesanan.
    */
-  async handlePaymentSuccess(orderId: number) {
-    const queryRunner = this.dataSource.createQueryRunner();
+  async createMidtransTransaction(user: User, orderId: number) {
+    // 1. Ambil data pesanan dari database
+    const order = await this.orderRepository.findOne({
+      where: { id_order: orderId, user: { id_user: user.id_user } },
+      relations: ['order_details', 'order_details.product'],
+    });
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    if (!order) {
+      throw new NotFoundException(`Order with ID #${orderId} not found.`);
+    }
+
+    // 2. Siapkan parameter untuk Midtrans
+    const parameter: midtransClient.Snap.TransactionParameter = {
+      transaction_details: {
+        order_id: `ORDER-${order.id_order}-${Date.now()}`, // Buat order ID unik
+        gross_amount: Number(order.total_price),
+      },
+      customer_details: {
+        first_name: user.username,
+        email: user.email,
+        phone: user.phone_number,
+      },
+      item_details: order.orderDetails.map(item => ({
+        id: String(item.product.id_product),
+        price: Number(item.price_per_unit),
+        quantity: item.quantity,
+        name: item.product.product_name,
+      })),
+    };
 
     try {
-      // 1. Cari order yang sesuai
-      const order = await queryRunner.manager.findOneBy(Order, { id_order: orderId });
-      if (!order) {
-        throw new NotFoundException(`Webhook Error: Order with ID #${orderId} not found.`);
-      }
+      // 3. Panggil Midtrans API
+      const transaction = await this.snap.createTransaction(parameter);
       
-      // 2. Buat catatan pembayaran baru
-      const newPayment = queryRunner.manager.create(Payment, {
-        order: { id_order: orderId },
-        payment_method: 'Simulated Gateway', // Atau ambil dari payload webhook
-        payment_status: 'Success',
-      });
-      await queryRunner.manager.save(newPayment);
-
-      // 3. Update status order menjadi 'Dibayar' atau 'Diproses'
-      order.status_pengiriman = 'Dibayar'; // Atau 'Diproses'
-      await queryRunner.manager.save(order);
-
-      await queryRunner.commitTransaction();
-      console.log(`Payment for Order #${orderId} has been successfully processed.`);
-      return { status: 'success' };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      console.error(`Failed to process payment for Order #${orderId}`, err);
-      throw err;
-    } finally {
-      await queryRunner.release();
+      // 4. Kembalikan URL pembayaran ke frontend
+      return transaction; // Ini berisi 'token' dan 'redirect_url'
+    } catch (error) {
+      console.error("Midtrans transaction creation failed:", error);
+      throw new InternalServerErrorException('Failed to create payment transaction.');
     }
+  }
+
+  /**
+   * [WEBHOOK] Menangani notifikasi dari Midtrans.
+   */
+  async handleMidtransNotification(notification: any) {
+    // 1. Verifikasi notifikasi menggunakan utility dari Midtrans
+    const statusResponse = await this.snap.transaction.notification(notification);
+    const orderIdString = statusResponse.order_id.split('-')[1];
+    const orderId = parseInt(orderIdString, 10);
+    const transactionStatus = statusResponse.transaction_status;
+    
+    // 2. Lakukan update database berdasarkan status transaksi
+    // Gunakan transaksi database di sini untuk keamanan
+    const order = await this.orderRepository.findOneBy({ id_order: orderId });
+    if (!order) {
+        throw new NotFoundException(`Webhook Error: Order #${orderId} not found.`);
+    }
+
+    if (transactionStatus == 'capture' || transactionStatus == 'settlement') {
+        // Pembayaran berhasil
+        order.status_pengiriman = 'Dibayar';
+        await this.orderRepository.save(order);
+    } else if (transactionStatus == 'pending') {
+        // Masih menunggu pembayaran
+    } else if (transactionStatus == 'deny' || transactionStatus == 'expire' || transactionStatus == 'cancel') {
+        // Pembayaran gagal
+        order.status_pengiriman = 'Dibatalkan';
+        await this.orderRepository.save(order);
+    }
+
+    console.log(`Order #${orderId} status updated to ${order.status_pengiriman}`);
+    return { status: 'ok' };
   }
 }

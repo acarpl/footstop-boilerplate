@@ -39,6 +39,7 @@
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",
     "joi": "^17.7.1",
+    "midtrans-client": "^1.4.3",
     "nestjs-pino": "^3.1.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
