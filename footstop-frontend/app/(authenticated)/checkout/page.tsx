@@ -2,77 +2,71 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Spin, Empty, Button, Typography, message, App, Card, Form, Input } from 'antd';
-import Image from 'next/image';
-
-// Impor dari service yang relevan
+import { Spin, Button, Typography, message, App, Card, Form, Input, Empty } from 'antd';
 import { getCartItems, type CartItem } from '../../../lib/services/cartService';
-import { createOrder, createPaymentTransaction } from '../../../lib/services/orderService';
+import { createOrder } from '../../../lib/services/orderService';
+// 1. IMPORT FUNGSI BARU DARI PAYMENT SERVICE
+import { createPaymentTransaction } from '../../../lib/services/paymentService';
+import Image from 'next/image';
 
 const { TextArea } = Input;
 
 const CheckoutPageContent = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { message: messageApi } = App.useApp();
-  const router = useRouter();
-  const [form] = Form.useForm();
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { message: messageApi } = App.useApp();
+    const router = useRouter();
+    const [form] = Form.useForm();
 
-  // useEffect untuk mengambil data keranjang saat halaman dimuat
-  useEffect(() => {
-    const fetchCart = async () => {
-      setLoading(true);
-      try {
-        const items = await getCartItems();
-        if (items.length === 0) {
-          // Jika keranjang kosong, beri notifikasi dan arahkan kembali ke toko
-          messageApi.warning("Your cart is empty. Redirecting to shop...", 2.5);
-          setTimeout(() => router.push('/shop'), 2500);
-        } else {
-          setCartItems(items);
+    useEffect(() => {
+        // ... (logika fetchCart Anda tidak berubah)
+        const fetchCart = async () => {
+            setLoading(true);
+            try {
+                const items = await getCartItems();
+                if (items.length === 0) {
+                    messageApi.warning("Your cart is empty. Redirecting...");
+                    setTimeout(() => router.push('/shop'), 2000);
+                } else {
+                    setCartItems(items);
+                }
+            } catch (error) {
+                messageApi.error("Failed to load your cart.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCart();
+    }, []);
+
+    const onFinish = async (values: { shippingAddress: string }) => {
+        setIsSubmitting(true);
+        try {
+            // Langkah 1: Buat pesanan di database kita, dapatkan ID pesanan
+            const newOrder = await createOrder(values.shippingAddress);
+            messageApi.loading({ content: 'Order created, preparing payment...', key: 'payment' });
+
+            // 2. PANGGIL FUNGSI DARI PAYMENT SERVICE dengan ID pesanan yang baru
+            const transaction = await createPaymentTransaction(newOrder.id_order);
+
+            // Langkah 3: Arahkan pengguna ke halaman pembayaran Midtrans
+            if (transaction.redirect_url) {
+                messageApi.success({ content: 'Redirecting to payment page...', key: 'payment' });
+                // Ini adalah navigasi ke situs eksternal, jadi window.location.href adalah cara yang benar
+                window.location.href = transaction.redirect_url;
+            } else {
+                throw new Error("Payment gateway did not provide a redirect URL.");
+            }
+
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Checkout process failed.";
+            messageApi.error({ content: errorMessage, key: 'payment', duration: 4 });
+            setIsSubmitting(false); // Hentikan loading hanya jika terjadi error
         }
-      } catch (error) {
-        messageApi.error("Failed to load your cart. Please try again.");
-      } finally {
-        setLoading(false);
-      }
     };
-    fetchCart();
-    // Dependensi di bawah memastikan ini hanya berjalan sekali saat komponen dimuat.
-    // Menghapus router dan messageApi untuk mencegah loop yang tidak perlu.
-  }, []); 
 
-  // Fungsi yang dipanggil saat form alamat disubmit
-  const onFinish = async (values: { shippingAddress: string }) => {
-    setIsSubmitting(true);
-    try {
-      // Langkah 1: Buat pesanan di database kita, dapatkan ID pesanan
-      const newOrder = await createOrder(values.shippingAddress);
-      messageApi.loading({ content: 'Order created, creating payment session...', key: 'payment' });
-
-      // Langkah 2: Gunakan ID pesanan untuk membuat sesi pembayaran di Midtrans
-      const transaction = await createPaymentTransaction(newOrder.orderId);
-
-      // Langkah 3: Arahkan pengguna ke URL pembayaran dari Midtrans
-      if (transaction.redirect_url) {
-        messageApi.success({ content: 'Redirecting to payment page...', key: 'payment', duration: 2 });
-        // Menggunakan window.location.href untuk navigasi ke situs eksternal
-        window.location.href = transaction.redirect_url;
-      } else {
-        // Ini adalah kasus darurat jika Midtrans tidak mengembalikan URL
-        throw new Error("Payment gateway did not provide a redirect URL.");
-      }
-
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || "Checkout failed. Please try again.";
-      messageApi.error({ content: errorMessage, key: 'payment', duration: 3 });
-      setIsSubmitting(false); // Hentikan loading hanya jika terjadi error
-    }
-  };
-
-  // Hitung subtotal. `reduce` akan mengembalikan 0 jika cartItems kosong.
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.quantity * parseInt(item.product.price)), 0);
+    const subtotal = cartItems.reduce((sum, item) => sum + (item.quantity * parseInt(item.product.price)), 0);
 
   if (loading) {
     return <div className="flex justify-center items-center h-96"><Spin size="large" /></div>;
