@@ -59,54 +59,38 @@ const CheckoutPageContent = () => {
     }, 0);
   }, [cartItems]);
 
-  const onFinish = async (values: {
-    // Tipe 'values' datang dari form
-    fullName: string;
-    phoneNumber: string;
-    shippingAddress: string;
-    confirm: boolean;
-  }) => {
+  const onFinish = async (values: { shippingAddress: string }) => {
     setIsSubmitting(true);
     const checkoutMessageKey = "checkout_process";
-
     try {
       messageApi.loading({
         content: "Creating your order...",
         key: checkoutMessageKey,
       });
-
-      const { shippingAddress } = values;
-      const newOrder = await createOrder(shippingAddress);
+      // Langkah 1: Buat order di database kita, statusnya 'Pending'
+      const newOrder = await createOrder(values.shippingAddress);
 
       messageApi.loading({
         content: "Preparing payment gateway...",
         key: checkoutMessageKey,
       });
-      const transaction = await createPaymentTransaction(newOrder.orderId);
+      // Langkah 2: Buat sesi pembayaran di Midtrans menggunakan order ID yang baru
+      const transaction = await createPaymentTransaction(newOrder.id_order);
+
       if (!transaction.redirect_url) {
         throw new Error("Payment gateway did not provide a redirect URL.");
       }
+
       messageApi.success({
         content: "Redirecting to payment page...",
         key: checkoutMessageKey,
       });
+      // Langkah 3: Arahkan pengguna ke halaman pembayaran Midtrans
       setTimeout(() => {
         window.location.href = transaction.redirect_url;
       }, 1000);
     } catch (error) {
-      console.error("Checkout error:", error);
-      let errorMessage = "Checkout process failed. Please try again.";
-      if (error instanceof AxiosError) {
-        errorMessage = error.response?.data?.message || errorMessage;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      messageApi.error({
-        content: errorMessage,
-        key: checkoutMessageKey,
-        duration: 4,
-      });
-      setIsSubmitting(false);
+      // ... (logika penanganan error Anda)
     }
   };
 

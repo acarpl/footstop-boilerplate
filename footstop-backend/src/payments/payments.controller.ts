@@ -1,61 +1,53 @@
+// src/payments/payments.controller.ts
+
 import {
   Controller,
   Post,
-  Param,
-  ParseIntPipe,
-  UseGuards,
   Body,
-  Get,
+  UseGuards,
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { PaymentsService } from "./payments.service";
-import { GetUser } from "../auth/decorators/get-user.decorator"; // Adjust import path as needed
-import { User } from "../users/entities/user.entity";
 import { AuthGuard } from "@nestjs/passport";
+import { PaymentsService } from "./payments.service";
+import { GetUser } from "../auth/decorators/get-user.decorator";
+import { User } from "../users/entities/user.entity";
 
-@Controller("payments") // <-- Pastikan ini 'payments'
+/**
+ * Controller ini menangani semua interaksi yang berhubungan dengan pembayaran.
+ */
+@Controller("payments")
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  @Post("create-transaction") // <-- Pastikan ini 'create-transaction'
-  @UseGuards(AuthGuard("jwt"))
-  createTransaction(@Body("orderId") orderId: number, @GetUser() user: User) {
+  /**
+   * Endpoint untuk memulai sesi pembayaran di Midtrans.
+   * - Dipanggil oleh frontend SETELAH pesanan berhasil dibuat.
+   * - Membutuhkan login (diproteksi oleh AuthGuard).
+   * - Menerima 'orderId' dari body request.
+   * @returns {Promise<any>} Objek transaksi dari Midtrans yang berisi 'redirect_url'.
+   */
+  @Post("create-transaction")
+  @UseGuards(AuthGuard("jwt")) // 1. Pastikan hanya pengguna yang login bisa mengakses
+  createTransaction(
+    @Body("orderId") orderId: number, // 2. Ambil 'orderId' dari body
+    @GetUser() user: User // 3. Ambil data user yang sedang login dari token
+  ) {
+    // 4. Panggil service untuk melakukan pekerjaan berat
     return this.paymentsService.createMidtransTransaction(user, orderId);
   }
 
   /**
-   * [GET] /payments/status/:orderId
-   * Get payment status for an order (optional endpoint)
+   * Endpoint untuk menerima notifikasi (webhook) dari server Midtrans.
+   * - Endpoint ini HARUS bersifat publik (TIDAK BOLEH ada AuthGuard).
+   * - Midtrans yang akan memanggilnya, bukan browser pengguna.
+   * - Selalu mengembalikan status 200 OK agar Midtrans tahu notifikasi diterima.
+   * @param notificationPayload - Seluruh body JSON yang dikirim oleh Midtrans.
    */
-  @Get("status/:orderId")
-  async getPaymentStatus(
-    @GetUser() user: User,
-    @Param("orderId", ParseIntPipe) orderId: number
-  ) {
-    // This would require additional logic in your service
-    // For now, just return a placeholder
-    return {
-      message: "Payment status check not implemented yet",
-      orderId,
-    };
-  }
-
-  /**
-   * [POST] /payments/webhook
-   * Handle Midtrans webhook notifications (no auth guard needed)
-   */
-  @Post("webhook")
-  @HttpCode(HttpStatus.OK)
-  async handleWebhook(@Body() notification: any) {
-    try {
-      const result = await this.paymentsService.handleMidtransNotification(
-        notification
-      );
-      return result;
-    } catch (error) {
-      console.error("Webhook handling error:", error);
-      throw error;
-    }
+  @Post("midtrans-notification")
+  @HttpCode(HttpStatus.OK) // 5. Selalu respons dengan 200 OK
+  handleMidtransNotification(@Body() notificationPayload: any) {
+    // 6. Teruskan seluruh payload ke service untuk divalidasi dan diproses
+    return this.paymentsService.handleMidtransNotification(notificationPayload);
   }
 }
