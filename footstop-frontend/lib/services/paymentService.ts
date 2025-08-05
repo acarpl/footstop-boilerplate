@@ -1,8 +1,8 @@
 import apiClient from "../apiClient";
-export const createPaymentTransaction = async (orderId: number) => {
+export const createPaymentTransaction = async (id_order: number) => {
   try {
     const response = await apiClient.post("/payments/create-transaction", {
-      orderId,
+      id_order,
     });
     return response.data;
   } catch (error) {
