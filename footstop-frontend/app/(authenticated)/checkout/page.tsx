@@ -12,12 +12,14 @@ import {
   Card,
   Form,
   Input,
+  Checkbox,
 } from "antd";
-import { getCartItems, type CartItem } from "../../../lib/services/cartService";
-import { createOrder } from "../../../lib/services/orderService";
-import { createPaymentTransaction } from "../../../lib/services/paymentService"; // Pastikan path ini benar
 import Image from "next/image";
 import { AxiosError } from "axios";
+
+import { getCartItems, type CartItem } from "../../../lib/services/cartService";
+import { createOrder } from "../../../lib/services/orderService";
+import { createPaymentTransaction } from "../../../lib/services/paymentService";
 
 const { TextArea } = Input;
 
@@ -29,7 +31,6 @@ const CheckoutPageContent = () => {
   const router = useRouter();
   const [form] = Form.useForm();
 
-  // Menggunakan useCallback agar fungsi tidak dibuat ulang di setiap render
   const fetchCart = useCallback(async () => {
     try {
       const items = await getCartItems();
@@ -45,13 +46,26 @@ const CheckoutPageContent = () => {
     } finally {
       setLoading(false);
     }
-  }, [messageApi, router]); // Dependensi stabil
+  }, [messageApi, router]);
 
   useEffect(() => {
     fetchCart();
-  }, [fetchCart]); // Panggil fetchCart saat komponen dimuat
+  }, [fetchCart]);
 
-  const onFinish = async (values: { shippingAddress: string }) => {
+  const subtotal = React.useMemo(() => {
+    return cartItems.reduce((sum, item) => {
+      const price = Number(item.product.price) || 0;
+      return sum + item.quantity * price;
+    }, 0);
+  }, [cartItems]);
+
+  const onFinish = async (values: {
+    // Tipe 'values' datang dari form
+    fullName: string;
+    phoneNumber: string;
+    shippingAddress: string;
+    confirm: boolean;
+  }) => {
     setIsSubmitting(true);
     const checkoutMessageKey = "checkout_process";
 
@@ -60,55 +74,41 @@ const CheckoutPageContent = () => {
         content: "Creating your order...",
         key: checkoutMessageKey,
       });
-      const newOrder = await createOrder(values.shippingAddress);
+
+      const { shippingAddress } = values;
+      const newOrder = await createOrder(shippingAddress);
 
       messageApi.loading({
         content: "Preparing payment gateway...",
         key: checkoutMessageKey,
       });
-      const transaction = await createPaymentTransaction(newOrder.id_order);
-
+      const transaction = await createPaymentTransaction(newOrder.orderId);
       if (!transaction.redirect_url) {
         throw new Error("Payment gateway did not provide a redirect URL.");
       }
-
       messageApi.success({
         content: "Redirecting to payment page...",
         key: checkoutMessageKey,
       });
-
-      // Redirect setelah jeda singkat
       setTimeout(() => {
         window.location.href = transaction.redirect_url;
       }, 1000);
     } catch (error) {
       console.error("Checkout error:", error);
-
-      // Penanganan error yang lebih bersih
       let errorMessage = "Checkout process failed. Please try again.";
       if (error instanceof AxiosError) {
-        // Ambil pesan dari backend jika ada, jika tidak, gunakan pesan default
         errorMessage = error.response?.data?.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-
       messageApi.error({
         content: errorMessage,
         key: checkoutMessageKey,
         duration: 4,
       });
-      setIsSubmitting(false); // Pastikan loading berhenti jika error
+      setIsSubmitting(false);
     }
   };
-
-  // Kalkulasi harga menggunakan useMemo agar tidak dihitung ulang di setiap render
-  const subtotal = React.useMemo(() => {
-    return cartItems.reduce((sum, item) => {
-      const price = Number(item.product.price) || 0;
-      return sum + item.quantity * price;
-    }, 0);
-  }, [cartItems]);
 
   if (loading) {
     return (
@@ -138,16 +138,45 @@ const CheckoutPageContent = () => {
         Checkout
       </Typography.Title>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Kolom Kiri: Alamat Pengiriman */}
+        {/* Kolom Kiri: Form Checkout */}
         <Card title="Shipping Information">
           <Form form={form} layout="vertical" onFinish={onFinish}>
+            <Form.Item
+              label="Full Name"
+              name="fullName"
+              rules={[
+                { required: true, message: "Please enter your full name" },
+              ]}
+            >
+              <Input placeholder="e.g. Rasya Falqi" />
+            </Form.Item>
+
+            <Form.Item
+              label="Phone Number"
+              name="phoneNumber"
+              rules={[
+                { required: true, message: "Please enter your phone number" },
+                {
+                  pattern: /^[0-9]{10,15}$/,
+                  message: "Invalid phone number format",
+                },
+              ]}
+            >
+              <Input placeholder="e.g. 081234567890" />
+            </Form.Item>
+
             <Form.Item
               label="Full Shipping Address"
               name="shippingAddress"
               rules={[
                 {
                   required: true,
-                  message: "Please enter your shipping address!",
+                  message: "Please enter your shipping address",
+                },
+                {
+                  min: 10,
+                  max: 300,
+                  message: "Address must be 10–300 characters",
                 },
               ]}
             >
@@ -156,6 +185,22 @@ const CheckoutPageContent = () => {
                 placeholder="e.g., Jl. Jenderal Sudirman No. 123, Jakarta..."
               />
             </Form.Item>
+
+            <Form.Item
+              name="confirm"
+              valuePropName="checked"
+              rules={[
+                {
+                  validator: (_, value) =>
+                    value
+                      ? Promise.resolve()
+                      : Promise.reject("Please confirm your shipping info"),
+                },
+              ]}
+            >
+              <Checkbox>I confirm that my address is correct.</Checkbox>
+            </Form.Item>
+
             <Form.Item>
               <Button
                 type="primary"
@@ -170,7 +215,7 @@ const CheckoutPageContent = () => {
           </Form>
         </Card>
 
-        {/* Kolom Kanan: Ringkasan Pesanan */}
+        {/* Kolom Kanan: Ringkasan Order */}
         <Card title="Order Summary">
           <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
             {cartItems.map((item) => {

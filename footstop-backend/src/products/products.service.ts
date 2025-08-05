@@ -1,24 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { Product } from './entities/product.entity';
-import { QueryProductDto } from './dto/query-product.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { CreateProductDto } from "./dto/create-product.dto";
+import { UpdateProductDto } from "./dto/update-product.dto";
+import { Product } from "./entities/product.entity";
+import { QueryProductDto } from "./dto/query-product.dto";
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
+    private readonly productRepository: Repository<Product>
   ) {}
 
   // PASTIKAN METODE INI ADA
   async findAllForAdmin(options: { page: number; limit: number }) {
     const { page, limit } = options;
     const [data, total] = await this.productRepository.findAndCount({
-      relations: ['brand', 'category', 'images'], // Pastikan semua relasi ada
-      order: { id_product: 'DESC' },
+      relations: ["brand", "category", "images"], // Pastikan semua relasi ada
+      order: { id_product: "DESC" },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -40,39 +40,33 @@ export class ProductsService {
   }
 
   async findAll(queryDto: QueryProductDto) {
-    const {
-      page = 1,
-      limit = 10,
-      search,
-      id_category,
-      id_brand,
-    } = queryDto;
+    const { page = 1, limit = 10, search, id_category, id_brand } = queryDto;
 
-    const queryBuilder = this.productRepository.createQueryBuilder('product');
+    const queryBuilder = this.productRepository.createQueryBuilder("product");
 
     // 2. Lakukan JOIN ke relasi agar bisa memfilter dan menampilkan datanya
     // Kita gunakan leftJoinAndSelect agar data brand dan category ikut di dalam hasil
-    queryBuilder.leftJoinAndSelect('product.brand', 'brand');
-    queryBuilder.leftJoinAndSelect('product.category', 'category');
-    queryBuilder.leftJoinAndSelect('product.images', 'images');
+    queryBuilder.leftJoinAndSelect("product.brand", "brand");
+    queryBuilder.leftJoinAndSelect("product.category", "category");
+    queryBuilder.leftJoinAndSelect("product.images", "images");
 
     // 3. Tambahkan kondisi WHERE secara dinamis
     if (search) {
       // Mencari di nama produk DAN nama brand secara case-insensitive
       queryBuilder.andWhere(
-        '(product.productName ILIKE :search OR brand.brandName ILIKE :search)',
-        { search: `%${search}%` },
+        "(product.productName ILIKE :search OR brand.brandName ILIKE :search)",
+        { search: `%${search}%` }
       );
     }
 
     if (id_category) {
-      queryBuilder.andWhere('product.category.id_category = :id_category', {
+      queryBuilder.andWhere("product.category.id_category = :id_category", {
         id_category,
       });
     }
 
     if (id_brand) {
-      queryBuilder.andWhere('product.brand.id_brand = :id_brand', { id_brand });
+      queryBuilder.andWhere("product.brand.id_brand = :id_brand", { id_brand });
     }
 
     // 4. Atur paginasi
@@ -90,21 +84,23 @@ export class ProductsService {
       lastPage: Math.ceil(total / limit),
     };
   }
-  
+
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id_product: id },
       // Pastikan relasi ini dimuat!
-      relations: ['brand', 'category', 'images'], 
+      relations: ["brand", "category", "images"],
     });
     if (!product) {
       throw new NotFoundException(`Product with ID #${id} not found`);
     }
     return product;
-}
+  }
 
-
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
+  async update(
+    id: number,
+    updateProductDto: UpdateProductDto
+  ): Promise<Product> {
     // 1. Ambil ID relasi dari DTO
     const { id_brand, id_category, ...productData } = updateProductDto;
 
@@ -123,9 +119,9 @@ export class ProductsService {
     if (id_category) {
       preloadPayload.category = { id_category: id_category };
     }
-    
+
     // Log untuk debugging, Anda bisa menghapusnya nanti
-    console.log('Payload for preload:', preloadPayload);
+    console.log("Payload for preload:", preloadPayload);
 
     // 5. Panggil preload dengan payload yang sudah bersih dan terstruktur
     const product = await this.productRepository.preload(preloadPayload);
