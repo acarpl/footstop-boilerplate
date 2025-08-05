@@ -7,5 +7,5 @@ export class CreatePaymentDto {
 
   @IsString()
   @IsNotEmpty()
-  payment_method: string; // contoh: 'gopay', 'credit_card', 'bank_transfer'
+  payment_method: string;
 }
