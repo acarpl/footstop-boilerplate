@@ -65,7 +65,7 @@ export class PaymentsService {
         phone: user.phone_number,
       },
       // Sertakan detail item yang dibeli
-      item_details: order.order_details.map((item) => ({
+      item_details: order.orderDetails.map((item) => ({
         id: String(item.product.id_product),
         price: Number(item.price_per_unit),
         quantity: item.quantity,
