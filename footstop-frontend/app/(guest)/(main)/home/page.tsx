@@ -1,16 +1,14 @@
-'use client';
+"use client";
 
-import Hero from '#/components/Hero';
-import Footer from '#/components/Footer';
-import FeaturedProducts from '#/components/FeaturedProducts';
-import Categories from '#/components/Categories';
-import { motion } from 'framer-motion';
-
+import Hero from "#/components/Hero";
+import Footer from "#/components/Footer";
+import FeaturedProducts from "#/components/FeaturedProducts";
+import Categories from "#/components/Categories";
+import { motion } from "framer-motion";
 
 export default function HomePage() {
-  console.log('API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
+  console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
 
-  
   return (
     <div className="flex flex-col items-center">
       <Hero />
@@ -19,7 +17,7 @@ export default function HomePage() {
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
         className="w-full bg-red-600 text-white"
       >
         <div className="max-w-screen-xl mx-auto text-center py-8">
@@ -41,14 +39,15 @@ export default function HomePage() {
         transition={{ duration: 0.6 }}
         className="w-full bg-red-600 py-10"
       >
-        <h2 className="text-3xl font-bold text-center text-white mb-6">CATEGORIES</h2>
+        <h2 className="text-3xl font-bold text-center text-white mb-6">
+          CATEGORIES
+        </h2>
         <Categories />
       </motion.section>
 
       <div className="w-full">
         <Footer />
       </div>
-
     </div>
   );
 }

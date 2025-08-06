@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import apiClient from '../lib/apiClient'; // Pastikan path ini benar
-import axios from 'axios';
-import Loading from '#/components/loading';
+import {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  ReactNode,
+} from "react";
+import apiClient from "../lib/apiClient"; // Pastikan path ini benar
+import axios from "axios";
+import Loading from "#/components/loading";
 
 // --- Tipe User ---
 interface User {
@@ -41,14 +47,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // --- Ambil user aktif ---
   const fetchUser = async () => {
     try {
-      console.log('--- AuthContext: fetchUser() called ---');
-      const response = await apiClient.get<User>('/auth/profile');
-      console.log('✅ /auth/profile SUCCESS:', response.data);
+      console.log("--- AuthContext: fetchUser() called ---");
+      const response = await apiClient.get<User>("/auth/profile");
+      console.log("✅ /auth/profile SUCCESS:", response.data);
       setUser(response.data);
     } catch (error) {
-      console.error('❌ /auth/profile FAILED:', error);
+      console.error("❌ /auth/profile FAILED:", error);
       if (axios.isAxiosError(error)) {
-        console.error('Axios error response:', error.response?.status, error.response?.data);
+        console.error(
+          "Axios error response:",
+          error.response?.status,
+          error.response?.data
+        );
       }
       setUser(null);
     }
@@ -66,12 +76,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (email: string, password: string): Promise<void> => {
     return new Promise(async (resolve, reject) => {
       try {
-        const loginResponse = await apiClient.post('/auth/login', { email, password });
-        console.log('✅ Login API success:', loginResponse);
+        const loginResponse = await apiClient.post("/auth/login", {
+          email,
+          password,
+        });
+        console.log("✅ Login API success:", loginResponse);
         await fetchUser();
         resolve();
       } catch (err) {
-        console.error('❌ Login error:', err);
+        console.error("❌ Login error:", err);
         reject(err);
       }
     });
@@ -81,14 +94,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = (data: RegisterInput): Promise<void> => {
     return new Promise(async (resolve, reject) => {
       try {
-        const registerResponse = await apiClient.post('/auth/register', data);
-        console.log('✅ Register API success:', registerResponse);
+        const registerResponse = await apiClient.post("/auth/register", data);
+        console.log("✅ Register API success:", registerResponse);
 
         // Opsional: Langsung login atau fetch user setelah daftar
         await login(data.email, data.password); // auto login setelah register
         resolve();
       } catch (err) {
-        console.error('❌ Register error:', err);
+        console.error("❌ Register error:", err);
         reject(err);
       }
     });
@@ -97,16 +110,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // --- Logout ---
   const logout = async () => {
     try {
-      await apiClient.post('/auth/logout');
+      await apiClient.post("/auth/logout");
       setUser(null);
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
       setUser(null);
     }
   };
 
   if (loading) {
-    return <div><Loading /></div>;
+    return (
+      <div>
+        <Loading />
+      </div>
+    );
   }
 
   return (
@@ -120,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

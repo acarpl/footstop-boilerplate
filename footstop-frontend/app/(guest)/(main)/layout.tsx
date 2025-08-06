@@ -1,14 +1,14 @@
-import 'antd/dist/reset.css';
-import Script from 'next/script';
+import "antd/dist/reset.css";
+import Script from "next/script";
 // import { Provider } from './provider';
-import { AuthProvider } from '../../../context/AuthContext';
-import Navbar from '#/components/Navbar';
-import { App } from 'antd';
+import { AuthProvider } from "../../../context/AuthContext";
+import Navbar from "#/components/Navbar";
+import { App } from "antd";
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">

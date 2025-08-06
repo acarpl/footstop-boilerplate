@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { StarFilled } from '@ant-design/icons';
-import { Button, Spin, message } from 'antd';
-import Image from 'next/image';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { StarFilled } from "@ant-design/icons";
+import { Button, Spin, message } from "antd";
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-import { getProducts, Product } from '../lib/services/productService';
+import { getProducts, Product } from "../lib/services/productService";
 
 // Animation variants
 const productVariants = {
@@ -18,7 +18,7 @@ const productVariants = {
     x: 0,
     transition: {
       delay: i * 0.15,
-      type: 'spring',
+      type: "spring",
       stiffness: 80,
       damping: 15,
     },
@@ -30,7 +30,7 @@ const getProductImageUrl = (product: Product): string => {
   if (product.images && product.images.length > 0) {
     return product.images[0].url;
   }
-  return '/placeholder-image.jpg';
+  return "/placeholder-image.jpg";
 };
 
 // Function to generate random rating (since backend doesn't have rating)
@@ -63,11 +63,11 @@ export default function FeaturedProducts() {
           // You can add more filters here if needed
           // featured: true, // if your backend supports featured flag
         });
-        
+
         setProducts(productData.data || []);
       } catch (error) {
         console.error("Error loading featured products:", error);
-        message.error('Failed to load featured products');
+        message.error("Failed to load featured products");
       } finally {
         setLoading(false);
       }
@@ -95,7 +95,9 @@ export default function FeaturedProducts() {
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Title */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Featured Products</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Featured Products
+          </h2>
           <p className="text-gray-600">Discover our most popular items</p>
         </div>
 
@@ -134,7 +136,7 @@ export default function FeaturedProducts() {
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = '/placeholder-image.jpg';
+                      target.src = "/placeholder-image.jpg";
                     }}
                     loading="lazy"
                   />
@@ -148,7 +150,8 @@ export default function FeaturedProducts() {
 
                   {/* Brand and Category */}
                   <div className="text-xs text-gray-500">
-                    {product.brand?.brand_name} • {product.category?.category_name}
+                    {product.brand?.brand_name} •{" "}
+                    {product.category?.category_name}
                   </div>
 
                   {/* Rating */}
@@ -159,10 +162,10 @@ export default function FeaturedProducts() {
 
                   {/* Price */}
                   <div className="text-base font-semibold text-gray-900">
-                    Rp {Math.floor(discountedPrice).toLocaleString('id-ID')}
+                    Rp {Math.floor(discountedPrice).toLocaleString("id-ID")}
                     {discount > 0 && (
                       <span className="text-gray-400 line-through text-sm ml-2 font-normal">
-                        Rp {originalPrice.toLocaleString('id-ID')}
+                        Rp {originalPrice.toLocaleString("id-ID")}
                       </span>
                     )}
                   </div>
@@ -182,7 +185,9 @@ export default function FeaturedProducts() {
         {/* Empty State */}
         {products.length === 0 && !loading && (
           <div className="text-center py-12">
-            <p className="text-gray-500">No featured products available at the moment.</p>
+            <p className="text-gray-500">
+              No featured products available at the moment.
+            </p>
           </div>
         )}
 
@@ -190,7 +195,10 @@ export default function FeaturedProducts() {
         {products.length > 0 && (
           <div className="flex justify-center mt-10">
             <Link href="/shop">
-              <Button type="default" className="rounded-full px-6 hover:bg-gray-50">
+              <Button
+                type="default"
+                className="rounded-full px-6 hover:bg-gray-50"
+              >
                 View All Products
               </Button>
             </Link>

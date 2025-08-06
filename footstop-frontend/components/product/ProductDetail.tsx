@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
-import Image from 'next/image';
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 type Product = {
@@ -24,50 +24,50 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-//Route product ke keranjang dan pembayaran.
-const router = useRouter();
+  //Route product ke keranjang dan pembayaran.
+  const router = useRouter();
 
-const handleAddToCart = () => {
-  if (!selectedSize) {
-    alert("Pilih ukuran terlebih dahulu!");
-    return;
-  }
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      alert("Pilih ukuran terlebih dahulu!");
+      return;
+    }
 
-  const cartItem = {
-    slug,
-    name: product?.name,
-    price: product?.price,
-    image: product?.image,
-    size: selectedSize,
-    quantity,
+    const cartItem = {
+      slug,
+      name: product?.name,
+      price: product?.price,
+      image: product?.image,
+      size: selectedSize,
+      quantity,
+    };
+
+    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const updatedCart = [...existingCart, cartItem];
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    alert("Produk ditambahkan ke keranjang!");
   };
 
-  const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
-  const updatedCart = [...existingCart, cartItem];
-  localStorage.setItem("cart", JSON.stringify(updatedCart));
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      alert("Pilih ukuran terlebih dahulu!");
+      return;
+    }
 
-  alert("Produk ditambahkan ke keranjang!");
-};
+    const checkoutItem = {
+      slug,
+      name: product?.name,
+      price: product?.price,
+      image: product?.image,
+      size: selectedSize,
+      quantity,
+    };
 
-const handleBuyNow = () => {
-  if (!selectedSize) {
-    alert("Pilih ukuran terlebih dahulu!");
-    return;
-  }
-
-  const checkoutItem = {
-    slug,
-    name: product?.name,
-    price: product?.price,
-    image: product?.image,
-    size: selectedSize,
-    quantity,
+    localStorage.setItem("checkoutItem", JSON.stringify(checkoutItem));
+    router.push("/checkout");
   };
-
-  localStorage.setItem("checkoutItem", JSON.stringify(checkoutItem));
-  router.push("/checkout");
-};
-//aaa
+  //aaa
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -81,7 +81,7 @@ const handleBuyNow = () => {
         setLoading(false);
       }
     };
-  //aaa
+    //aaa
     fetchProduct();
   }, [slug]);
 
@@ -96,8 +96,6 @@ const handleBuyNow = () => {
       </div>
     );
   }
-
-    
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -136,15 +134,11 @@ const handleBuyNow = () => {
               className="w-5 h-5"
             />
           ))}
-          <span className="text-sm text-gray-600 ml-1">
-            {product.rating}/5
-          </span>
+          <span className="text-sm text-gray-600 ml-1">{product.rating}/5</span>
         </div>
 
         {/* Harga */}
-        <p className="text-red-600 text-2xl font-bold mt-4">
-          {product.price}
-        </p>
+        <p className="text-red-600 text-2xl font-bold mt-4">{product.price}</p>
 
         {/* Deskripsi */}
         <p className="text-gray-700 text-sm mt-4">{product.description}</p>
@@ -159,7 +153,9 @@ const handleBuyNow = () => {
 
         {/* Pilih Ukuran */}
         <div className="mt-4">
-          <h4 className="font-medium text-sm text-gray-800 mb-1">Pilih Ukuran</h4>
+          <h4 className="font-medium text-sm text-gray-800 mb-1">
+            Pilih Ukuran
+          </h4>
           <div className="flex flex-wrap gap-2">
             {product.sizes.map((size: number) => (
               <button

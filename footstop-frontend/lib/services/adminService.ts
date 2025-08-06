@@ -1,4 +1,4 @@
-import apiClient from '../apiClient';
+import apiClient from "../apiClient";
 
 /**
  * Mengambil statistik utama untuk ditampilkan di dashboard admin.
@@ -6,7 +6,7 @@ import apiClient from '../apiClient';
  */
 export const getDashboardStats = async () => {
   try {
-    const response = await apiClient.get('/dashboard/stats');
+    const response = await apiClient.get("/dashboard/stats");
     return response.data;
   } catch (error) {
     console.error("Failed to fetch dashboard stats:", error);
@@ -15,7 +15,7 @@ export const getDashboardStats = async () => {
 };
 
 export const getAllUsers = async (params: { page: number; limit: number }) => {
-  const response = await apiClient.get('/users', { params });
+  const response = await apiClient.get("/users", { params });
   return response.data;
 };
 
@@ -35,15 +35,18 @@ export const deleteUser = async (userId: number) => {
 };
 
 export const getAllProducts = async (params: any) => {
-  const response = await apiClient.get('/products', { params });
+  const response = await apiClient.get("/products", { params });
   return response.data;
 };
 export const createProduct = async (productData: any) => {
-  const response = await apiClient.post('/products', productData);
+  const response = await apiClient.post("/products", productData);
   return response.data;
 };
 export const updateProduct = async (id_product: number, productData: any) => {
-  const response = await apiClient.patch(`/products/${id_product}`, productData);
+  const response = await apiClient.patch(
+    `/products/${id_product}`,
+    productData
+  );
   return response.data;
 };
 export const deleteProduct = async (id_product: number) => {
@@ -52,21 +55,23 @@ export const deleteProduct = async (id_product: number) => {
 
 // --- Dependencies for Product Form ---
 export const getAllCategories = async () => {
-  const response = await apiClient.get('/categories');
+  const response = await apiClient.get("/categories");
   return response.data;
 };
 export const getAllBrands = async () => {
-  const response = await apiClient.get('/brands');
+  const response = await apiClient.get("/brands");
   return response.data;
 };
 
-export const getAllOrders = async (params: { page: number; limit: number; }) => {
-  const response = await apiClient.get('/orders/admin/all', { params });
+export const getAllOrders = async (params: { page: number; limit: number }) => {
+  const response = await apiClient.get("/orders/admin/all", { params });
   return response.data;
 };
 
 export const updateOrderStatus = async (id_order: number, status: string) => {
-  const response = await apiClient.patch(`/orders/admin/${id_order}/status`, { status });
+  const response = await apiClient.patch(`/orders/admin/${id_order}/status`, {
+    status,
+  });
   return response.data;
 };
 
@@ -74,19 +79,22 @@ export const updateOrderStatus = async (id_order: number, status: string) => {
 export const getOrderDetailsForAdmin = async (id_order: number) => {
   const response = await apiClient.get(`/orders/admin/${id_order}`);
   return response.data;
-}
+};
 
 export const getAllBrandsAdmin = async () => {
-  const response = await apiClient.get('/brands');
+  const response = await apiClient.get("/brands");
   return response.data;
 };
 
 export const createBrand = async (brandData: { brand_name: string }) => {
-  const response = await apiClient.post('/brands', brandData);
+  const response = await apiClient.post("/brands", brandData);
   return response.data;
 };
 
-export const updateBrand = async (id_brand: number, brandData: { brand_name: string }) => {
+export const updateBrand = async (
+  id_brand: number,
+  brandData: { brand_name: string }
+) => {
   const response = await apiClient.patch(`/brands/${id_brand}`, brandData);
   return response.data;
 };
@@ -97,17 +105,25 @@ export const deleteBrand = async (id_brand: number) => {
 
 export const getAllCategoriesAdmin = async () => {
   // Mirip dengan brands, kita bisa menggunakan endpoint GET publik yang sudah ada.
-  const response = await apiClient.get('/categories');
+  const response = await apiClient.get("/categories");
   return response.data;
 };
 
-export const createCategory = async (categoryData: { category_name: string }) => {
-  const response = await apiClient.post('/categories', categoryData);
+export const createCategory = async (categoryData: {
+  category_name: string;
+}) => {
+  const response = await apiClient.post("/categories", categoryData);
   return response.data;
 };
 
-export const updateCategory = async (categoryId: number, categoryData: { category_name: string }) => {
-  const response = await apiClient.patch(`/categories/${categoryId}`, categoryData);
+export const updateCategory = async (
+  categoryId: number,
+  categoryData: { category_name: string }
+) => {
+  const response = await apiClient.patch(
+    `/categories/${categoryId}`,
+    categoryData
+  );
   return response.data;
 };
 
@@ -116,12 +132,12 @@ export const deleteCategory = async (categoryId: number) => {
 };
 export const uploadProductImage = async (idProduct: number, file: File) => {
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('idProduct', String(idProduct));
+  formData.append("file", file);
+  formData.append("idProduct", String(idProduct));
 
-  const response = await apiClient.post('/gambar/upload', formData, {
+  const response = await apiClient.post("/gambar/upload", formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
   return response.data;

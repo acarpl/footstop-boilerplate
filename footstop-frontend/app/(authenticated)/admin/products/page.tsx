@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Table,
   Button,
@@ -16,13 +16,13 @@ import {
   InputNumber,
   Image,
   Upload,
-} from 'antd';
+} from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
   PlusOutlined,
   UploadOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 import {
   getAllProducts,
   createProduct,
@@ -32,8 +32,8 @@ import {
   getAllBrands,
   uploadProductImage,
   deleteProductImage,
-} from '../../../../lib/services/adminService';
-import type { TableProps, UploadFile } from 'antd';
+} from "../../../../lib/services/adminService";
+import type { TableProps, UploadFile } from "antd";
 
 const { Option } = Select;
 
@@ -65,14 +65,18 @@ export default function ManageProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  
+
   // State untuk UI
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 5, total: 0 });
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  
+
   const [form] = Form.useForm();
 
   // --- Fungsi-fungsi Pengambilan Data ---
@@ -81,9 +85,14 @@ export default function ManageProductsPage() {
     try {
       const response = await getAllProducts({ page, limit: pageSize });
       setProducts(response.data);
-      setPagination(prev => ({ ...prev, total: response.total, current: page, pageSize }));
+      setPagination((prev) => ({
+        ...prev,
+        total: response.total,
+        current: page,
+        pageSize,
+      }));
     } catch (error) {
-      message.error('Failed to fetch products.');
+      message.error("Failed to fetch products.");
     } finally {
       setLoading(false);
     }
@@ -96,7 +105,9 @@ export default function ManageProductsPage() {
     getAllBrands().then(setBrands);
   }, []);
 
-  const handleTableChange: TableProps<Product>['onChange'] = (newPagination) => {
+  const handleTableChange: TableProps<Product>["onChange"] = (
+    newPagination
+  ) => {
     fetchProducts(newPagination.current, newPagination.pageSize);
   };
 
@@ -118,12 +129,13 @@ export default function ManageProductsPage() {
       id_category: product.category.id_category,
     });
     // Konversi gambar yang ada ke format yang dimengerti oleh Ant Design Upload
-    const existingImages = product.images?.map(img => ({
-      uid: String(img.id_gambar),
-      name: img.url.split('/').pop() || 'image.png',
-      status: 'done',
-      url: img.url,
-    })) || [];
+    const existingImages =
+      product.images?.map((img) => ({
+        uid: String(img.id_gambar),
+        name: img.url.split("/").pop() || "image.png",
+        status: "done",
+        url: img.url,
+      })) || [];
     setFileList(existingImages);
     setIsModalOpen(true);
   };
@@ -140,27 +152,36 @@ export default function ManageProductsPage() {
       // Langkah 1: Simpan/Update data teks produk
       if (editingProduct) {
         savedProduct = await updateProduct(editingProduct.id_product, values);
-        message.success('Product details updated.');
+        message.success("Product details updated.");
       } else {
         savedProduct = await createProduct(values);
-        message.success('Product created successfully.');
+        message.success("Product created successfully.");
       }
 
       // Langkah 2: Upload gambar baru (jika ada)
-      const newFiles = fileList.filter(file => file.originFileObj);
+      const newFiles = fileList.filter((file) => file.originFileObj);
       if (newFiles.length > 0) {
-        message.loading({ content: 'Uploading images...', key: 'uploading' });
+        message.loading({ content: "Uploading images...", key: "uploading" });
         await Promise.all(
-          newFiles.map(file => uploadProductImage(savedProduct.id_product, file.originFileObj as File))
+          newFiles.map((file) =>
+            uploadProductImage(
+              savedProduct.id_product,
+              file.originFileObj as File
+            )
+          )
         );
-        message.success({ content: 'Images uploaded!', key: 'uploading', duration: 2 });
+        message.success({
+          content: "Images uploaded!",
+          key: "uploading",
+          duration: 2,
+        });
       }
-      
+
       setIsModalOpen(false);
       fetchProducts(pagination.current, pagination.pageSize); // Refresh tabel
     } catch (error) {
-      console.error('Operation failed:', error);
-      message.error('An error occurred. Please check the form and try again.');
+      console.error("Operation failed:", error);
+      message.error("An error occurred. Please check the form and try again.");
     }
   };
 
@@ -168,22 +189,23 @@ export default function ManageProductsPage() {
   const handleDelete = async (productId: number) => {
     try {
       await deleteProduct(productId);
-      message.success('Product deleted successfully.');
+      message.success("Product deleted successfully.");
       fetchProducts(pagination.current, pagination.pageSize);
     } catch (error) {
-      message.error('Failed to delete product.');
+      message.error("Failed to delete product.");
     }
   };
 
   // Handler untuk menghapus gambar dari server
   const handleRemoveImage = async (file: UploadFile) => {
-    if (file.url && file.uid) { // Hanya untuk file yang sudah ada di server
+    if (file.url && file.uid) {
+      // Hanya untuk file yang sudah ada di server
       try {
         await deleteProductImage(Number(file.uid));
-        message.success('Image removed from server.');
+        message.success("Image removed from server.");
         return true; // Lanjutkan proses hapus dari UI
       } catch {
-        message.error('Failed to remove image from server.');
+        message.error("Failed to remove image from server.");
         return false; // Batalkan proses hapus dari UI
       }
     }
@@ -191,18 +213,24 @@ export default function ManageProductsPage() {
   };
 
   // Definisi kolom tabel
-  const columns: TableProps<Product>['columns'] = [
-    { title: 'ID', dataIndex: 'id_product', key: 'id_product', fixed: 'left', width: 80 },
+  const columns: TableProps<Product>["columns"] = [
     {
-      title: 'Image',
-      dataIndex: 'images', // Kita tetap menargetkan array 'images'
-      key: 'image',
+      title: "ID",
+      dataIndex: "id_product",
+      key: "id_product",
+      fixed: "left",
+      width: 80,
+    },
+    {
+      title: "Image",
+      dataIndex: "images", // Kita tetap menargetkan array 'images'
+      key: "image",
       width: 100,
       // Gunakan fungsi 'render' untuk mengubah data menjadi JSX
       render: (images: Image[], record: Product) => {
         // Cek pengaman: pastikan ada gambar dan URL-nya valid
         if (!images || images.length === 0 || !images[0]?.url) {
-          return 'No Image';
+          return "No Image";
         }
 
         // Ambil URL dari gambar pertama di dalam array
@@ -215,24 +243,39 @@ export default function ManageProductsPage() {
             alt={record.product_name} // Teks alt yang baik untuk SEO & aksesibilitas
             width={60} // Tentukan lebar
             height={60} // Tentukan tinggi
-            style={{ objectFit: 'cover', borderRadius: '4px' }} // Style agar gambar tidak gepeng
+            style={{ objectFit: "cover", borderRadius: "4px" }} // Style agar gambar tidak gepeng
           />
         );
       },
     },
-    { title: 'Name', dataIndex: 'product_name', key: 'product_name' },
-    { title: 'Brand', dataIndex: ['brand', 'brand_name'], key: 'brand' },
-    { title: 'Category', dataIndex: ['category', 'category_name'], key: 'category' },
-    { title: 'Price', dataIndex: 'price', key: 'price', render: (price) => `Rp ${parseInt(price).toLocaleString()}` },
+    { title: "Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Brand", dataIndex: ["brand", "brand_name"], key: "brand" },
     {
-      title: 'Actions',
-      key: 'actions',
-      fixed: 'right',
+      title: "Category",
+      dataIndex: ["category", "category_name"],
+      key: "category",
+    },
+    {
+      title: "Price",
+      dataIndex: "price",
+      key: "price",
+      render: (price) => `Rp ${parseInt(price).toLocaleString()}`,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      fixed: "right",
       width: 120,
       render: (_, record) => (
         <Space size="middle">
-          <Button icon={<EditOutlined />} onClick={() => showEditModal(record)} />
-          <Popconfirm title="Delete this product?" onConfirm={() => handleDelete(record.id_product)}>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => showEditModal(record)}
+          />
+          <Popconfirm
+            title="Delete this product?"
+            onConfirm={() => handleDelete(record.id_product)}
+          >
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
         </Space>
@@ -244,7 +287,11 @@ export default function ManageProductsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <Typography.Title level={2}>Manage Products</Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={showCreateModal}
+        >
           Create Product
         </Button>
       </div>
@@ -258,23 +305,37 @@ export default function ManageProductsPage() {
         scroll={{ x: 1200 }}
       />
       <Modal
-        title={editingProduct ? `Edit Product: ${editingProduct.product_name}` : 'Create New Product'}
+        title={
+          editingProduct
+            ? `Edit Product: ${editingProduct.product_name}`
+            : "Create New Product"
+        }
         open={isModalOpen}
         onOk={handleModalOk}
         onCancel={() => setIsModalOpen(false)}
-        okText={editingProduct ? 'Save Changes' : 'Create'}
+        okText={editingProduct ? "Save Changes" : "Create"}
         destroyOnClose // Reset state form di dalam modal saat ditutup
       >
         <Form form={form} layout="vertical" className="mt-6">
-          <Form.Item name="product_name" label="Product Name" rules={[{ required: true }]}>
+          <Form.Item
+            name="product_name"
+            label="Product Name"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="price" label="Price (Rp)" rules={[{ required: true }]}>
+          <Form.Item
+            name="price"
+            label="Price (Rp)"
+            rules={[{ required: true }]}
+          >
             <InputNumber
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               min={0}
-              formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={value => parseInt(value!.replace(/\$\s?|(,*)/g, ''))}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              parser={(value) => parseInt(value!.replace(/\$\s?|(,*)/g, ""))}
             />
           </Form.Item>
           <Form.Item name="size" label="Available Sizes (comma separated)">
@@ -282,12 +343,24 @@ export default function ManageProductsPage() {
           </Form.Item>
           <Form.Item name="id_brand" label="Brand" rules={[{ required: true }]}>
             <Select placeholder="Select a brand">
-              {brands.map(brand => <Option key={brand.id_brand} value={brand.id_brand}>{brand.brand_name}</Option>)}
+              {brands.map((brand) => (
+                <Option key={brand.id_brand} value={brand.id_brand}>
+                  {brand.brand_name}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
-          <Form.Item name="id_category" label="Category" rules={[{ required: true }]}>
+          <Form.Item
+            name="id_category"
+            label="Category"
+            rules={[{ required: true }]}
+          >
             <Select placeholder="Select a category">
-              {categories.map(cat => <Option key={cat.id_category} value={cat.id_category}>{cat.category_name}</Option>)}
+              {categories.map((cat) => (
+                <Option key={cat.id_category} value={cat.id_category}>
+                  {cat.category_name}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
           <Form.Item label="Product Images">

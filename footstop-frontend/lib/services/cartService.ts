@@ -1,4 +1,4 @@
-import apiClient from '../apiClient';
+import apiClient from "../apiClient";
 interface Image {
   id_gambar: number;
   url: string;
@@ -16,9 +16,9 @@ export interface CartItem {
   product: Product;
 }
 interface AddToCartPayload {
-    id_product: number;
-    quantity: number;
-    size: string;
+  id_product: number;
+  quantity: number;
+  size: string;
 }
 
 /**
@@ -27,7 +27,7 @@ interface AddToCartPayload {
  */
 export const getCartItems = async (): Promise<CartItem[]> => {
   try {
-    const response = await apiClient.get('/carts');
+    const response = await apiClient.get("/carts");
     return response.data;
   } catch (error) {
     console.error("Service Error: Failed to fetch cart items.", error);
@@ -40,14 +40,16 @@ export const getCartItems = async (): Promise<CartItem[]> => {
  * @param {AddToCartPayload} payload - Data item yang akan ditambahkan.
  * @returns {Promise<CartItem>} Sebuah promise yang resolve dengan data item yang baru dibuat/diupdate.
  */
-export const addItemToCart = async (payload: AddToCartPayload): Promise<CartItem> => {
-    try {
-        const response = await apiClient.post('/carts', payload);
-        return response.data;
-    } catch (error) {
-        console.error("Service Error: Failed to add item to cart.", error);
-        throw error;
-    }
+export const addItemToCart = async (
+  payload: AddToCartPayload
+): Promise<CartItem> => {
+  try {
+    const response = await apiClient.post("/carts", payload);
+    return response.data;
+  } catch (error) {
+    console.error("Service Error: Failed to add item to cart.", error);
+    throw error;
+  }
 };
 
 /**
@@ -56,7 +58,10 @@ export const addItemToCart = async (payload: AddToCartPayload): Promise<CartItem
  * @param {number} quantity - Kuantitas baru.
  * @returns {Promise<CartItem>} Sebuah promise yang resolve dengan data item keranjang yang sudah diupdate.
  */
-export const updateCartItemQuantity = async (idCart: number, quantity: number): Promise<CartItem> => {
+export const updateCartItemQuantity = async (
+  idCart: number,
+  quantity: number
+): Promise<CartItem> => {
   try {
     const response = await apiClient.patch(`/carts/${idCart}`, { quantity });
     return response.data;
