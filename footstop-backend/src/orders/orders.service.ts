@@ -64,7 +64,7 @@ export class OrdersService {
       // 3. Buat entitas Order utama
       const newOrder = this.orderRepository.create({
         user,
-        address: createOrderDto.shippingAddress,
+        address: createOrderDto.address,
         fullName: createOrderDto.fullName, // <-- Gunakan data baru
         phoneNumber: createOrderDto.phoneNumber, // <-- Gunakan data baru
         total_price: total_price,
