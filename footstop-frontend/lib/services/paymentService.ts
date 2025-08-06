@@ -16,13 +16,13 @@ interface MidtransTransactionResponse {
  * @returns {Promise<MidtransTransactionResponse>} Objek dari backend yang berisi 'redirect_url' dari Midtrans.
  */
 export const createPaymentTransaction = async (
-  orderId: number
+  id_order: number
 ): Promise<MidtransTransactionResponse> => {
   try {
     // 1. Kirim request POST ke endpoint backend yang benar.
     // 2. Body-nya adalah objek JSON yang berisi orderId.
     const response = await apiClient.post("/payments/create-transaction", {
-      orderId,
+      id_order,
     });
 
     // 3. Kembalikan data yang diterima (berisi token dan redirect_url).
