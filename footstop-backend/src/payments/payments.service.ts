@@ -57,7 +57,7 @@ export class PaymentsService {
       transaction_details: {
         // Buat ID pesanan yang unik untuk setiap percobaan transaksi
         order_id: `FOOTSTOP-${order.id_order}-${Date.now()}`,
-        gross_amount: Number(order.total_price),
+        gross_amount: Number(order.totalPrice),
       },
       customer_details: {
         first_name: user.username,
@@ -118,7 +118,7 @@ export class PaymentsService {
       if (transactionStatus == "capture" || transactionStatus == "settlement") {
         if (fraudStatus == "accept") {
           // Pembayaran berhasil dan aman
-          order.status_pengiriman = "Dibayar";
+          order.statusPengiriman = "Dibayar";
         }
       } else if (transactionStatus == "pending") {
         // Biarkan status 'Pending', tidak perlu diubah
@@ -128,13 +128,13 @@ export class PaymentsService {
         transactionStatus == "cancel"
       ) {
         // Pembayaran gagal atau dibatalkan
-        order.status_pengiriman = "Dibatalkan";
+        order.statusPengiriman = "Dibatalkan";
       }
 
       // 3. Simpan perubahan ke database
       await this.orderRepository.save(order);
       console.log(
-        `Webhook received: Order #${orderId} status updated to ${order.status_pengiriman}`
+        `Webhook received: Order #${orderId} status updated to ${order.statusPengiriman}`
       );
     } catch (error) {
       // Tangani jika verifikasi notifikasi gagal
