@@ -59,38 +59,27 @@ const CheckoutPageContent = () => {
     }, 0);
   }, [cartItems]);
 
-  const onFinish = async (values: { shippingAddress: string }) => {
+  const onFinish = async (values: {
+    fullName: string;
+    phoneNumber: string;
+    address: string;
+    confirm: boolean;
+  }) => {
     setIsSubmitting(true);
-    const checkoutMessageKey = "checkout_process";
     try {
-      messageApi.loading({
-        content: "Creating your order...",
-        key: checkoutMessageKey,
-      });
-      // Langkah 1: Buat order di database kita, statusnya 'Pending'
-      const newOrder = await createOrder(values.shippingAddress);
-
-      messageApi.loading({
-        content: "Preparing payment gateway...",
-        key: checkoutMessageKey,
-      });
-      // Langkah 2: Buat sesi pembayaran di Midtrans menggunakan order ID yang baru
+      const newOrder = await createOrder(values);
       const transaction = await createPaymentTransaction(newOrder.id_order);
-
-      if (!transaction.redirect_url) {
+      if (transaction.redirect_url) {
+        messageApi.success("Redirecting to payment page...");
+        window.location.href = transaction.redirect_url;
+      } else {
         throw new Error("Payment gateway did not provide a redirect URL.");
       }
-
-      messageApi.success({
-        content: "Redirecting to payment page...",
-        key: checkoutMessageKey,
-      });
-      // Langkah 3: Arahkan pengguna ke halaman pembayaran Midtrans
-      setTimeout(() => {
-        window.location.href = transaction.redirect_url;
-      }, 1000);
     } catch (error) {
-      // ... (logika penanganan error Anda)
+      console.error("Failed to create order:", error);
+      messageApi.error("Failed to create order. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -151,7 +140,7 @@ const CheckoutPageContent = () => {
 
             <Form.Item
               label="Full Shipping Address"
-              name="shippingAddress"
+              name="address"
               rules={[
                 {
                   required: true,

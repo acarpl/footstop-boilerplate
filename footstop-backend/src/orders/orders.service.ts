@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { Order } from './entities/order.entity';
-import { OrdersDetail } from '../orders-details/entities/orders-detail.entity';
-import { Cart } from '../carts/entities/cart.entity';
-import { User } from '../users/entities/user.entity';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { DataSource, Repository } from "typeorm";
+import { CreateOrderDto } from "./dto/create-order.dto";
+import { Order } from "./entities/order.entity";
+import { OrdersDetail } from "../orders-details/entities/orders-detail.entity";
+import { Cart } from "../carts/entities/cart.entity";
+import { User } from "../users/entities/user.entity";
 
 @Injectable()
 export class OrdersService {
@@ -14,7 +18,7 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(Cart)
     private readonly cartRepository: Repository<Cart>,
-    private readonly dataSource: DataSource, // Inject DataSource untuk transaksi
+    private readonly dataSource: DataSource // Inject DataSource untuk transaksi
   ) {}
 
   async findOneForAdmin(id_order: number): Promise<Order> {
@@ -22,10 +26,10 @@ export class OrdersService {
       where: { id_order },
       // Ini adalah bagian kunci: kita memuat semua relasi yang dibutuhkan
       relations: [
-        'user', // Ambil data user
-        'order_details', // Ambil daftar item detail
-        'order_details.product', // Di setiap item detail, ambil juga data produknya
-        'order_details.product.images' // Ambil juga gambar produknya
+        "user", // Ambil data user
+        "order_details", // Ambil daftar item detail
+        "order_details.product", // Di setiap item detail, ambil juga data produknya
+        "order_details.product.images", // Ambil juga gambar produknya
       ],
     });
 
@@ -37,7 +41,7 @@ export class OrdersService {
 
   async create(user: User, createOrderDto: CreateOrderDto): Promise<Order> {
     const queryRunner = this.dataSource.createQueryRunner();
-    
+
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -45,11 +49,11 @@ export class OrdersService {
       // 1. Ambil semua item dari keranjang user
       const cartItems = await this.cartRepository.find({
         where: { user: { id_user: user.id_user } },
-        relations: ['product'],
+        relations: ["product"],
       });
 
       if (cartItems.length === 0) {
-        throw new BadRequestException('Your cart is empty.');
+        throw new BadRequestException("Your cart is empty.");
       }
 
       // 2. Hitung total harga
@@ -61,10 +65,11 @@ export class OrdersService {
       const newOrder = this.orderRepository.create({
         user,
         address: createOrderDto.shippingAddress,
-        total_price,
+        fullName: createOrderDto.fullName, // <-- Gunakan data baru
+        phoneNumber: createOrderDto.phoneNumber, // <-- Gunakan data baru
+        total_price: total_price,
       });
       const savedOrder = await queryRunner.manager.save(newOrder);
-
       // 4. Buat entitas Order Details dari setiap item di keranjang
       const orderDetails = cartItems.map((item) => {
         return queryRunner.manager.create(OrdersDetail, {
@@ -98,26 +103,26 @@ export class OrdersService {
   findAllForUser(id_user: number): Promise<Order[]> {
     return this.orderRepository.find({
       where: { user: { id_user } },
-      order: { order_date: 'DESC' }, // Urutkan dari yang terbaru
+      order: { order_date: "DESC" }, // Urutkan dari yang terbaru
     });
   }
 
   async findOneForUser(id_user: number, id_order: number): Promise<Order> {
     const order = await this.orderRepository.findOne({
-        where: { id_order, user: { id_user } },
-        relations: ['orderDetails', 'orderDetails.product'], // Muat detail dan produknya
+      where: { id_order, user: { id_user } },
+      relations: ["orderDetails", "orderDetails.product"], // Muat detail dan produknya
     });
-    
+
     if (!order) {
-        throw new NotFoundException(`Order with ID #${id_order} not found.`);
+      throw new NotFoundException(`Order with ID #${id_order} not found.`);
     }
     return order;
   }
 
-  async findAllForAdmin(p0: { page: number; limit: number; }): Promise<Order[]> {
+  async findAllForAdmin(p0: { page: number; limit: number }): Promise<Order[]> {
     return this.orderRepository.find({
-      relations: ['user'], // Muat juga data user yang memesan
-      order: { order_date: 'DESC' },
+      relations: ["user"], // Muat juga data user yang memesan
+      order: { order_date: "DESC" },
     });
   }
 
