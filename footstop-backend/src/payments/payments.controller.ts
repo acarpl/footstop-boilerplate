@@ -28,7 +28,7 @@ export class PaymentsController {
   @Post("create-transaction")
   @UseGuards(AuthGuard("jwt")) // 1. Pastikan hanya pengguna yang login bisa mengakses
   createTransaction(
-    @Body("orderId") orderId: number, // 2. Ambil 'orderId' dari body
+    @Body("id_order") orderId: number, // 2. Ambil 'orderId' dari body
     @GetUser() user: User // 3. Ambil data user yang sedang login dari token
   ) {
     // 4. Panggil service untuk melakukan pekerjaan berat
