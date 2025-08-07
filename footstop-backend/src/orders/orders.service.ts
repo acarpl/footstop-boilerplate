@@ -67,7 +67,7 @@ export class OrdersService {
         address: createOrderDto.address,
         fullName: createOrderDto.fullName, // <-- Gunakan data baru
         phoneNumber: createOrderDto.phoneNumber, // <-- Gunakan data baru
-        total_price: total_price,
+        totalPrice: total_price,
       });
       const savedOrder = await queryRunner.manager.save(newOrder);
       // 4. Buat entitas Order Details dari setiap item di keranjang
@@ -103,7 +103,7 @@ export class OrdersService {
   findAllForUser(id_user: number): Promise<Order[]> {
     return this.orderRepository.find({
       where: { user: { id_user } },
-      order: { order_date: "DESC" }, // Urutkan dari yang terbaru
+      order: { orderDate: "DESC" }, // Urutkan dari yang terbaru
     });
   }
 
@@ -122,7 +122,7 @@ export class OrdersService {
   async findAllForAdmin(p0: { page: number; limit: number }): Promise<Order[]> {
     return this.orderRepository.find({
       relations: ["user"], // Muat juga data user yang memesan
-      order: { order_date: "DESC" },
+      order: { orderDate: "DESC" },
     });
   }
 
@@ -132,7 +132,7 @@ export class OrdersService {
       throw new NotFoundException(`Order with ID #${idOrder} not found.`);
     }
 
-    order.status_pengiriman = newStatus;
+    order.statusPengiriman = newStatus;
     return this.orderRepository.save(order);
   }
 }
