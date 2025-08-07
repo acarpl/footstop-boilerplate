@@ -11,35 +11,37 @@ const Register = () => {
   const router = useRouter();
 
   const onFinish = async (values: {
-    name: string;
-    phone: string;
-    email: string;
-    password: string;
-  }) => {
-    setLoading(true);
-    try {
-      await apiClient.post("/auth/register", {
-        username: values.name,
-        phone_number: values.phone,
-        email: values.email,
-        password: values.password,
-      });
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+}) => {
+  setLoading(true);
+  try {
+    await apiClient.post("/auth/register", {
+      id_role: 2, // opsional jika backend sudah set default role
+      username: values.name,
+      phone_number: values.phone,
+      email: values.email,
+      password: values.password,
+    });
 
-      message.success("Registration successful! Please log in.");
 
-      setTimeout(() => {
-        router.push("/login");
-      }, 1500);
-    } catch (err) {
-      let errorMessage = "An unexpected error occurred.";
-      if (err instanceof AxiosError) {
-        errorMessage = err.response?.data?.message || "Registration failed.";
-      }
-      message.error(errorMessage);
-    } finally {
-      setLoading(false);
+    message.success("Registration successful! Please log in.");
+    setTimeout(() => {
+      router.push("/login");
+    }, 1500);
+  } catch (err) {
+    let errorMessage = "An unexpected error occurred.";
+    if (err instanceof AxiosError) {
+      errorMessage = err.response?.data?.message || "Registration failed.";
     }
-  };
+    message.error(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div

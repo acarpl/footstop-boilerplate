@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Query,
   DefaultValuePipe,
+  Post,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/decorators/get-user.decorator';
@@ -18,14 +19,15 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
-@UseGuards(AuthGuard('jwt'))
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // ✅ Butuh JWT + Admin Role
   @Get()
-  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   findAll(
     @Query('page', new DefaultValuePipe(1), new ParseIntPipe()) page: number,
@@ -34,14 +36,16 @@ export class UsersController {
     return this.usersService.findAllPaginated({ page, limit });
   }
 
-  // Metode ini sekarang tidak akan error lagi karena sintaks di atasnya sudah benar.
+  // ✅ Butuh JWT
   @Patch('me')
+  @UseGuards(AuthGuard('jwt'))
   updateMyProfile(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(user.id_user, updateUserDto);
   }
 
+  // ✅ Butuh JWT + Admin Role
   @Patch(':id')
-  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   updateUserByAdmin(
     @Param('id', ParseIntPipe) id: number,
@@ -50,8 +54,9 @@ export class UsersController {
     return this.usersService.update(id, adminUpdateUserDto);
   }
 
+  // ✅ Butuh JWT + Admin Role
   @Delete(':id')
-  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   removeUser(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);

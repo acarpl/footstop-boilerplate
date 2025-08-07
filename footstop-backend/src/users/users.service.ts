@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable() // WAJIB
@@ -13,10 +14,22 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(userLikeObject: DeepPartial<User>): Promise<User> {
-    const user = this.usersRepository.create(userLikeObject);
-    return this.usersRepository.save(user);
+    async create(userLikeObject: DeepPartial<User>): Promise<User> {
+// Cek apakah email sudah digunakan
+  const existing = await this.userRepository.findOneBy({ email: userLikeObject.email });
+  if (existing) {
+    throw new BadRequestException('Email is already in use.');
   }
+
+  // Hash password
+  if (userLikeObject.password) {
+    const hashedPassword = await bcrypt.hash(userLikeObject.password, 10);
+    userLikeObject.password = hashedPassword;
+  }
+
+  const user = this.userRepository.create(userLikeObject);
+  return this.userRepository.save(user);
+}
 
   usersRepository: any;
 
@@ -120,4 +133,5 @@ async findAllPaginated({ page, limit }: { page: number; limit: number }) {
       .where("id_user = :id", { id: userId })
       .execute();
   }
+  
 }
