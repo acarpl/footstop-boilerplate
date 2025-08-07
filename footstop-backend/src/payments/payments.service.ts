@@ -43,7 +43,7 @@ export class PaymentsService {
     // 1. Ambil data pesanan lengkap dari database untuk memastikan validitas
     const order = await this.orderRepository.findOne({
       where: { id_order: orderId, user: { id_user: user.id_user } },
-      relations: ["order_details", "order_details.product"],
+      relations: ["orderDetails", "orderDetails.product"],
     });
 
     if (!order) {
