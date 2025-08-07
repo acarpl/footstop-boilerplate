@@ -2,38 +2,39 @@
 
 import React, { useState } from "react";
 import { Button, Card, Form, Input, Typography, message } from "antd";
-import { useRouter } from "next/navigation";
-import apiClient from "../../../../lib/apiClient";
 import { AxiosError } from "axios";
+import apiClient from "../../../../lib/apiClient";
 
 const Register = () => {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const onFinish = async (values: {
-    name: string;
-    phone: string;
+    username: string;
+    phone_number: string;
     email: string;
     password: string;
   }) => {
     setLoading(true);
+
     try {
-      await apiClient.post("/auth/register", {
-        username: values.name,
-        phone_number: values.phone,
+      // Pastikan field-nya konsisten seperti Login
+      const response = await apiClient.post("/auth/register", {
+        username: values.username,
+        phone_number: values.phone_number,
         email: values.email,
         password: values.password,
       });
 
-      message.success("Registration successful! Please log in.");
-
+      message.success("Pendaftaran berhasil! Silakan login...");
       setTimeout(() => {
-        router.push("/login");
+        window.location.href = "/login"; // Sama seperti Login
       }, 1500);
     } catch (err) {
-      let errorMessage = "An unexpected error occurred.";
+      let errorMessage = "Terjadi kesalahan saat mendaftar.";
       if (err instanceof AxiosError) {
-        errorMessage = err.response?.data?.message || "Registration failed.";
+        errorMessage =
+          err.response?.data?.message ||
+          "Pendaftaran gagal. Silakan coba lagi.";
       }
       message.error(errorMessage);
     } finally {
@@ -59,40 +60,38 @@ const Register = () => {
         </Typography.Title>
         <Typography.Text strong>Welcome To FootStop!</Typography.Text>
         <Typography.Paragraph style={{ fontSize: 12 }}>
-          Create your account and enjoy all the features and discounts.
+          Buat akunmu dan nikmati semua fitur dan diskon.
         </Typography.Paragraph>
 
         <Form layout="vertical" onFinish={onFinish} style={{ marginTop: 20 }}>
           <Form.Item
-            label="Name (Username)"
-            name="name"
-            rules={[{ required: true, message: "Please input your Name!" }]}
+            label="Username"
+            name="username"
+            rules={[{ required: true, message: "Masukkan username Anda!" }]}
           >
-            <Input placeholder="eg. Farhan Kebab" />
+            <Input placeholder="Contoh: FarhanKebab" />
           </Form.Item>
 
           <Form.Item
-            label="Phone Number"
-            name="phone"
-            rules={[
-              { required: true, message: "Please input your Phone Number!" },
-            ]}
+            label="Nomor HP"
+            name="phone_number"
+            rules={[{ required: true, message: "Masukkan nomor HP Anda!" }]}
           >
-            <Input placeholder="eg. 0812345678910" />
+            <Input placeholder="Contoh: 0812345678910" />
           </Form.Item>
 
           <Form.Item
-            label="E-mail"
+            label="Email"
             name="email"
             rules={[
               {
                 required: true,
                 type: "email",
-                message: "Please input a valid E-mail!",
+                message: "Masukkan alamat email yang valid!",
               },
             ]}
           >
-            <Input placeholder="eg. farhankebab@example.com" />
+            <Input placeholder="Contoh: kamu@example.com" />
           </Form.Item>
 
           <Form.Item
@@ -102,11 +101,11 @@ const Register = () => {
               {
                 required: true,
                 min: 6,
-                message: "Password must be at least 6 characters!",
+                message: "Password minimal 6 karakter!",
               },
             ]}
           >
-            <Input.Password placeholder="Type your Password Here!" />
+            <Input.Password placeholder="Ketik password kamu di sini" />
           </Form.Item>
 
           <Form.Item>
@@ -122,7 +121,10 @@ const Register = () => {
           </Form.Item>
 
           <Typography.Text>
-            Already have an account? <a href="/login">Login Here!</a>
+            Sudah punya akun?{" "}
+            <a href="/login" className="text-red-600">
+              Login di sini!
+            </a>
           </Typography.Text>
         </Form>
       </Card>

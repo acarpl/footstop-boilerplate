@@ -1,43 +1,51 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button, Card, Form, Input, Typography, message } from 'antd';
-import { AxiosError } from 'axios';
-import apiClient from '../../../../lib/apiClient';
+import React, { useState } from "react";
+import { Button, Card, Checkbox, Form, Input, Typography, message } from "antd";
+import { useRouter } from "next/navigation";
+import apiClient from "../../../../lib/apiClient";
+import { AxiosError } from "axios";
+import { useAuth } from "../../../../context/AuthContext";
+import { TokenUtil } from "#/utils/token";
 
-const Register = () => {
-  const [loading, setLoading] = useState(false);
+const Login = () => {
+  const [loading, setLoading] = useState(false); // Untuk tombol "Log In"
+  const router = useRouter(); // Router dari Next.js (app directory)
+  const { login } = useAuth(); // Ambil fungsi login dari context
 
-  const onFinish = async (values: {
-    username: string;
-    phone_number: string;
-    email: string;
-    password: string;
-  }) => {
-    setLoading(true);
+  // Fungsi yang dijalankan saat form berhasil disubmit
+  const onFinish = async (values: { email: string; password: string }) => {
+    setLoading(true); // Mulai loading saat login diproses
 
     try {
-      // Pastikan field-nya konsisten seperti Login
-      const response = await apiClient.post('/auth/register', {
-        username: values.username,
-        phone_number: values.phone_number,
+      // Kirim permintaan login ke backend
+      const response = await apiClient.post("/auth/login", {
         email: values.email,
         password: values.password,
       });
 
-      message.success('Pendaftaran berhasil! Silakan login...');
+      // Jika sukses, tampilkan notifikasi
+      message.success("Login berhasil! Mengarahkan ke dashboard...");
+      TokenUtil.setAccessToken(response.data.accessToken);
+      TokenUtil.persistToken();
+
+      // Redirect ke halaman dashboard setelah 1 detik
       setTimeout(() => {
-        window.location.href = '/login'; // Sama seperti Login
-      }, 1500);
+        window.location.href = "/home";
+      }, 1000);
     } catch (err) {
-      let errorMessage = 'Terjadi kesalahan saat mendaftar.';
+      // Tangani error dari Axios jika login gagal
+      let errorMessage = "Terjadi kesalahan saat login.";
+
       if (err instanceof AxiosError) {
+        // Ambil pesan error dari response backend jika ada
         errorMessage =
-          err.response?.data?.message || 'Pendaftaran gagal. Silakan coba lagi.';
+          err.response?.data?.message ||
+          "Login gagal. Periksa kembali email dan password Anda.";
       }
+
       message.error(errorMessage);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Hentikan loading jika gagal
     }
   };
 
@@ -45,65 +53,60 @@ const Register = () => {
     <div
       className="min-h-screen flex items-center justify-center"
       style={{
-        backgroundColor: '#963535',
-        backgroundImage: 'url(/backgrounds/footstop-pattern.svg)',
-        backgroundSize: 'contain',
+        backgroundColor: "#963535",
+        backgroundImage: "url(/backgrounds/footstop-pattern.svg)",
+        backgroundSize: "contain",
       }}
     >
-      <Card className="shadow-xl rounded-2xl" style={{ width: 350, textAlign: 'center' }}>
-        <Typography.Title level={3} style={{ color: '#E53935' }}>
+      <Card
+        className="shadow-xl rounded-2xl"
+        style={{ width: 350, textAlign: "center" }}
+      >
+        {/* Judul Brand */}
+        <Typography.Title level={3} style={{ color: "#E53935" }}>
           FOOTSTOP
         </Typography.Title>
-        <Typography.Text strong>Welcome To FootStop!</Typography.Text>
-        <Typography.Paragraph style={{ fontSize: 12 }}>
-          Buat akunmu dan nikmati semua fitur dan diskon.
-        </Typography.Paragraph>
 
+        {/* Subjudul */}
+        <Typography.Text strong>Welcome Back!</Typography.Text>
+
+        {/* Form Login */}
         <Form layout="vertical" onFinish={onFinish} style={{ marginTop: 20 }}>
+          {/* Input Email */}
           <Form.Item
-            label="Username"
-            name="username"
-            rules={[{ required: true, message: 'Masukkan username Anda!' }]}
-          >
-            <Input placeholder="Contoh: FarhanKebab" />
-          </Form.Item>
-
-          <Form.Item
-            label="Nomor HP"
-            name="phone_number"
-            rules={[{ required: true, message: 'Masukkan nomor HP Anda!' }]}
-          >
-            <Input placeholder="Contoh: 0812345678910" />
-          </Form.Item>
-
-          <Form.Item
-            label="Email"
+            label="email"
             name="email"
             rules={[
               {
                 required: true,
-                type: 'email',
-                message: 'Masukkan alamat email yang valid!',
+                type: "email",
+                message: "Masukkan alamat email yang valid!",
               },
             ]}
           >
-            <Input placeholder="Contoh: kamu@example.com" />
+            <Input placeholder="contoh: kamu@example.com" />
           </Form.Item>
 
+          {/* Input Password */}
           <Form.Item
-            label="Password"
+            label="password"
             name="password"
             rules={[
               {
                 required: true,
-                min: 6,
-                message: 'Password minimal 6 karakter!',
+                message: "Masukkan password Anda!",
               },
             ]}
           >
             <Input.Password placeholder="Ketik password kamu di sini" />
           </Form.Item>
 
+          {/* Checkbox Remember Me */}
+          <Form.Item name="remember" valuePropName="checked">
+            <Checkbox>Ingat saya</Checkbox>
+          </Form.Item>
+
+          {/* Tombol Login */}
           <Form.Item>
             <Button
               type="primary"
@@ -112,14 +115,15 @@ const Register = () => {
               loading={loading}
               className="bg-red-600 hover:bg-red-700"
             >
-              Create Account
+              Log In
             </Button>
           </Form.Item>
 
+          {/* Link ke halaman register */}
           <Typography.Text>
-            Sudah punya akun?{' '}
-            <a href="/login" className="text-red-600">
-              Login di sini!
+            Belum punya akun?{" "}
+            <a href="/register" className="text-red-600">
+              Daftar di sini!
             </a>
           </Typography.Text>
         </Form>
@@ -128,4 +132,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;
