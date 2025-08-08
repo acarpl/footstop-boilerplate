@@ -190,7 +190,7 @@ const CheckoutPageContent = () => {
             </Form.Item>
           </Form>
         </Card>
-
+        <div id="snap-container"></div>
         <Card title="Order Summary">
           <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
             {cartItems.map((item) => (
@@ -227,8 +227,6 @@ const CheckoutPageContent = () => {
             </div>
           </div>
         </Card>
-
-        <div id="snap-container"></div>
       </div>
     </div>
   );
