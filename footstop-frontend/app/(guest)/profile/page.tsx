@@ -14,7 +14,7 @@ export default function ProfilePage() {
 
   const [preview, setPreview] = useState<string | null>(null);
   const [form, setForm] = useState({
-    profile_picture: user?.profile_picture || ""
+    profile_picture: user?.profile_picture || "",
   });
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function ProfilePage() {
     formData.append("id_user", String(user.id_user)); // dikirim ke NestJS
 
     try {
-      const res = await fetch("http://localhost:3000/uploads", {
+      const res = await fetch("http://localhost:3001/uploads", {
         method: "POST",
         body: formData,
       });
@@ -111,24 +111,6 @@ export default function ProfilePage() {
                   Tambah Email
                 </span>
               )}
-            </p>
-            <p>
-              <strong>Jenis Kelamin:</strong> {user.gender || "Pria"}
-            </p>
-            <p>
-              <strong>Alamat:</strong>{" "}
-              <span className="underline">
-                {user.address || "Jl. Raya Ngawi No. 1"}
-              </span>
-            </p>
-            <p>
-              <strong>Kode Pos:</strong> {user.postal_code || "63211 – 63218"}
-            </p>
-            <p>
-              <strong>Kota:</strong>{" "}
-              <span className="underline">
-                {user.city || "Kabupaten Ngawi"}
-              </span>
             </p>
           </div>
 
