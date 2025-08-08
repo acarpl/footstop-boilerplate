@@ -33,7 +33,7 @@ export interface OrderSummary {
   total_price: string;
   status_pengiriman: string;
   // Mungkin hanya gambar produk pertama untuk ringkasan
-  order_details: { product: { images: Image[] } }[];
+  orderDetails: { product: { images: Image[] } }[];
 }
 
 // Tipe untuk data detail pesanan lengkap
