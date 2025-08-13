@@ -1,32 +1,35 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Table, Tag, Button, Space, message, Spin, Typography, Modal, Select } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
-import { getAllOrders, updateOrderStatus } from '../../../../lib/services/adminService';
-import type { TableProps } from 'antd';
+import React, { useState, useEffect } from "react";
+import { Table, Tag, Button, Spin, message, Typography, App } from "antd";
+import { EyeOutlined } from "@ant-design/icons";
+import { getAllOrders } from "../../../../lib/services/adminService"; // Sesuaikan path
+import type { TableProps } from "antd";
+import { useRouter } from "next/navigation";
 
-// Definisikan tipe data
+// Definisikan tipe data yang diharapkan dari API
 interface Order {
   id_order: number;
-  order_date: string;
-  total_price: string;
-  status_pengiriman: string;
+  orderDate: string;
+  totalPrice: string;
+  statusPengiriman: string;
   user: {
     username: string;
-    email: string;
   };
-  address: string;
-  order_details: any[]; // Bisa dibuat lebih spesifik
 }
 
-export default function ManageOrdersPage() {
+const ManageOrdersPageContent = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
+  const router = useRouter();
+  const { message: messageApi } = App.useApp();
 
+  // Fungsi untuk mengambil data dari backend
   const fetchOrders = async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
@@ -38,71 +41,81 @@ export default function ManageOrdersPage() {
         total: response.total,
       });
     } catch (error) {
-      message.error('Failed to fetch orders.');
+      messageApi.error("Failed to fetch orders.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Ambil data saat komponen pertama kali dimuat
   useEffect(() => {
     fetchOrders(pagination.current, pagination.pageSize);
   }, []);
 
-  const handleTableChange: TableProps<Order>['onChange'] = (newPagination) => {
+  // Handler saat paginasi di tabel berubah
+  const handleTableChange: TableProps<Order>["onChange"] = (newPagination) => {
     fetchOrders(newPagination.current, newPagination.pageSize);
   };
 
-  const showDetailsModal = (order: Order) => {
-    setSelectedOrder(order);
-    setIsModalVisible(true);
-  };
-  
-  const handleStatusChange = async (newStatus: string) => {
-    if (!selectedOrder) return;
-    try {
-        await updateOrderStatus(selectedOrder.id_order, newStatus);
-        message.success("Order status updated successfully!");
-        setIsModalVisible(false);
-        fetchOrders(pagination.current, pagination.pageSize); // Refresh tabel
-    } catch (error) {
-        message.error("Failed to update order status.");
-    }
-  };
-
+  // Fungsi untuk memberi warna pada status
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Pending': return 'orange';
-      case 'Dibayar': return 'blue';
-      case 'Dikirim': return 'cyan';
-      case 'Selesai': return 'green';
-      case 'Dibatalkan': return 'red';
-      default: return 'default';
+      case "Pending":
+        return "orange";
+      case "Dibayar":
+        return "blue";
+      case "Dikirim":
+        return "cyan";
+      case "Selesai":
+        return "green";
+      case "Dibatalkan":
+        return "red";
+      default:
+        return "default";
     }
   };
 
-  const columns: TableProps<Order>['columns'] = [
-    { title: 'Order ID', dataIndex: 'id_order', key: 'id_order' },
-    { title: 'Customer', dataIndex: ['user', 'username'], key: 'customer' },
-    { title: 'Date', dataIndex: 'order_date', key: 'date', render: (date) => new Date(date).toLocaleDateString() },
-    { title: 'Total', dataIndex: 'total_price', key: 'total', render: (price) => `Rp ${parseInt(price).toLocaleString()}` },
+  // Definisi kolom untuk tabel
+  const columns: TableProps<Order>["columns"] = [
+    { title: "Order ID", dataIndex: "id_order", key: "id_order" },
+    { title: "Customer", dataIndex: ["user", "username"], key: "customer" },
     {
-      title: 'Status',
-      dataIndex: 'status_pengiriman',
-      key: 'status',
+      title: "Date",
+      dataIndex: "orderDate",
+      key: "date",
+      render: (date) => new Date(date).toLocaleDateString(),
+    },
+    {
+      title: "Total",
+      dataIndex: "totalPrice",
+      key: "total",
+      render: (price) => `Rp ${parseInt(price).toLocaleString()}`,
+    },
+    {
+      title: "Status",
+      dataIndex: "statusPengiriman",
+      key: "status",
       render: (status) => <Tag color={getStatusColor(status)}>{status}</Tag>,
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: (_, record) => (
-        <Button icon={<EyeOutlined />} onClick={() => showDetailsModal(record)}>View Details</Button>
+        <Button
+          icon={<EyeOutlined />}
+          onClick={() => router.push(`/admin/orders/${record.id_order}`)} // Arahkan ke halaman detail nanti
+        >
+          View Details
+        </Button>
       ),
     },
   ];
 
   return (
     <div>
-      <Typography.Title level={2} className="mb-6">Manage Orders</Typography.Title>
+      <Typography.Title level={2} className="mb-6">
+        Manage Orders
+      </Typography.Title>
       <Table
         columns={columns}
         dataSource={orders}
@@ -112,31 +125,15 @@ export default function ManageOrdersPage() {
         onChange={handleTableChange}
         scroll={{ x: true }}
       />
-      <Modal
-        title={`Order Details #${selectedOrder?.id_order}`}
-        open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null} // Kita buat footer kustom jika perlu
-      >
-        {selectedOrder && (
-          <div>
-            <p><strong>Customer:</strong> {selectedOrder.user.username} ({selectedOrder.user.email})</p>
-            <p><strong>Shipping Address:</strong> {selectedOrder.address}</p>
-            <p><strong>Order Date:</strong> {new Date(selectedOrder.order_date).toLocaleString()}</p>
-            <Typography.Title level={5} className="mt-4">Update Status</Typography.Title>
-            <Select 
-                defaultValue={selectedOrder.status_pengiriman} 
-                style={{ width: '100%' }}
-                onChange={handleStatusChange}
-            >
-                <Select.Option value="Dibayar">Dibayar</Select.Option>
-                <Select.Option value="Dikirim">Dikirim</Select.Option>
-                <Select.Option value="Selesai">Selesai</Select.Option>
-                <Select.Option value="Dibatalkan">Dibatalkan</Select.Option>
-            </Select>
-          </div>
-        )}
-      </Modal>
     </div>
+  );
+};
+
+// Bungkus dengan <App> untuk konteks message
+export default function ManageOrdersPage() {
+  return (
+    <App>
+      <ManageOrdersPageContent />
+    </App>
   );
 }

@@ -13,6 +13,9 @@ import { User } from "../users/entities/user.entity";
 
 @Injectable()
 export class OrdersService {
+  findAll(): Promise<Order[]> {
+    return this.orderRepository.find();
+  }
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,

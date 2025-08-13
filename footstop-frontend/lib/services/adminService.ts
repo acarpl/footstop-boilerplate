@@ -1,5 +1,11 @@
 import apiClient from "../apiClient";
 
+interface PaginationParams {
+  page: number;
+  limit: number;
+  // Add other pagination parameters as needed
+}
+
 /**
  * Mengambil statistik utama untuk ditampilkan di dashboard admin.
  * @returns {Promise<object>} Promise yang resolve dengan data statistik.
@@ -63,9 +69,15 @@ export const getAllBrands = async () => {
   return response.data;
 };
 
-export const getAllOrders = async (params: { page: number; limit: number }) => {
-  const response = await apiClient.get("/orders/admin/all", { params });
-  return response.data;
+export const getAllOrders = async (params: PaginationParams) => {
+  try {
+    // Panggil endpoint '/orders/admin/all' yang sudah kita buat
+    const response = await apiClient.get("/orders/admin/all", { params });
+    return response.data;
+  } catch (error) {
+    console.error("Service Error: Failed to fetch all orders.", error);
+    throw error;
+  }
 };
 
 export const updateOrderStatus = async (id_order: number, status: string) => {

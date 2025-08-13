@@ -36,6 +36,11 @@ export class OrdersController {
     return this.ordersService.findAllForAdmin({ page, limit });
   }
 
+  @Get()
+  findAll() {
+    return this.ordersService.findAll();
+  }
+
   @Get("admin/:id")
   @UseGuards(RolesGuard)
   @Roles("admin")
