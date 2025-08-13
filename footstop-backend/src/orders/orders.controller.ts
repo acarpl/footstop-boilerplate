@@ -70,7 +70,7 @@ export class OrdersController {
   // Rute ini paling umum (dinamis), jadi harus di PALING BAWAH
   // dari semua rute GET.
   @Get(":id")
-  findOneForUser(@Param("id", ParseIntPipe) id: number, @GetUser() user: User) {
+  findOne(@Param("id", ParseIntPipe) id: number, @GetUser() user: User) {
     return this.ordersService.findOneForUser(user.id_user, id);
   }
 }

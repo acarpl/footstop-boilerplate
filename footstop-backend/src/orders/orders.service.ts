@@ -108,14 +108,29 @@ export class OrdersService {
   }
 
   async findOneForUser(id_user: number, id_order: number): Promise<Order> {
+    // 1. Lakukan query ke database
     const order = await this.orderRepository.findOne({
+      // 2. Klausa WHERE yang aman: cari order dengan ID ini DAN milik user ini
       where: { id_order, user: { id_user } },
-      relations: ["orderDetails", "orderDetails.product"], // Muat detail dan produknya
+
+      // 3. Muat semua relasi yang kita butuhkan untuk halaman detail
+      relations: [
+        "orderDetails", // Ambil semua item di dalam pesanan
+        "orderDetails.product", // Untuk setiap item, ambil detail produknya
+        "orderDetails.product.images", // Untuk setiap produk, ambil gambarnya
+        "orderDetails.product.brand", // Ambil juga data merek jika perlu
+        "orderDetails.product.category", // Ambil juga data kategori jika perlu
+      ],
     });
 
+    // 4. Jika tidak ada order yang cocok, lempar error Not Found
     if (!order) {
-      throw new NotFoundException(`Order with ID #${id_order} not found.`);
+      throw new NotFoundException(
+        `Order with ID #${id_order} not found or you don't have permission to view it.`
+      );
     }
+
+    // 5. Kembalikan objek order yang sudah berisi semua detail
     return order;
   }
 
