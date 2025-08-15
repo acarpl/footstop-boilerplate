@@ -105,3 +105,135 @@ export const getMyOrderDetails = async (
     throw error;
   }
 };
+
+export const getOrderDetails = async (
+  orderId: string | number
+): Promise<Order> => {
+  try {
+    const response = await apiClient.get(`/orders/${orderId}`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Failed to fetch order details for order #${orderId}:`,
+      error
+    );
+    throw error;
+  }
+};
+
+/**
+ * Get specific order detail item by its ID
+ * Useful if you want to show just one item detail
+ */
+export const getOrderDetailItem = async (
+  orderDetailId: number
+): Promise<OrderDetail> => {
+  try {
+    const response = await apiClient.get(`/order-details/${orderDetailId}`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Failed to fetch order detail item #${orderDetailId}:`,
+      error
+    );
+    throw error;
+  }
+};
+
+/**
+ * Get all order details for a specific order
+ * Returns only the order details without order info
+ */
+export const getOrderDetailsByOrderId = async (
+  orderId: string | number
+): Promise<OrderDetail[]> => {
+  try {
+    const response = await apiClient.get(`/orders/${orderId}/details`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Failed to fetch order details for order #${orderId}:`,
+      error
+    );
+    throw error;
+  }
+};
+
+/**
+ * Calculate order totals from order details
+ */
+export const calculateOrderTotals = (orderDetails: OrderDetail[]) => {
+  const totalItems = orderDetails.reduce(
+    (sum, detail) => sum + detail.quantity,
+    0
+  );
+  const totalAmount = orderDetails.reduce(
+    (sum, detail) => sum + detail.subtotal,
+    0
+  );
+  const uniqueProducts = orderDetails.length;
+
+  return {
+    totalItems,
+    totalAmount,
+    uniqueProducts,
+  };
+};
+
+/**
+ * Group order details by product (if there are multiple sizes of same product)
+ */
+export const groupOrderDetailsByProduct = (orderDetails: OrderDetail[]) => {
+  const grouped = orderDetails.reduce(
+    (acc, detail) => {
+      const productId = detail.product.id_product;
+
+      if (!acc[productId]) {
+        acc[productId] = {
+          product: detail.product,
+          details: [],
+          totalQuantity: 0,
+          totalSubtotal: 0,
+        };
+      }
+
+      acc[productId].details.push(detail);
+      acc[productId].totalQuantity += detail.quantity;
+      acc[productId].totalSubtotal += detail.subtotal;
+
+      return acc;
+    },
+    {} as Record<
+      number,
+      {
+        product: Product;
+        details: OrderDetail[];
+        totalQuantity: number;
+        totalSubtotal: number;
+      }
+    >
+  );
+
+  return Object.values(grouped);
+};
+
+/**
+ * Format currency helper
+ */
+export const formatCurrency = (amount: number): string => {
+  return `Rp ${amount.toLocaleString("id-ID")}`;
+};
+
+/**
+ * Validate order details data
+ */
+export const validateOrderDetails = (orderDetails: OrderDetail[]): boolean => {
+  return orderDetails.every(
+    (detail) =>
+      detail.quantity > 0 &&
+      detail.price_per_unit > 0 &&
+      detail.subtotal > 0 &&
+      detail.product &&
+      detail.product.id_product
+  );
+};
