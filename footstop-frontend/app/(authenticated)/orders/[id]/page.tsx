@@ -20,11 +20,16 @@ import {
 } from "@ant-design/icons";
 import Image from "next/image";
 
-// Types based on your entity
+// Types based on your entity - updated to match service
+interface Image {
+  id_gambar: number;
+  url: string;
+}
+
 interface Product {
   id_product: number;
   product_name: string;
-  images?: { url: string }[]; // Assuming product has images
+  images: Image[];
 }
 
 interface OrdersDetail {
@@ -45,14 +50,103 @@ interface Order {
 
 const { Title, Text } = Typography;
 
-// Service function (simplified)
+// Import the service from your existing orderService
+import { getMyOrderDetails } from "../../../../lib/services/orderService";
+
+// API Response Types (camelCase from backend)
+interface ApiOrderDetail {
+  id_order_details: number;
+  quantity: number;
+  price_per_unit: string;
+  subtotal: string;
+  size: string;
+  product: {
+    id_product: number;
+    product_name: string;
+    images: { url: string; id_gambar: number }[];
+  };
+}
+
+interface ApiOrderResponse {
+  id_order: number;
+  orderDate: string; // camelCase from API
+  totalPrice: string; // camelCase from API
+  orderDetails: ApiOrderDetail[]; // camelCase from API
+  address: string;
+  fullName: string;
+  phoneNumber: string;
+  statusPengiriman: string;
+}
+
+// Adapter function to match our component interface
 const getOrderDetails = async (orderId: string): Promise<Order> => {
-  // Replace with your actual API call
-  const response = await fetch(`/api/orders/${orderId}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch order details");
+  try {
+    const orderData = await getMyOrderDetails(orderId);
+
+    // Debug logging - let's see all properties
+    console.log("Service response:", orderData);
+    console.log("Available properties:", Object.keys(orderData));
+    console.log("orderDate value:", orderData.orderDate);
+    console.log("order_date value:", orderData.order_date);
+    console.log("orderDetails value:", orderData.orderDetails);
+    console.log("order_details value:", orderData.order_details);
+    console.log("totalPrice value:", orderData.totalPrice);
+    console.log("total_price value:", orderData.total_price);
+
+    // Check if orderData exists
+    if (!orderData) {
+      throw new Error("No order data received from server");
+    }
+
+    // Try multiple property name variations
+    const orderDate =
+      orderData.orderDate || orderData.order_date || orderData.createdAt || "";
+    const totalPrice = orderData.totalPrice || orderData.total_price || "0";
+    const orderDetails =
+      orderData.orderDetails || orderData.order_details || [];
+
+    console.log("Extracted values:", {
+      orderDate,
+      totalPrice,
+      orderDetailsLength: orderDetails.length,
+    });
+
+    // Transform the service response
+    const transformedData: Order = {
+      id_order: orderData.id_order || 0,
+      order_date: orderDate,
+      total_price: Number(totalPrice) || 0,
+      orderDetails: Array.isArray(orderDetails)
+        ? orderDetails.map((detail, index) => {
+            console.log(`Processing detail ${index}:`, detail);
+            return {
+              id_order_details: detail.id_order_details || index,
+              quantity: detail.quantity || 0,
+              price_per_unit:
+                Number(detail.price_per_unit || detail.pricePerUnit) || 0,
+              subtotal: Number(detail.subtotal) || 0,
+              size: detail.size || "N/A",
+              product: {
+                id_product: detail.product?.id_product || 0,
+                product_name:
+                  detail.product?.product_name ||
+                  detail.product?.productName ||
+                  "Unknown Product",
+                images: Array.isArray(detail.product?.images)
+                  ? detail.product.images
+                  : [],
+              },
+            };
+          })
+        : [],
+    };
+
+    console.log("Final transformed data:", transformedData);
+    return transformedData;
+  } catch (error) {
+    console.error("getOrderDetails error:", error);
+    throw error;
   }
-  return response.json();
 };
 
 // Helper functions
@@ -61,7 +155,17 @@ const formatCurrency = (amount: number) => {
 };
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("id-ID", {
+  if (!dateString) return "Invalid Date";
+
+  const date = new Date(dateString);
+
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    console.warn("Invalid date string:", dateString);
+    return "Invalid Date";
+  }
+
+  return date.toLocaleDateString("id-ID", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -142,14 +246,15 @@ const OrderDetailItem = ({ detail }: { detail: OrdersDetail }) => (
   </Card>
 );
 
-// Order Summary Component
+// Order Summary Component with better error handling
 const OrderSummary = ({ orderDetails }: { orderDetails: OrdersDetail[] }) => {
-  const totalItems = orderDetails.reduce(
-    (sum, detail) => sum + detail.quantity,
+  const safeOrderDetails = orderDetails || [];
+  const totalItems = safeOrderDetails.reduce(
+    (sum, detail) => sum + (detail.quantity || 0),
     0
   );
-  const totalAmount = orderDetails.reduce(
-    (sum, detail) => sum + detail.subtotal,
+  const totalAmount = safeOrderDetails.reduce(
+    (sum, detail) => sum + (detail.subtotal || 0),
     0
   );
 
@@ -164,7 +269,7 @@ const OrderSummary = ({ orderDetails }: { orderDetails: OrdersDetail[] }) => {
           />
         </Col>
         <Col span={8}>
-          <Statistic title="Items Count" value={orderDetails.length} />
+          <Statistic title="Items Count" value={safeOrderDetails.length} />
         </Col>
         <Col span={8}>
           <Statistic
@@ -179,21 +284,52 @@ const OrderSummary = ({ orderDetails }: { orderDetails: OrdersDetail[] }) => {
   );
 };
 
-// Custom Hook
+// Custom Hook with better error handling and debugging
 const useOrderDetails = (orderId: string) => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const { message: messageApi } = App.useApp();
 
   const fetchOrder = useCallback(async () => {
-    if (!orderId) return;
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      const orderData = await getOrderDetails(orderId);
-      setOrder(orderData);
+      console.log("Fetching order details for ID:", orderId);
+      const orderData = await getMyOrderDetails(orderId);
+
+      // Debug: Log the raw response
+      console.log("Raw order data from API:", orderData);
+
+      // TEMPORARY: Use raw data directly to see what works
+      const rawOrder = {
+        id_order: orderData.id_order,
+        order_date: orderData.orderDate || orderData.order_date || "No date",
+        total_price: Number(
+          orderData.totalPrice || orderData.total_price || "0"
+        ),
+        orderDetails: orderData.orderDetails || orderData.order_details || [],
+      };
+
+      console.log("Direct raw order:", rawOrder);
+
+      // If raw works, then transform properly
+      const transformedOrder = await getOrderDetails(orderId);
+      console.log("Transformed order data:", transformedOrder);
+      setOrder(transformedOrder);
     } catch (error) {
       console.error("Failed to fetch order details:", error);
-      messageApi.error("Failed to load order details");
+
+      // More specific error messages
+      if (error instanceof Error) {
+        messageApi.error(`Error: ${error.message}`);
+      } else {
+        messageApi.error(
+          "Failed to load order details. Please check the console for more information."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -245,7 +381,10 @@ const OrderDetailsPageContent = () => {
                 Order #{order.id_order}
               </Title>
               <Text className="text-gray-600">
-                Order Date: {formatDate(order.order_date)}
+                Order Date:{" "}
+                {order.order_date
+                  ? formatDate(order.order_date)
+                  : "Date not available"}
               </Text>
             </div>
           </div>
@@ -259,12 +398,21 @@ const OrderDetailsPageContent = () => {
         {/* Order Details */}
         <div>
           <Title level={3} className="mb-6">
-            Order Items ({order.orderDetails.length})
+            Order Items ({order.orderDetails?.length || 0})
           </Title>
 
-          {order.orderDetails.map((detail) => (
-            <OrderDetailItem key={detail.id_order_details} detail={detail} />
-          ))}
+          {order.orderDetails && order.orderDetails.length > 0 ? (
+            order.orderDetails.map((detail) => (
+              <OrderDetailItem key={detail.id_order_details} detail={detail} />
+            ))
+          ) : (
+            <Card className="text-center py-8">
+              <Empty
+                description="No order items found"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            </Card>
+          )}
         </div>
 
         {/* Actions */}

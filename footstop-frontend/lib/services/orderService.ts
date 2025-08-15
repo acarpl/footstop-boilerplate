@@ -168,7 +168,7 @@ export const calculateOrderTotals = (orderDetails: OrderDetail[]) => {
     0
   );
   const totalAmount = orderDetails.reduce(
-    (sum, detail) => sum + detail.subtotal,
+    (sum, detail) => sum + parseFloat(detail.subtotal),
     0
   );
   const uniqueProducts = orderDetails.length;
@@ -199,7 +199,7 @@ export const groupOrderDetailsByProduct = (orderDetails: OrderDetail[]) => {
 
       acc[productId].details.push(detail);
       acc[productId].totalQuantity += detail.quantity;
-      acc[productId].totalSubtotal += detail.subtotal;
+      acc[productId].totalSubtotal += parseFloat(detail.subtotal);
 
       return acc;
     },
@@ -231,8 +231,8 @@ export const validateOrderDetails = (orderDetails: OrderDetail[]): boolean => {
   return orderDetails.every(
     (detail) =>
       detail.quantity > 0 &&
-      detail.price_per_unit > 0 &&
-      detail.subtotal > 0 &&
+      parseFloat(detail.price_per_unit) > 0 &&
+      parseFloat(detail.subtotal) > 0 &&
       detail.product &&
       detail.product.id_product
   );

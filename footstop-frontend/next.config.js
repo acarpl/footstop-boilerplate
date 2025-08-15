@@ -5,11 +5,20 @@ const nextConfig = {
   },
   compiler: {
     // Enables the styled-components SWC transform
-    styledComponents: true
+    styledComponents: true,
   },
-  productionBrowserSourceMaps: true
-  
-}
+  productionBrowserSourceMaps: true,
 
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3001",
+        pathname: "/uploads/**",
+      },
+    ],
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
