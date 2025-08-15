@@ -1,81 +1,113 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import Navbar from '#/components/Navbar';
-import Footer from '#/components/Footer';
-import Image from 'next/image';
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Checkbox, Select } from "antd";
 
-const brands = [
-  { name: "Adidas", logo: "/brands/adidas.png" },
-  { name: "Converse", logo: "/brands/converse.png" },
-  { name: "Crocs", logo: "/brands/crocs.png" },
-  { name: "Erspo", logo: "/brands/erspo.png" },
-  { name: "Jordan", logo: "/brands/jordan.png" },
-  { name: "New Balance", logo: "/brands/newbalance.png" },
-  { name: "New Era", logo: "/brands/newera.png" },
-  { name: "Nike", logo: "/brands/nike.png" },
-  { name: "On", logo: "/brands/on.png" },
-  { name: "Puma", logo: "/brands/puma.png" },
-  { name: "Under Armour", logo: "/brands/underarmour.png" },
-  { name: "Vans", logo: "/brands/vans.png" },
-];
+interface Category {
+  id_category: number;
+  category_name: string;
+}
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
-};
+interface Brand {
+  id_brand: number;
+  brand_name: string;
+  logo: string; // url logo
+}
 
 export default function BrandPage() {
+  const [showBrands, setShowBrands] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+
+  // Simulasi fetch data
+  useEffect(() => {
+    setCategories([
+      { id_category: 1, category_name: "Shoes" },
+      { id_category: 2, category_name: "Sandals" },
+      { id_category: 3, category_name: "Running" },
+    ]);
+
+    setBrands([
+      { id_brand: 1, brand_name: "Adidas", logo: "/brands/adidas.png" },
+      { id_brand: 2, brand_name: "Converse", logo: "/brands/converse.png" },
+      { id_brand: 3, brand_name: "Crocs", logo: "/brands/crocs.png" },
+      { id_brand: 4, brand_name: "Nike", logo: "/brands/nike.png" },
+    ]);
+
+    // Delay animasi
+    const timer = setTimeout(() => {
+      setShowBrands(true);
+    }, 1500); // 1.5 detik
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleCategoryChange = (id: number, checked: boolean) => {
+    console.log(`Category ${id} ${checked ? "selected" : "unselected"}`);
+  };
+
+  const handleBrandChange = (value: number) => {
+    console.log(`Brand selected: ${value}`);
+  };
+
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <Navbar />
-
-      <div className="max-w-7xl mx-auto py-8 px-4 space-y-8">
-        {/* Banner */}
-        <div className="bg-white rounded-xl overflow-hidden shadow-md">
-          <Image
-            src="/banners/new-arrivals-banner.jpg"
-            alt="Step Worldwide"
-            className="w-full h-48 object-cover"
-          />
-          <h1 className="text-4xl text-center text-red-600 font-bold py-4">
-            Step Worldwide
-          </h1>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 mt-20">
+      {/* Sidebar Categories */}
+      <aside className="bg-white rounded-lg shadow p-4 md:h-fit md:col-span-1 w-full md:sticky md:top-4">
+        <div className="md:block border-b pb-4 mb-4">
+          <h2 className="text-lg font-semibold mb-2">Categories</h2>
+          <ul className="space-y-2 text-sm">
+            {categories.map((cat) => (
+              <li key={cat.id_category} className="flex items-center space-x-2">
+                <Checkbox
+                  onChange={(e) =>
+                    handleCategoryChange(cat.id_category, e.target.checked)
+                  }
+                >
+                  {cat.category_name}
+                </Checkbox>
+              </li>
+            ))}
+          </ul>
         </div>
+        <div>
+          <label className="text-sm font-medium">Brands</label>
+          <Select
+            className="w-full mt-1"
+            placeholder="Select Brand"
+            onChange={handleBrandChange}
+            options={brands.map((brand) => ({
+              label: brand.brand_name,
+              value: brand.id_brand,
+            }))}
+            allowClear
+          />
+        </div>
+      </aside>
 
-        {/* Brand Grid with Animation */}
-        <motion.div
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {brands.map((brand, index) => (
-            <motion.div
-              key={index}
-              className="bg-[#943939] rounded-xl flex items-center justify-center p-6 hover:scale-105 transition duration-300"
-              variants={itemVariants}
-            >
-              <Image
-                src={brand.logo}
-                alt={brand.name}
-                className="h-12 object-contain"
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+      {/* Brand Grid */}
+      <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+        {brands.map((brand, index) => (
+          <motion.div
+            key={brand.id_brand}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={
+              showBrands
+                ? { opacity: 1, scale: 1 }
+                : { opacity: 0, scale: 0.5 }
+            }
+            transition={{
+              delay: 0.2 * index,
+              type: "spring",
+              stiffness: 120,
+            }}
+            className="bg-red-800 rounded-xl flex items-center justify-center h-40 cursor-pointer"
+          >
+            <img src={brand.logo} alt={brand.brand_name} className="h-12" />
+          </motion.div>
+        ))}
       </div>
-
-      <Footer />
     </div>
   );
 }
