@@ -149,14 +149,6 @@ export default function NewArrivalPage() {
               alt={selectedProduct.product_name}
               className="w-full h-60 object-cover rounded-md mb-4"
             />
-            <Rate
-              disabled
-              defaultValue={selectedProduct.rating || 4}
-              className="mb-2"
-            />
-            <p className="text-gray-600 mb-4">
-              {selectedProduct.description || "No description available."}
-            </p>
             <button
               className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600"
               onClick={() =>

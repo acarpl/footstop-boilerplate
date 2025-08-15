@@ -1,0 +1,155 @@
+// app/(authenticated)/profile/page.tsx
+
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../../context/AuthContext';
+import { Form, Input, Button, Card, Typography, message, Spin, Avatar, Tabs, Space, Divider } from 'antd';
+import { UserOutlined, EditOutlined, LogoutOutlined, DollarCircleOutlined } from '@ant-design/icons';
+import apiClient from '../../../lib/apiClient';
+import { AxiosError } from 'axios';
+
+const { Title, Text, Paragraph } = Typography;
+
+const ProfilePage: React.FC = () => {
+  const { user, loading: authLoading, logout } = useAuth();
+  const [form] = Form.useForm();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      form.setFieldsValue({
+        username: user.username,
+        email: user.email,
+        phone_number: user.phone_number,
+      });
+    }
+  }, [user, form]);
+
+  const onFinish = async (values: { username: string; phone_number: string }) => {
+    setIsSubmitting(true);
+    try {
+      await apiClient.patch('/users/me', values);
+      message.success('Profile updated successfully!');
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      let errorMessage = 'Failed to update profile.';
+      if (error instanceof AxiosError) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      }
+      message.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleTopUp = () => {
+    message.info('Top Up feature coming soon!');
+  };
+
+  const handleLogout = () => {
+    logout();
+    message.success('Logged out successfully!');
+  };
+
+  if (authLoading) {
+    return (
+      <div className="text-center p-20">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Text>Please log in to view this page.</Text>;
+  }
+
+  const items = [
+    {
+      key: '1',
+      label: (
+        <span>
+          <EditOutlined /> Edit Information
+        </span>
+      ),
+      children: (
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+        >
+          <Form.Item
+            label="Username"
+            name="username"
+            rules={[{ required: true, message: 'Please input your username!' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item label="Email" name="email">
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item label="Phone Number" name="phone_number">
+            <Input />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={isSubmitting} block>
+              Save Changes
+            </Button>
+          </Form.Item>
+        </Form>
+      ),
+    },
+    {
+      key: '2',
+      label: (
+        <span>
+          <DollarCircleOutlined /> Top Up
+        </span>
+      ),
+      children: (
+        <div className="text-center p-6">
+          <Paragraph>Your current balance: <b>Rp 0</b></Paragraph>
+          <Button type="primary" onClick={handleTopUp}>
+            Top Up Now
+          </Button>
+        </div>
+      ),
+    },
+    {
+      key: '3',
+      label: (
+        <span>
+          <LogoutOutlined /> Logout
+        </span>
+      ),
+      children: (
+        <div className="text-center p-6">
+          <Paragraph>Are you sure you want to log out?</Paragraph>
+          <Button danger type="primary" onClick={handleLogout}>
+            Yes, Logout
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="w-full max-w-screen-md mx-auto px-4 py-8">
+      <Card>
+        <div className="text-center mb-6">
+          <Avatar size={96} icon={<UserOutlined />} />
+          <Title level={4} className="mt-4 mb-0">{user.username}</Title>
+          <Text type="secondary">{user.email}</Text>
+          <Divider />
+        </div>
+
+        <Tabs defaultActiveKey="1" items={items} />
+      </Card>
+    </div>
+  );
+};
+
+export default ProfilePage;
