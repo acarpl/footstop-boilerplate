@@ -137,7 +137,7 @@ const ProfilePage: React.FC = () => {
   ];
 
   return (
-    <div className="w-full max-w-screen-md mx-auto px-4 py-8">
+    <div className="w-full max-w-screen-md mx-auto px-4 py-8 mt-20">
       <Card>
         <div className="text-center mb-6">
           <Avatar size={96} icon={<UserOutlined />} />
