@@ -6,6 +6,8 @@ import { Spin, Empty, Button, App, message } from 'antd';
 import { getProductById, type Product } from '../../../../../lib/services/productService'; 
 import { addItemToCart } from '../../../../../lib/services/cartService';
 import { useAuth } from '../../../../../context/AuthContext'; 
+import { Tabs } from 'antd';
+import { CommentOutlined, InfoCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 
 // Import komponen UI Anda
 import ProductGallery from '#/components/product/ProductGallery';
@@ -99,11 +101,82 @@ const ProductDetailPageContent = () => {
           onAddToCart={handleAddToCart}
         />
       </div>
-      <div className="mt-10">
-        {/* Pass data dummy jika belum ada API untuk ini */}
-        <ReviewList reviews={product.reviews || []} />
-        <FAQList faqs={product.faqs || []} />
-      </div>
+<div className="mt-10">
+  <Tabs
+    tabPosition="left" // Bisa ubah ke "top" untuk horizontal
+    defaultActiveKey="1"
+    items={[
+      {
+        key: '1',
+        label: (
+          <span>
+            <InfoCircleOutlined /> Product Details
+          </span>
+        ),
+        children: (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">{product.product_name}</h3>
+            <p>
+              {product.description ||
+                `Wah ${product.product_name} produk ini sangat bagus! Keren, nyaman dipakai, dan recommended deh!`}
+            </p>
+          </div>
+        ),
+      },
+      {
+        key: '2',
+        label: (
+          <span>
+            <CommentOutlined /> Reviews
+          </span>
+        ),
+        children: (
+          <ReviewList
+            reviews={
+              product.reviews?.length
+                ? product.reviews
+                : [
+                    {
+                      id: 1,
+                      username: 'Aldo',
+                      comment: `Wah ${product.product_name} sangat nyaman dipakai!`,
+                      rating: 5,
+                    },
+                    {
+                      id: 2,
+                      username: 'Rina',
+                      comment: `Rekomen banget ${product.product_name} ini!`,
+                      rating: 4,
+                    },
+                  ]
+            }
+          />
+        ),
+      },
+      {
+        key: '3',
+        label: (
+          <span>
+            <QuestionCircleOutlined /> FAQ
+          </span>
+        ),
+        children: (
+          <FAQList
+            faqs={
+              product.faqs?.length
+                ? product.faqs
+                : [
+                    { id: 1, question: 'Apakah produk ini asli?', answer: 'Tentu saja, 100% original.' },
+                    { id: 2, question: 'Berapa lama garansi?', answer: 'Garansi resmi 1 tahun.' },
+                  ]
+            }
+          />
+        ),
+      },
+    ]}
+  />
+</div>
+
       {/* Modal Login sudah tidak diperlukan di sini lagi */}
     </div>
   );
