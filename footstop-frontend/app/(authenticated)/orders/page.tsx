@@ -115,12 +115,12 @@ const getStatusColor = (status: string): string => {
 // Components
 const OrderCard: React.FC<OrderCardProps> = React.memo(
   ({ order, onViewDetails }) => {
-    const firstProductImage = order.order_detail?.[0]?.product.images?.[0]?.url;
+    const firstProductImage = order.orderDetails?.[0]?.product.images?.[0]?.url;
 
     // Debug logging
     console.log("Order ID:", order.id_order);
     console.log("Image URL:", firstProductImage);
-    console.log("Order detail:", order.order_detail);
+    console.log("Order detail:", order.orderDetails);
 
     return (
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">

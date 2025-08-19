@@ -2,84 +2,128 @@
 
 import { useEffect, useState } from "react";
 import { getDashboardStats } from "../../../../lib/services/adminService";
-import { Card, Col, Row, Statistic, Spin, Typography } from "antd";
+import { Card, Col, Row, Statistic, Spin, Typography, Alert } from "antd";
+import type { DashboardStats } from "../../../../lib/services/adminService"; // Assuming you have this type
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Dashboard component mounted. Fetching stats...");
+    const fetchStats = async () => {
+      try {
+        console.log("Fetching dashboard stats...");
+        const data = await getDashboardStats();
 
-    getDashboardStats()
-      .then((data) => {
-        console.log("✅ Stats fetched successfully:", data);
-        // Periksa apakah data memiliki properti yang kita harapkan
-        if (data && typeof data.totalRevenue !== "undefined") {
-          setStats(data);
-        } else {
-          console.error("Data received is not in the expected format:", data);
-          setStats(null); // Set ke null jika format salah
+        if (!data) {
+          throw new Error("No data received from server");
         }
-      })
-      .catch((err) => {
-        console.error("❌ Failed to fetch dashboard stats. Error object:", err);
-        if (err.response) {
-          console.error("Error response data:", err.response.data);
+
+        // Validate the expected properties
+        const requiredProps = ["totalRevenue", "newOrders", "totalUsers"];
+        const isValidData = requiredProps.every((prop) => prop in data);
+
+        if (!isValidData) {
+          throw new Error("Data format is invalid");
         }
-      })
-      .finally(() => {
-        console.log("Finished fetching. Setting loading to false.");
+
+        console.log("Stats fetched successfully:", data);
+        setStats(data);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch dashboard stats:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load dashboard data"
+        );
+        setStats(null);
+      } finally {
         setLoading(false);
-      });
-  }, []);
+      }
+    };
 
-  console.log(
-    "Component rendering. Loading state:",
-    loading,
-    "Stats state:",
-    stats
-  );
+    fetchStats();
+  }, []);
 
   if (loading) {
     return (
-      <div className="text-center">
-        <Spin />
+      <div className="flex justify-center items-center h-64">
+        <Spin size="large" tip="Loading dashboard..." />
       </div>
     );
   }
 
-  // Periksa lagi di sini untuk memastikan stats tidak null
+  if (error) {
+    return (
+      <div className="p-4">
+        <Alert
+          message="Error Loading Dashboard"
+          description={error}
+          type="error"
+          showIcon
+        />
+        <div className="mt-4 text-center">
+          <Typography.Text type="secondary">
+            Please try refreshing the page or check your connection
+          </Typography.Text>
+        </div>
+      </div>
+    );
+  }
+
   if (!stats) {
     return (
-      <div>
-        Failed to load dashboard data. Please check the console for errors.
+      <div className="p-4">
+        <Alert
+          message="No Data Available"
+          description="The dashboard data could not be loaded."
+          type="warning"
+          showIcon
+        />
       </div>
     );
   }
 
   return (
-    <div>
-      <Typography.Title level={2}>Dashboard</Typography.Title>
-      <Row gutter={16}>
-        <Col span={8}>
-          <Card>
+    <div className="p-6">
+      <Typography.Title level={2} className="mb-6">
+        Admin Dashboard
+      </Typography.Title>
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={8}>
+          <Card hoverable>
             <Statistic
               title="Total Revenue"
-              value={`Rp ${stats.totalRevenue.toLocaleString()}`}
+              value={stats.totalRevenue}
+              precision={2}
+              prefix="Rp "
+              valueStyle={{ color: "#3f8600" }}
             />
           </Card>
         </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic title="New Orders (Today)" value={stats.newOrders} />
+
+        <Col xs={24} sm={12} lg={8}>
+          <Card hoverable>
+            <Statistic
+              title="New Orders (Today)"
+              value={stats.newOrders}
+              valueStyle={{ color: "#1890ff" }}
+            />
           </Card>
         </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic title="Total Users" value={stats.totalUsers} />
+
+        <Col xs={24} sm={12} lg={8}>
+          <Card hoverable>
+            <Statistic
+              title="Total Users"
+              value={stats.totalUsers}
+              valueStyle={{ color: "#722ed1" }}
+            />
           </Card>
         </Col>
+
+        {/* You can add more stats columns here as needed */}
       </Row>
     </div>
   );

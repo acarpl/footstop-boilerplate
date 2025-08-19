@@ -1,13 +1,34 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Table, Tag, Button, Spin, message, Typography, App } from "antd";
+import {
+  Table,
+  Tag,
+  Button,
+  Spin,
+  message,
+  Typography,
+  App,
+  Select,
+  Popconfirm,
+} from "antd";
 import { EyeOutlined } from "@ant-design/icons";
-import { getAllOrders } from "../../../../lib/services/adminService"; // Sesuaikan path
+import {
+  getAllOrders,
+  updateOrderStatus,
+} from "../../../../lib/services/adminService"; // Make sure to import updateOrderStatus
 import type { TableProps } from "antd";
 import { useRouter } from "next/navigation";
 
-// Definisikan tipe data yang diharapkan dari API
+// Define order status options
+const STATUS_OPTIONS = [
+  { value: "Pending", label: "Pending" },
+  { value: "Dibayar", label: "Dibayar" },
+  { value: "Dikirim", label: "Dikirim" },
+  { value: "Selesai", label: "Selesai" },
+  { value: "Dibatalkan", label: "Dibatalkan" },
+];
+
 interface Order {
   id_order: number;
   orderDate: string;
@@ -21,6 +42,7 @@ interface Order {
 const ManageOrdersPageContent = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -29,51 +51,36 @@ const ManageOrdersPageContent = () => {
   const router = useRouter();
   const { message: messageApi } = App.useApp();
 
-  // Fungsi untuk mengambil data dari backend dengan useCallback
   const fetchOrders = useCallback(
     async (page = 1, pageSize = 10) => {
       setLoading(true);
       try {
-        console.log("Fetching orders with params:", { page, limit: pageSize });
-
         const response = await getAllOrders({ page, limit: pageSize });
 
-        console.log("API Response:", response);
-
-        // Handle berbagai format response
         let ordersData = [];
         let totalCount = 0;
         let currentPage = page;
         let limit = pageSize;
 
         if (response && typeof response === "object") {
-          // Format 1: { data: [], page: 1, limit: 10, total: 100 }
           if (response.data && Array.isArray(response.data)) {
             ordersData = response.data;
             totalCount = response.total || response.data.length;
             currentPage = response.page || page;
             limit = response.limit || pageSize;
-          }
-          // Format 2: { orders: [], pagination: { ... } }
-          else if (response.orders && Array.isArray(response.orders)) {
+          } else if (response.orders && Array.isArray(response.orders)) {
             ordersData = response.orders;
             totalCount = response.pagination?.total || response.orders.length;
             currentPage = response.pagination?.current || page;
             limit = response.pagination?.pageSize || pageSize;
-          }
-          // Format 3: Direct array
-          else if (Array.isArray(response)) {
+          } else if (Array.isArray(response)) {
             ordersData = response;
             totalCount = response.length;
-          }
-          // Format 4: Response langsung adalah array orders
-          else if (response.id_order) {
+          } else if (response.id_order) {
             ordersData = [response];
             totalCount = 1;
           }
         }
-
-        console.log("Processed orders data:", ordersData);
 
         setOrders(ordersData);
         setPagination({
@@ -87,19 +94,7 @@ const ManageOrdersPageContent = () => {
         }
       } catch (error) {
         console.error("Error fetching orders:", error);
-
-        // Handle different error types
-        if (error && typeof error === "object") {
-          const errorMessage =
-            error.message ||
-            error.response?.data?.message ||
-            "Failed to fetch orders.";
-          messageApi.error(errorMessage);
-        } else {
-          messageApi.error("Failed to fetch orders.");
-        }
-
-        // Reset data on error
+        messageApi.error("Failed to fetch orders.");
         setOrders([]);
         setPagination((prev) => ({ ...prev, total: 0 }));
       } finally {
@@ -109,19 +104,16 @@ const ManageOrdersPageContent = () => {
     [messageApi]
   );
 
-  // Ambil data saat komponen pertama kali dimuat
   useEffect(() => {
     fetchOrders(pagination.current, pagination.pageSize);
   }, [fetchOrders]);
 
-  // Handler saat paginasi di tabel berubah
   const handleTableChange: TableProps<Order>["onChange"] = (newPagination) => {
     const page = newPagination?.current || 1;
     const pageSize = newPagination?.pageSize || 10;
     fetchOrders(page, pageSize);
   };
 
-  // Fungsi untuk memberi warna pada status
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pending":
@@ -139,7 +131,27 @@ const ManageOrdersPageContent = () => {
     }
   };
 
-  // Safe render functions
+  const handleStatusChange = async (id: number, newStatus: string) => {
+    try {
+      await updateOrderStatus(id, newStatus);
+      messageApi.success("Status updated successfully");
+
+      // Update local state
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id_order === id
+            ? { ...order, statusPengiriman: newStatus }
+            : order
+        )
+      );
+
+      setEditingId(null);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      messageApi.error("Failed to update status");
+    }
+  };
+
   const renderDate = (date: string) => {
     try {
       return new Date(date).toLocaleDateString();
@@ -163,7 +175,6 @@ const ManageOrdersPageContent = () => {
     return user?.username || "Unknown User";
   };
 
-  // Definisi kolom untuk tabel
   const columns: TableProps<Order>["columns"] = [
     {
       title: "Order ID",
@@ -193,7 +204,29 @@ const ManageOrdersPageContent = () => {
       title: "Status",
       dataIndex: "statusPengiriman",
       key: "status",
-      render: (status) => <Tag color={getStatusColor(status)}>{status}</Tag>,
+      render: (status, record) => {
+        if (editingId === record.id_order) {
+          return (
+            <Select
+              defaultValue={status}
+              style={{ width: 120 }}
+              onChange={(value) => handleStatusChange(record.id_order, value)}
+              options={STATUS_OPTIONS}
+              autoFocus
+              onBlur={() => setEditingId(null)}
+            />
+          );
+        }
+        return (
+          <Tag
+            color={getStatusColor(status)}
+            style={{ cursor: "pointer" }}
+            onClick={() => setEditingId(record.id_order)}
+          >
+            {status}
+          </Tag>
+        );
+      },
     },
     {
       title: "Actions",
@@ -222,14 +255,6 @@ const ManageOrdersPageContent = () => {
         </Button>
       </div>
 
-      {/* Debug info - hanya tampil di development */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="mb-4 p-2 bg-gray-100 rounded text-sm">
-          <strong>Debug:</strong> Found {orders.length} orders, Total:{" "}
-          {pagination.total}
-        </div>
-      )}
-
       <Table
         columns={columns}
         dataSource={orders}
@@ -249,7 +274,6 @@ const ManageOrdersPageContent = () => {
   );
 };
 
-// Bungkus dengan <App> untuk konteks message
 export default function ManageOrdersPage() {
   return (
     <App>
