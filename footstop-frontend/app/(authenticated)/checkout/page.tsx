@@ -390,23 +390,6 @@ const CheckoutPageContent = () => {
                     key={item.id_cart}
                     className="flex items-center gap-3 p-3 rounded-md bg-gray-50"
                   >
-                    <div className="relative">
-                      <Image
-                        src={
-                          item.product.images?.[0]?.url || "/placeholder.png"
-                        }
-                        alt={item.product.product_name}
-                        width={50}
-                        height={50}
-                        className="rounded-md object-cover bg-gray-200"
-                      />
-                      <Badge
-                        count={item.quantity}
-                        size="small"
-                        className="absolute -top-1 -right-1"
-                        style={{ backgroundColor: "#dc2626" }}
-                      />
-                    </div>
                     <div className="flex-grow min-w-0">
                       <Text className="text-gray-800 block truncate text-sm font-medium">
                         {item.product.product_name}
