@@ -93,7 +93,7 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <ul className="hidden md:flex gap-6">
-            {['/shop', '/new', '/sale', '/brands', '/admin/dashboard'].map((path) => (
+            {['/shop', '/new', '/sale', '/about', '/admin/dashboard'].map((path) => (
               <li key={path} className="relative group">
                 <Link
                   href={path}
