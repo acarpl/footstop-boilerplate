@@ -29,9 +29,9 @@ export default function BrandPage() {
     ]);
 
     setBrands([
-      { id_brand: 1, brand_name: "Adidas", logo: "/brands/adidas.png" },
+      { id_brand: 1, brand_name: "Adidas", logo: "/brands/addidas.png" },
       { id_brand: 2, brand_name: "Converse", logo: "/brands/converse.png" },
-      { id_brand: 3, brand_name: "Crocs", logo: "/brands/crocs.png" },
+      { id_brand: 3, brand_name: "Crocs", logo: "/brands/puma.png" },
       { id_brand: 4, brand_name: "Nike", logo: "/brands/nike.png" },
     ]);
 
