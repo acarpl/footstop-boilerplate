@@ -1,60 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Checkbox, Select } from "antd";
+import { Checkbox, Select, message, App } from "antd"; // Import App & message
+import Image from "next/image"; // Gunakan Image dari Next.js untuk optimisasi
 
-interface Category {
-  id_category: number;
-  category_name: string;
-}
+// Import service dan tipe data
+import {
+  getCategories,
+  getBrands,
+  type Category,
+  type Brand,
+} from "../../../../lib/services/productService"; // Sesuaikan path jika perlu
 
-interface Brand {
-  id_brand: number;
-  brand_name: string;
-  logo: string; // url logo
-}
-
-export default function BrandPage() {
+const BrandPageContent = () => {
   const [showBrands, setShowBrands] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(true); // Tambahkan state loading
+  const { message: messageApi } = App.useApp();
 
-  // Simulasi fetch data
+  // useEffect untuk mengambil semua data dari backend
   useEffect(() => {
-    setCategories([
-      { id_category: 1, category_name: "Shoes" },
-      { id_category: 2, category_name: "Sandals" },
-      { id_category: 3, category_name: "Running" },
-    ]);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Ambil data kategori dan merek secara bersamaan
+        const [fetchedCategories, fetchedBrands] = await Promise.all([
+          getCategories(),
+          getBrands(),
+        ]);
+        setCategories(fetchedCategories);
+        setBrands(fetchedBrands);
 
-    setBrands([
-      { id_brand: 1, brand_name: "Adidas", logo: "/brands/addidas.png" },
-      { id_brand: 2, brand_name: "Converse", logo: "/brands/converse.png" },
-      { id_brand: 3, brand_name: "Crocs", logo: "/brands/puma.png" },
-      { id_brand: 4, brand_name: "Nike", logo: "/brands/nike.png" },
-    ]);
+        // Tunda animasi setelah data berhasil dimuat
+        setTimeout(() => setShowBrands(true), 100);
+      } catch (error) {
+        console.error("Failed to fetch page data:", error);
+        messageApi.error("Could not load data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Delay animasi
-    const timer = setTimeout(() => {
-      setShowBrands(true);
-    }, 1500); // 1.5 detik
+    fetchData();
+  }, [messageApi]); // Tambahkan dependensi yang stabil
 
-    return () => clearTimeout(timer);
-  }, []);
-
+  // Handler untuk filter (bisa Anda kembangkan nanti untuk memfilter produk berdasarkan merek/kategori)
   const handleCategoryChange = (id: number, checked: boolean) => {
     console.log(`Category ${id} ${checked ? "selected" : "unselected"}`);
+    // Logika filter di sini
   };
 
   const handleBrandChange = (value: number) => {
     console.log(`Brand selected: ${value}`);
+    // Logika filter di sini
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 mt-20">
       {/* Sidebar Categories */}
-      <aside className="bg-white rounded-lg shadow p-4 md:h-fit md:col-span-1 w-full md:sticky md:top-4">
+      <aside className="bg-white rounded-lg shadow p-4 md:h-fit md:col-span-1 w-full md:sticky md:top-28">
         <div className="md:block border-b pb-4 mb-4">
           <h2 className="text-lg font-semibold mb-2">Categories</h2>
           <ul className="space-y-2 text-sm">
@@ -88,26 +94,46 @@ export default function BrandPage() {
 
       {/* Brand Grid */}
       <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
-        {brands.map((brand, index) => (
-          <motion.div
-            key={brand.id_brand}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={
-              showBrands
-                ? { opacity: 1, scale: 1 }
-                : { opacity: 0, scale: 0.5 }
-            }
-            transition={{
-              delay: 0.2 * index,
-              type: "spring",
-              stiffness: 120,
-            }}
-            className="bg-red-800 rounded-xl flex items-center justify-center h-40 cursor-pointer"
-          >
-            <img src={brand.logo} alt={brand.brand_name} className="h-12" />
-          </motion.div>
-        ))}
+        {loading
+          ? // Tampilkan placeholder loading
+            Array.from({ length: 8 }).map((_, index) => (
+              <div
+                key={index}
+                className="bg-gray-200 rounded-xl h-40 animate-pulse"
+              ></div>
+            ))
+          : brands.map((brand, index) => (
+              <motion.div
+                key={brand.id_brand}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{
+                  delay: 0.1 * index,
+                  type: "spring",
+                  stiffness: 120,
+                }}
+                className="bg-red-800 rounded-xl flex items-center justify-center h-40 cursor-pointer hover:shadow-lg transition-shadow"
+              >
+                {/* Gunakan komponen Image dari Next.js */}
+                <Image
+                  src={brand.logo || "/placeholder.png"} // Tambahkan placeholder jika logo null
+                  alt={brand.brand_name}
+                  width={80} // Tentukan ukuran
+                  height={48}
+                  className="h-12 w-auto object-contain"
+                />
+              </motion.div>
+            ))}
       </div>
     </div>
+  );
+};
+
+// Bungkus dengan <App> untuk konteks message
+export default function BrandPage() {
+  return (
+    <App>
+      <BrandPageContent />
+    </App>
   );
 }
