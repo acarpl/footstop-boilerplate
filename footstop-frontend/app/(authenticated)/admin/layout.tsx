@@ -20,7 +20,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout, loading } = useAuth();
-
+  const currentPath = pathname || '';
   const { token: { colorBgContainer } } = theme.useToken();
 
   // Menu navigasi untuk sidebar admin
@@ -66,7 +66,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
         <Menu
           mode="inline"
-          selectedKeys={[pathname]}
+          selectedKeys={[currentPath]}
           items={menuItems}
           onClick={handleMenuClick}
         />

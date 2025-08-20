@@ -16,6 +16,7 @@ import { DeepPartial } from 'typeorm';
 
 @Injectable()
 export class AuthService {
+  userRepository: any;
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -46,18 +47,24 @@ async register(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
   /**
    * Login user, cek password & generate token
    */
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.usersService.findOneByEmail(loginDto.email);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+async login(loginDto: LoginDto) {
+  const user = await this.usersService.findOneByEmail(loginDto.email);
+  if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    const isPasswordMatching = await bcrypt.compare(loginDto.password, user.password);
-    if (!isPasswordMatching) throw new UnauthorizedException('Invalid credentials');
+  const isPasswordMatching = await bcrypt.compare(loginDto.password, user.password);
+  if (!isPasswordMatching) throw new UnauthorizedException('Invalid credentials');
 
-    const tokens = await this._generateTokens(user);
-    await this.usersService.updateRefreshToken(user.id_user, tokens.refreshToken);
+  const tokens = await this._generateTokens(user);
+  await this.usersService.updateRefreshToken(user.id_user, tokens.refreshToken);
 
-    return tokens;
-  }
+  // Hapus password sebelum dikirim
+  const { password, ...userWithoutPassword } = user;
+
+  return {
+    user: userWithoutPassword, // sudah termasuk role.nama_role
+    ...tokens,
+  };
+}
 
   /**
    * Register & login otomatis (untuk register frontend)
@@ -74,6 +81,20 @@ async register(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
 
     return { user, ...tokens };
   }
+  
+// validate user
+async validateUser(email: string, pass: string): Promise<any> {
+  const user = await this.userRepository.findOne({
+    where: { email },
+    relations: ['role'], // ini penting agar role ikut diambil
+  });
+
+  if (user && await bcrypt.compare(pass, user.password)) {
+    const { password, ...result } = user;
+    return result; // sudah ada role.nama_role di sini
+  }
+  return null;
+}
 
   /**
    * Logout (hapus refresh token)

@@ -4,6 +4,7 @@ import {
   Get,
   Body,
   Patch,
+  Request,
   Param,
   Delete,
   UseGuards,
@@ -26,6 +27,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+@UseGuards(AuthGuard('jwt'))
+  @Get('profile')
+  async getProfile(@Request() req) {
+    return this.usersService.findOneById(req.user.sub); // findOneById harus include role
+    }
+
   // ✅ Admin bisa melihat semua user
   @Get()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -44,6 +51,8 @@ export class UsersController {
     return this.usersService.update(user.id_user, updateUserDto);
   }
 
+
+  
   // ✅ Admin bisa bikin user manual (contoh: admin register admin lain atau staff)
   @Post()
   @UseGuards(AuthGuard('jwt'), RolesGuard)

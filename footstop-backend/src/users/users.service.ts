@@ -40,9 +40,13 @@ async create(userLikeObject: DeepPartial<User>): Promise<User> {
 }
 
 
-  async findOneById(id_user: number): Promise<User | undefined> {
-    return this.userRepository.findOneBy({ id_user });
-  }
+async findOneById(id_user: number): Promise<User | undefined> {
+  return this.userRepository.findOne({
+    where: { id_user },
+    relations: ['role'], // supaya role ikut
+  });
+}
+
 
   async findOneByEmail(email: string): Promise<User | undefined> {
     return this.userRepository
@@ -94,7 +98,11 @@ async update(id_user: number, updateUserDto: UpdateUserDto | AdminUpdateUserDto)
 
   async findAllPaginated({ page, limit }: { page: number; limit: number }) {
     const skip = (page - 1) * limit;
-    const users = await this.userRepository.find({ skip, take: limit });
+    const users = await this.userRepository.find({
+      skip,
+      take: limit,
+      relations: ['role'], // relasi role
+    });
     const totalCount = await this.userRepository.count();
     return {
       data: users,
