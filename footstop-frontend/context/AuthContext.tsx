@@ -13,6 +13,8 @@ import Loading from "#/components/loading";
 
 // --- Tipe User ---
 interface User {
+  id_role: number;
+  role_id: number;
   phone_number: any;
   id_user: number;
   username: string;
@@ -47,6 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // --- Ambil user aktif ---
   const fetchUser = async () => {
     try {
+      console.log(user); 
       console.log("--- AuthContext: fetchUser() called ---");
       const response = await apiClient.get<User>("/auth/profile");
       console.log("✅ /auth/profile SUCCESS:", response.data);

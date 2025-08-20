@@ -122,8 +122,6 @@ export default function AdminDashboardPage() {
             />
           </Card>
         </Col>
-
-        {/* You can add more stats columns here as needed */}
       </Row>
     </div>
   );

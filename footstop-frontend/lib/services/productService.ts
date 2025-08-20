@@ -16,6 +16,8 @@ export interface Category {
 }
 
 export interface Product {
+  rating: number;
+  created_at: string | number | Date;
   id_product: number;
   product_name: string;
   price: string;
