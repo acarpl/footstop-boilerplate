@@ -3,45 +3,30 @@
 import React, { useState } from "react";
 import { Button, Card, Form, Input, Typography, message } from "antd";
 import { useRouter } from "next/navigation";
-import apiClient from "../../../../lib/apiClient";
-import { AxiosError } from "axios";
+import { useAuth } from "../../../../context/AuthContext";
 
 const Register = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { register } = useAuth();
 
   const onFinish = async (values: {
-  name: string;
-  phone: string;
-  email: string;
-  password: string;
-}) => {
-  setLoading(true);
-  try {
-    await apiClient.post("/auth/register", {
-      id_role: 2, // opsional jika backend sudah set default role
-      username: values.name,
-      phone_number: values.phone,
-      email: values.email,
-      password: values.password,
-    });
-
-
-    message.success("Registration successful! Please log in.");
-    setTimeout(() => {
-      router.push("/login");
-    }, 1500);
-  } catch (err) {
-    let errorMessage = "An unexpected error occurred.";
-    if (err instanceof AxiosError) {
-      errorMessage = err.response?.data?.message || "Registration failed.";
+    username: string;
+    email: string;
+    password: string;
+    phone_number: string;
+  }) => {
+    setLoading(true);
+    try {
+      await register(values); // values sekarang termasuk phone_number
+      message.success("Register berhasil! Mengarahkan ke dashboard...");
+      setTimeout(() => router.push("/home"), 1000);
+    } catch (err: any) {
+      message.error(err?.response?.data?.message || "Register gagal.");
+    } finally {
+      setLoading(false);
     }
-    message.error(errorMessage);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <div
@@ -52,65 +37,48 @@ const Register = () => {
         backgroundSize: "contain",
       }}
     >
-      <Card
-        className="shadow-xl rounded-2xl"
-        style={{ width: 350, textAlign: "center" }}
-      >
-        <Typography.Title level={3} style={{ color: "#E53935" }}>
-          FOOTSTOP
-        </Typography.Title>
-        <Typography.Text strong>Welcome To FootStop!</Typography.Text>
-        <Typography.Paragraph style={{ fontSize: 12 }}>
-          Create your account and enjoy all the features and discounts.
-        </Typography.Paragraph>
+      <Card className="shadow-xl rounded-2xl" style={{ width: 350, textAlign: "center" }}>
+        <Typography.Title level={3} style={{ color: "#E53935" }}>FOOTSTOP</Typography.Title>
+        <Typography.Text strong>Daftar akun baru</Typography.Text>
 
         <Form layout="vertical" onFinish={onFinish} style={{ marginTop: 20 }}>
+          {/* Username */}
           <Form.Item
-            label="Name (Username)"
-            name="name"
-            rules={[{ required: true, message: "Please input your Name!" }]}
+            label="Username"
+            name="username"
+            rules={[{ required: true, message: "Masukkan username!" }]}
           >
-            <Input placeholder="eg. Farhan Kebab" />
+            <Input placeholder="Username kamu" />
           </Form.Item>
 
+          {/* Email */}
           <Form.Item
-            label="Phone Number"
-            name="phone"
-            rules={[
-              { required: true, message: "Please input your Phone Number!" },
-            ]}
-          >
-            <Input placeholder="eg. 0812345678910" />
-          </Form.Item>
-
-          <Form.Item
-            label="E-mail"
+            label="Email"
             name="email"
-            rules={[
-              {
-                required: true,
-                type: "email",
-                message: "Please input a valid E-mail!",
-              },
-            ]}
+            rules={[{ required: true, type: "email", message: "Masukkan email valid!" }]}
           >
-            <Input placeholder="eg. farhankebab@example.com" />
+            <Input placeholder="contoh: kamu@example.com" />
           </Form.Item>
 
+          {/* Password */}
           <Form.Item
             label="Password"
             name="password"
-            rules={[
-              {
-                required: true,
-                min: 6,
-                message: "Password must be at least 6 characters!",
-              },
-            ]}
+            rules={[{ required: true, message: "Masukkan password!" }]}
           >
-            <Input.Password placeholder="Type your Password Here!" />
+            <Input.Password placeholder="Password kamu" />
           </Form.Item>
 
+          {/* Phone Number */}
+          <Form.Item
+            label="Nomor Telepon"
+            name="phone_number"
+            rules={[{ required: true, message: "Masukkan nomor telepon!" }]}
+          >
+            <Input placeholder="0812xxxxxxx" />
+          </Form.Item>
+
+          {/* Tombol Register */}
           <Form.Item>
             <Button
               type="primary"
@@ -119,13 +87,9 @@ const Register = () => {
               loading={loading}
               className="bg-red-600 hover:bg-red-700"
             >
-              Create Account
+              Register
             </Button>
           </Form.Item>
-
-          <Typography.Text>
-            Already have an account? <a href="/login">Login Here!</a>
-          </Typography.Text>
         </Form>
       </Card>
     </div>

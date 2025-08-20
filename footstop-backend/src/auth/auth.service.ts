@@ -3,6 +3,7 @@ import {
   ConflictException,
   UnauthorizedException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -13,146 +14,108 @@ import { LoginDto } from './dto/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { DeepPartial } from 'typeorm';
 
-/**
- * AuthService bertanggung jawab atas semua logika otentikasi,
- * termasuk registrasi, login, logout, dan manajemen token.
- */
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService, // Untuk membaca .env
+    private readonly configService: ConfigService,
   ) {}
 
   /**
-   * Mendaftarkan pengguna baru ke dalam sistem.
-   * @param createUserDto - Data yang dibutuhkan untuk membuat user baru.
-   * @returns Objek user yang baru dibuat, tanpa properti password.
-   * @throws {ConflictException} Jika email sudah terdaftar.
+   * Register user baru (default role = customer) tanpa error.
    */
-  async register(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
-    const existingUser = await this.usersService.findOneByEmail(
-      createUserDto.email,
-    );
-    if (existingUser) {
-      throw new ConflictException('Email already registered');
-    }
+async register(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+    // Cek email sudah terdaftar
+  const existingUser = await this.usersService.findOneByEmail(createUserDto.email);
+  if (existingUser) throw new ConflictException('Email already registered');
+  // Hash password
+  const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+  // Buat user baru, otomatis set role customer (id_role = 1)
+  const newUser = await this.usersService.create({
+    ...createUserDto,
+    password: hashedPassword,
+    role: { id_role: 1 }, // default customer
+  } as DeepPartial<User>);
 
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(createUserDto.password, saltRounds);
+  delete newUser.password;
+  return newUser;
+}
 
-    const newUser = await this.usersService.create({
-      ...createUserDto,
-      password: hashedPassword,
-      // Semua pengguna baru secara default adalah 'customer'
-      role: { id_role: 2 },
-    } as DeepPartial<User>);
-
-    // Pastikan password tidak pernah dikembalikan
-    delete newUser.password;
-    return newUser;
-  }
 
   /**
-   * Mengautentikasi pengguna dan mengembalikan access token serta refresh token.
-   * @param loginDto - Kredensial pengguna (email dan password).
-   * @returns Sebuah objek berisi accessToken dan refreshToken.
-   * @throws {UnauthorizedException} Jika kredensial tidak valid.
+   * Login user, cek password & generate token
    */
   async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersService.findOneByEmail(loginDto.email);
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    const isPasswordMatching = await bcrypt.compare(loginDto.password, user.password);
+    if (!isPasswordMatching) throw new UnauthorizedException('Invalid credentials');
 
-    const isPasswordMatching = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
-
-    if (!isPasswordMatching) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    // Buat token baru
-    const tokens = await this._getTokens(user.id_user, user.username, user.role.nama_role);
-    // Simpan hash refresh token ke database
+    const tokens = await this._generateTokens(user);
     await this.usersService.updateRefreshToken(user.id_user, tokens.refreshToken);
 
     return tokens;
   }
 
   /**
-   * Melakukan logout pada pengguna dengan menghapus refresh token mereka dari database.
-   * @param userId - ID dari pengguna yang akan logout.
+   * Register & login otomatis (untuk register frontend)
    */
-  async logout(userId: number): Promise<{ message: string }> {
+  async registerAndLogin(createUserDto: CreateUserDto) {
+    // 1. Register user baru
+    const user = await this.register(createUserDto);
+
+    // 2. Generate token
+    const tokens = await this._generateTokens(user as User);
+
+    // 3. Simpan refresh token hash
+    await this.usersService.updateRefreshToken((user as User).id_user, tokens.refreshToken);
+
+    return { user, ...tokens };
+  }
+
+  /**
+   * Logout (hapus refresh token)
+   */
+  async logout(userId: number) {
     await this.usersService.removeRefreshToken(userId);
     return { message: 'Logout successful' };
   }
 
   /**
-   * Membuat sepasang token baru (access dan refresh) menggunakan refresh token yang valid.
-   * @param userId - ID pengguna dari payload refresh token.
-   * @param refreshToken - Refresh token yang dikirim oleh klien.
-   * @returns Sepasang token baru.
-   * @throws {ForbiddenException} Jika refresh token tidak valid atau tidak cocok.
+   * Refresh token
    */
-  async refreshTokens(userId: number, refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async refreshTokens(userId: number, refreshToken: string) {
     const user = await this.usersService.findOneById(userId);
-    if (!user || !user.refreshTokenHash) {
-      throw new ForbiddenException('Access Denied');
-    }
+    if (!user || !user.refreshTokenHash) throw new ForbiddenException('Access Denied');
 
-    const isRefreshTokenMatching = await bcrypt.compare(
-      refreshToken,
-      user.refreshTokenHash,
-    );
+    const isValid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+    if (!isValid) throw new ForbiddenException('Access Denied');
 
-    if (!isRefreshTokenMatching) {
-      throw new ForbiddenException('Access Denied');
-    }
-
-    const tokens = await this._getTokens(user.id_user, user.username, user.role.nama_role);
+    const tokens = await this._generateTokens(user);
     await this.usersService.updateRefreshToken(user.id_user, tokens.refreshToken);
+
     return tokens;
   }
 
   /**
-   * [HELPER] Fungsi privat untuk membuat sepasang token.
-   * @private
+   * Private helper: generate access & refresh token
    */
-  private async _getTokens(userId: number, username: string, role: string) {
+  private async _generateTokens(user: User) {
+    const payload = { sub: user.id_user, username: user.username, role: user.id_role };
+
     const [accessToken, refreshToken] = await Promise.all([
-      // Membuat Access Token
-      this.jwtService.signAsync(
-        {
-          sub: userId,
-          username,
-          role,
-        },
-        {
-          secret: this.configService.get<string>('JWT_SECRET'),
-          expiresIn: this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
-        },
-      ),
-      // Membuat Refresh Token
-      this.jwtService.signAsync(
-        {
-          sub: userId,
-        },
-        {
-          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-          expiresIn: this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
-        },
-      ),
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+      }),
+      this.jwtService.signAsync({ sub: user.id_user }, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
+      }),
     ]);
 
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 }

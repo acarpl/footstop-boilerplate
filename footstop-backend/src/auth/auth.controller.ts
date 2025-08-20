@@ -18,63 +18,72 @@ import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from './decorators/get-user.decorator';
 import { User } from '../users/entities/user.entity';
-import { RefreshTokenGuard } from './guards/refresh-token.guard'; 
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  private getCookieOptions() {
+    return {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+    };
   }
 
-  @HttpCode(HttpStatus.OK)
+@Post('register')
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+async register(
+  @Body() createUserDto: CreateUserDto,
+  @Res({ passthrough: true }) response: Response,
+) {
+  const { user, accessToken, refreshToken } = await this.authService.registerAndLogin(createUserDto);
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+  };
+  response.cookie('accessToken', accessToken, cookieOptions);
+  response.cookie('refreshToken', refreshToken, cookieOptions);
+
+  return { message: 'Registration successful', user, accessToken };
+}
+
+
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
     const tokens = await this.authService.login(loginDto);
-    
-   const cookieOptions = {
-  httpOnly: true,
-  // secure HARUS false untuk development di localhost (HTTP)
-  secure: process.env.NODE_ENV === 'production', 
-  // 'lax' adalah pilihan yang baik untuk development
-  sameSite: 'lax' as const, 
-  path: '/',
-};
 
+    const cookieOptions = this.getCookieOptions();
     response.cookie('accessToken', tokens.accessToken, cookieOptions);
-response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
-    return { message: 'Login successful',
-              accessToken: tokens.accessToken
-     };
+    response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
+
+    return { message: 'Login successful', accessToken: tokens.accessToken };
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard('jwt')) // 4. PROTEKSI ENDPOINT LOGOUT
+  @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
   async logout(
-    @GetUser() user: User, // Ambil user yang sedang login
-    @Res({ passthrough: true }) response: Response
+    @GetUser() user: User,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    await this.authService.logout(user.id_user); // 5. PANGGIL SERVICE LOGOUT
-    
-    // Hapus kedua cookie dari browser
+    await this.authService.logout(user.id_user);
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');
-
     return { message: 'Logout successful' };
   }
 
-  // CATATAN: Endpoint 'refresh' ini memerlukan pembuatan Guard dan Strategy baru.
-  // Anda bisa mengomentarinya terlebih dahulu jika belum membuatnya.
-  
   @Post('refresh')
-  @UseGuards(RefreshTokenGuard) 
+  @UseGuards(RefreshTokenGuard)
   @HttpCode(HttpStatus.OK)
   async refreshTokens(
     @Req() req: Request,
@@ -83,12 +92,13 @@ response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
     const user = req.user as any;
     const tokens = await this.authService.refreshTokens(user.sub, user.refreshToken);
 
-    const cookieOptions = { httpOnly: true, secure: true, path: '/', sameSite: 'strict' as const };
+    const cookieOptions = this.getCookieOptions();
     response.cookie('accessToken', tokens.accessToken, cookieOptions);
     response.cookie('refreshToken', tokens.refreshToken, cookieOptions);
-    
-    return { message: 'Tokens refreshed' };
+
+    return { message: 'Tokens refreshed', accessToken: tokens.accessToken };
   }
+
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
   getProfile(@GetUser() user: User) {

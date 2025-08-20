@@ -1,3 +1,4 @@
+// users.controller.ts
 import {
   Controller,
   Get,
@@ -25,7 +26,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // ✅ Butuh JWT + Admin Role
+  // ✅ Admin bisa melihat semua user
   @Get()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
@@ -36,14 +37,23 @@ export class UsersController {
     return this.usersService.findAllPaginated({ page, limit });
   }
 
-  // ✅ Butuh JWT
+  // ✅ User update profil sendiri
   @Patch('me')
   @UseGuards(AuthGuard('jwt'))
   updateMyProfile(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(user.id_user, updateUserDto);
   }
 
-  // ✅ Butuh JWT + Admin Role
+  // ✅ Admin bisa bikin user manual (contoh: admin register admin lain atau staff)
+  @Post()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async createUserByAdmin(@Body() createUserDto: CreateUserDto) {
+    // Kalau admin tidak isi id_role → default ke 2 (admin)
+    return this.usersService.create(createUserDto);
+  }
+
+  // ✅ Admin update user lain
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
@@ -54,7 +64,7 @@ export class UsersController {
     return this.usersService.update(id, adminUpdateUserDto);
   }
 
-  // ✅ Butuh JWT + Admin Role
+  // ✅ Admin hapus user
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')

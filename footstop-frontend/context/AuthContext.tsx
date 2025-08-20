@@ -1,28 +1,26 @@
 "use client";
 
-import {
-  createContext,
-  useState,
-  useContext,
-  useEffect,
-  ReactNode,
-} from "react";
-import apiClient from "../lib/apiClient"; // Pastikan path ini benar
-import axios from "axios";
+import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
+import apiClient from "../lib/apiClient";
+import { TokenUtil } from "../utils/token";
 import Loading from "#/components/loading";
 
-// --- Tipe User ---
 interface User {
-  id_role: number;
-  role_id: number;
-  phone_number: any;
   id_user: number;
   username: string;
   email: string;
-  // Tambahkan properti lain dari /auth/profile jika ada
+  phone_number?: string;
+  id_role: number;
+  role_id?: number;
 }
 
-// --- Tipe Context ---
+interface RegisterInput {
+  username: string;
+  email: string;
+  password: string;
+  phone_number?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -31,103 +29,66 @@ interface AuthContextType {
   register: (data: RegisterInput) => Promise<void>;
 }
 
-// --- Tipe untuk input register ---
-interface RegisterInput {
-  username: string;
-  email: string;
-  password: string;
-  phone_number?: string;
-  // Tambahkan input lain jika perlu
-}
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // --- Ambil user aktif ---
   const fetchUser = async () => {
     try {
-      console.log(user); 
-      console.log("--- AuthContext: fetchUser() called ---");
       const response = await apiClient.get<User>("/auth/profile");
-      console.log("✅ /auth/profile SUCCESS:", response.data);
       setUser(response.data);
-    } catch (error) {
-      console.error("❌ /auth/profile FAILED:", error);
-      if (axios.isAxiosError(error)) {
-        console.error(
-          "Axios error response:",
-          error.response?.status,
-          error.response?.data
-        );
-      }
+    } catch (_) {
       setUser(null);
     }
   };
 
   useEffect(() => {
-    const checkUserStatus = async () => {
+    TokenUtil.loadToken();
+    const checkUser = async () => {
       await fetchUser();
       setLoading(false);
     };
-    checkUserStatus();
+    checkUser();
   }, []);
 
-  // --- Login ---
-  const login = (email: string, password: string): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const loginResponse = await apiClient.post("/auth/login", {
-          email,
-          password,
-        });
-        console.log("✅ Login API success:", loginResponse);
-        await fetchUser();
-        resolve();
-      } catch (err) {
-        console.error("❌ Login error:", err);
-        reject(err);
-      }
-    });
+  const login = async (email: string, password: string) => {
+    const response = await apiClient.post("/auth/login", { email, password });
+    const { accessToken, refreshToken } = response.data;
+
+    if (accessToken && refreshToken) {
+      TokenUtil.setAccessToken(accessToken);
+      TokenUtil.setRefreshToken(refreshToken);
+    }
+
+    await fetchUser();
   };
 
-  // --- Register ---
-  const register = (data: RegisterInput): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const registerResponse = await apiClient.post("/auth/register", data);
-        console.log("✅ Register API success:", registerResponse);
+  const register = async (data: RegisterInput) => {
+    const response = await apiClient.post("/auth/register", data);
+    const { accessToken, refreshToken, user: newUser } = response.data;
 
-        // Opsional: Langsung login atau fetch user setelah daftar
-        await login(data.email, data.password); // auto login setelah register
-        resolve();
-      } catch (err) {
-        console.error("❌ Register error:", err);
-        reject(err);
-      }
-    });
+    if (accessToken && refreshToken) {
+      TokenUtil.setAccessToken(accessToken);
+      TokenUtil.setRefreshToken(refreshToken);
+    }
+
+    setUser(newUser);
   };
 
-  // --- Logout ---
   const logout = async () => {
     try {
       await apiClient.post("/auth/logout");
-      setUser(null);
-    } catch (error) {
-      console.error("Logout failed:", error);
-      setUser(null);
+    } catch (_) {
+      // ignore error
     }
+    TokenUtil.clearAccessToken();
+    TokenUtil.clearRefreshToken();
+    setUser(null);
   };
 
-  if (loading) {
-    return (
-      <div>
-        <Loading />
-      </div>
-    );
-  }
+  if (loading) return <Loading />;
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, register }}>
@@ -136,12 +97,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// --- Hook custom ---
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };
 

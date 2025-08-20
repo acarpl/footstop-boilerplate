@@ -1,51 +1,51 @@
-
+// utils/token.ts
 export class TokenUtil {
   static accessToken?: string;
   static refreshToken?: string;
+
+  // Load token dari localStorage
   static loadToken() {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const accessToken = TokenUtil.accessToken;
-    const refreshToken = localStorage.getItem('refresh_token');
+    if (typeof window === "undefined") return;
 
-    if (accessToken) {
-      TokenUtil.setAccessToken(accessToken);
-    }
+    const accessToken = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
 
-    if (refreshToken) {
-      TokenUtil.setRefreshToken(refreshToken);
-    }
-  };
+    if (accessToken) TokenUtil.accessToken = accessToken;
+    if (refreshToken) TokenUtil.refreshToken = refreshToken;
+  }
 
+  // Simpan token ke localStorage
   static persistToken() {
-    if (TokenUtil.accessToken != null) {
-      localStorage.setItem('access_token', TokenUtil.accessToken);
+    if (TokenUtil.accessToken) {
+      localStorage.setItem("access_token", TokenUtil.accessToken);
     } else {
-      localStorage.removeItem('access_token');
+      localStorage.removeItem("access_token");
     }
 
-    if (TokenUtil.refreshToken != null) {
-      localStorage.setItem('refresh_token', TokenUtil.refreshToken);
+    if (TokenUtil.refreshToken) {
+      localStorage.setItem("refresh_token", TokenUtil.refreshToken);
     } else {
-      localStorage.removeItem('refresh_token');
+      localStorage.removeItem("refresh_token");
     }
-
   }
 
-  static setAccessToken(accessToken: string) {
-    TokenUtil.accessToken = accessToken;
+  static setAccessToken(token: string) {
+    TokenUtil.accessToken = token;
+    TokenUtil.persistToken();
   }
 
-  static setRefreshToken(refreshToken: string) {
-    TokenUtil.refreshToken = refreshToken;
+  static setRefreshToken(token: string) {
+    TokenUtil.refreshToken = token;
+    TokenUtil.persistToken();
   }
 
   static clearAccessToken() {
     TokenUtil.accessToken = undefined;
+    localStorage.removeItem("access_token");
   }
 
   static clearRefreshToken() {
-    TokenUtil.accessToken = undefined;
+    TokenUtil.refreshToken = undefined;
+    localStorage.removeItem("refresh_token");
   }
 }

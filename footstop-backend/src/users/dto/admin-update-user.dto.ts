@@ -1,15 +1,8 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional } from 'class-validator';
+import { UpdateUserDto } from './update-user.dto';
 
-export class AdminUpdateUserDto {
+export class AdminUpdateUserDto extends UpdateUserDto {
+  @IsInt()
   @IsOptional()
-  @IsString()
-  username?: string;
-  
-  @IsOptional()
-  @IsString()
-  phone_number?: string;
-
-  @IsOptional()
-  @IsNumber()
-  id_role?: number;
+  id_role?: number; // Admin bisa update role user
 }

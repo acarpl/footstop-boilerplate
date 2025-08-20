@@ -3,7 +3,7 @@ import superagent from "superagent";
 import superagentIntercept from 'superagent-intercept';
 import { config } from '#/config/app';
 import { attachSuperagentLogger } from "./http_logger";
-import { TokenUtil } from './token';
+import { TokenUtil } from '../utils/token';
 
 let AuthIntercept = superagentIntercept((err: any, res: any) => {
     if ((res && res.status === 401)) {
