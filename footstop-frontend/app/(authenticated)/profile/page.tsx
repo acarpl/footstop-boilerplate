@@ -61,10 +61,6 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleTopUp = () => {
-    message.info("Top Up feature coming soon!");
-  };
-
   const handleLogout = () => {
     logout();
     message.success("Logged out successfully!");
@@ -119,24 +115,6 @@ const ProfilePage: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
-      ),
-    },
-    {
-      key: "2",
-      label: (
-        <span>
-          <DollarCircleOutlined /> Top Up
-        </span>
-      ),
-      children: (
-        <div className="text-center p-6">
-          <Paragraph>
-            Your current balance: <b>Rp 0</b>
-          </Paragraph>
-          <Button type="primary" onClick={handleTopUp}>
-            Top Up Now
-          </Button>
-        </div>
       ),
     },
     {
