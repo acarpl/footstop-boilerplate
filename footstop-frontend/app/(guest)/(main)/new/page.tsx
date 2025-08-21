@@ -1,78 +1,174 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Drawer, Spin, Empty, Rate, message, Carousel, Skeleton } from "antd";
 import Navbar from "#/components/Navbar";
 import Footer from "#/components/Footer";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Drawer, Spin, Empty, Rate, message, Carousel, Skeleton } from "antd";
-import {
-  getProducts,
-  Product,
-} from "../../../../lib/services/productService";
+import { getProducts, Product } from "../../../../lib/services/productService";
+
+// Types
+interface ProductImage {
+  url: string;
+}
+
+interface ExtendedProduct extends Product {
+  images?: ProductImage[];
+  rating?: number;
+  created_at: string;
+}
 
 export default function NewArrivalPage() {
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ExtendedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] =
+    useState<ExtendedProduct | null>(null);
 
-  // Fetch products
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const data = await getProducts({ page: 1, limit: 12 });
-        const sorted = [...data.data].sort(
+  // Fetch products with error handling
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await getProducts({ page: 1, limit: 12 });
+
+      // Ensure response has the expected structure
+      const productsData = response?.data || response || [];
+
+      if (Array.isArray(productsData)) {
+        const sortedProducts = [...productsData].sort(
           (a, b) =>
-            new Date(b.created_at).getTime() -
-            new Date(a.created_at).getTime()
+            new Date(b.created_at || new Date()).getTime() -
+            new Date(a.created_at || new Date()).getTime()
         );
-        setProducts(sorted);
-      } catch (err) {
-        console.error("Error fetching new arrivals:", err);
-      } finally {
-        setLoading(false);
+        setProducts(sortedProducts);
+      } else {
+        console.warn("Unexpected products data structure:", response);
+        setProducts([]);
       }
-    };
-    fetchData();
+    } catch (error) {
+      console.error("Error fetching new arrivals:", error);
+      message.error("Failed to load products");
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const getProductImageUrl = (product: Product): string => {
-    if (product.images && product.images.length > 0) {
-      return product.images[0].url;
-    }
-    return "/placeholder-image.jpg";
-  };
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
-  const openDrawer = (product: Product) => {
+  // Get product image URL with fallback
+  const getProductImageUrl = useCallback((product: ExtendedProduct): string => {
+    try {
+      if (
+        product?.images &&
+        Array.isArray(product.images) &&
+        product.images.length > 0
+      ) {
+        return product.images[0]?.url || "/placeholder-image.jpg";
+      }
+      return "/placeholder-image.jpg";
+    } catch (error) {
+      console.error("Error getting product image URL:", error);
+      return "/placeholder-image.jpg";
+    }
+  }, []);
+
+  // Drawer handlers
+  const openDrawer = useCallback((product: ExtendedProduct) => {
     setSelectedProduct(product);
     setIsDrawerVisible(true);
-  };
+  }, []);
 
-  const closeDrawer = () => {
+  const closeDrawer = useCallback(() => {
     setIsDrawerVisible(false);
     setSelectedProduct(null);
-  };
+  }, []);
 
-  const handleAddToCart = (product: Product) => {
-    message.success(`${product.product_name} added to cart!`);
-  };
-
-  const handleSort = (value: string) => {
-    let sortedProducts = [...products];
-    if (value === "price_low") {
-      sortedProducts.sort((a, b) => parseInt(a.price) - parseInt(b.price));
-    } else if (value === "price_high") {
-      sortedProducts.sort((a, b) => parseInt(b.price) - parseInt(a.price));
-    } else {
-      sortedProducts.sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+  // Add to cart handler
+  const handleAddToCart = useCallback((product: ExtendedProduct) => {
+    try {
+      message.success(`${product?.product_name || "Product"} added to cart!`);
+      // Add actual cart logic here
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      message.error("Failed to add product to cart");
     }
-    setProducts(sortedProducts);
-  };
+  }, []);
+
+  // Sort handler
+  const handleSort = useCallback(
+    (value: string) => {
+      try {
+        let sortedProducts = [...products];
+
+        switch (value) {
+          case "price_low":
+            sortedProducts.sort((a, b) => {
+              const priceA = parseInt(a.price?.toString() || "0");
+              const priceB = parseInt(b.price?.toString() || "0");
+              return priceA - priceB;
+            });
+            break;
+          case "price_high":
+            sortedProducts.sort((a, b) => {
+              const priceA = parseInt(a.price?.toString() || "0");
+              const priceB = parseInt(b.price?.toString() || "0");
+              return priceB - priceA;
+            });
+            break;
+          default:
+            sortedProducts.sort(
+              (a, b) =>
+                new Date(b.created_at || new Date()).getTime() -
+                new Date(a.created_at || new Date()).getTime()
+            );
+        }
+
+        setProducts(sortedProducts);
+      } catch (error) {
+        console.error("Error sorting products:", error);
+        message.error("Failed to sort products");
+      }
+    },
+    [products]
+  );
+
+  // Navigate to product detail
+  const handleViewDetail = useCallback(
+    (productId: string | number) => {
+      try {
+        router.push(`/product/${productId}`);
+      } catch (error) {
+        console.error("Error navigating to product detail:", error);
+        message.error("Failed to navigate to product detail");
+      }
+    },
+    [router]
+  );
+
+  // Image error handler
+  const handleImageError = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const target = e.target as HTMLImageElement;
+      target.src = "/placeholder-image.jpg";
+    },
+    []
+  );
+
+  // Format price
+  const formatPrice = useCallback((price: string | number): string => {
+    try {
+      const numPrice = typeof price === "string" ? parseInt(price) : price;
+      return isNaN(numPrice) ? "0" : numPrice.toLocaleString();
+    } catch (error) {
+      console.error("Error formatting price:", error);
+      return "0";
+    }
+  }, []);
 
   return (
     <main className="bg-gray-100">
@@ -83,18 +179,11 @@ export default function NewArrivalPage() {
         <Carousel autoplay>
           <div className="relative w-full h-64">
             <Image
-              src="/banners/new-arrivals-banner1.jpg"
-              alt="Banner 1"
+              src="/banners/Carousel-Product.svg"
+              alt="New Arrivals Banner 1"
               fill
               className="object-cover"
-            />
-          </div>
-          <div className="relative w-full h-64">
-            <Image
-              src="/banners/new-arrivals-banner2.jpg"
-              alt="Banner 2"
-              fill
-              className="object-cover"
+              priority
             />
           </div>
         </Carousel>
@@ -109,8 +198,9 @@ export default function NewArrivalPage() {
           <div className="flex items-center gap-2">
             <span className="font-semibold">Sort by:</span>
             <select
-              className="border rounded-md p-2"
+              className="border rounded-md p-2 bg-white"
               onChange={(e) => handleSort(e.target.value)}
+              defaultValue="newest"
             >
               <option value="newest">Newest</option>
               <option value="price_low">Price: Low to High</option>
@@ -119,23 +209,40 @@ export default function NewArrivalPage() {
           </div>
         </div>
 
-        {/* Products Grid */}
-        {loading ? (
+        {/* Loading State */}
+        {loading && (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 12 }).map((_, idx) => (
-              <Skeleton key={idx} active />
+            {Array.from({ length: 12 }, (_, idx) => (
+              <div
+                key={`skeleton-${idx}`}
+                className="bg-white rounded-lg shadow-md p-4"
+              >
+                <Skeleton.Image className="w-full h-48 mb-4" />
+                <Skeleton active paragraph={{ rows: 2 }} />
+              </div>
             ))}
           </div>
-        ) : products.length === 0 ? (
-          <Empty description="No new arrivals found." />
-        ) : (
+        )}
+
+        {/* Empty State */}
+        {!loading && products.length === 0 && (
+          <div className="flex justify-center items-center py-20">
+            <Empty
+              description="No new arrivals found."
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          </div>
+        )}
+
+        {/* Products Grid */}
+        {!loading && products.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map((product) => (
               <div
-                key={product.id_product}
+                key={`product-${product.id_product}`}
                 className="relative bg-white rounded-lg shadow-md transform transition duration-300 hover:scale-105 hover:shadow-xl cursor-pointer overflow-hidden group"
               >
-                {/* Badge */}
+                {/* New Badge */}
                 <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
                   New
                 </div>
@@ -144,12 +251,10 @@ export default function NewArrivalPage() {
                 <div className="relative w-full h-48 bg-gray-100">
                   <Image
                     src={getProductImageUrl(product)}
-                    alt={product.product_name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "/placeholder-image.jpg";
-                    }}
+                    alt={product.product_name || "Product"}
+                    fill
+                    className="object-cover"
+                    onError={handleImageError}
                     loading="lazy"
                   />
 
@@ -158,7 +263,10 @@ export default function NewArrivalPage() {
                     className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     onClick={() => openDrawer(product)}
                   >
-                    <button className="bg-white text-red-500 px-4 py-2 rounded-md font-semibold">
+                    <button
+                      className="bg-white text-red-500 px-4 py-2 rounded-md font-semibold hover:bg-gray-50 transition-colors"
+                      type="button"
+                    >
                       Quick View
                     </button>
                   </div>
@@ -167,19 +275,23 @@ export default function NewArrivalPage() {
                 {/* Product Info */}
                 <div className="p-4 text-center">
                   <h3 className="text-base font-semibold mb-2 h-12 line-clamp-2">
-                    {product.product_name}
+                    {product.product_name || "Unnamed Product"}
                   </h3>
                   <Rate
                     disabled
-                    defaultValue={product.rating || 4}
+                    value={product.rating || 4}
                     className="flex justify-center mb-2"
                   />
-                  <p className="text-red-500 font-bold">
-                    Rp {parseInt(product.price).toLocaleString()}
+                  <p className="text-red-500 font-bold mb-2">
+                    Rp {formatPrice(product.price)}
                   </p>
                   <button
-                    className="w-full mt-2 bg-red-500 text-white py-1 rounded-md hover:bg-red-600"
-                    onClick={() => handleAddToCart(product)}
+                    className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(product);
+                    }}
+                    type="button"
                   >
                     Add to Cart
                   </button>
@@ -190,43 +302,54 @@ export default function NewArrivalPage() {
         )}
       </div>
 
-      {/* Drawer */}
+      {/* Product Detail Drawer */}
       <Drawer
-        title={selectedProduct?.product_name}
+        title={selectedProduct?.product_name || "Product Details"}
         placement="right"
         onClose={closeDrawer}
         open={isDrawerVisible}
         width={400}
+        destroyOnClose
       >
         {selectedProduct && (
-          <div>
-            <Image
-              src={getProductImageUrl(selectedProduct)}
-              alt={selectedProduct.product_name}
-              className="w-full h-60 object-cover rounded-md mb-4"
-            />
+          <div className="space-y-4">
+            <div className="relative w-full h-60 rounded-md overflow-hidden">
+              <Image
+                src={getProductImageUrl(selectedProduct)}
+                alt={selectedProduct.product_name || "Product"}
+                fill
+                className="object-cover"
+                onError={handleImageError}
+              />
+            </div>
+
             <Rate
               disabled
-              defaultValue={selectedProduct.rating || 4}
-              className="mb-4"
+              value={selectedProduct.rating || 4}
+              className="block"
             />
-            <p className="text-red-500 font-bold mb-4">
-              Rp {parseInt(selectedProduct.price).toLocaleString()}
+
+            <p className="text-red-500 font-bold text-lg">
+              Rp {formatPrice(selectedProduct.price)}
             </p>
-            <button
-              className="w-full bg-red-500 text-white py-2 rounded-md mb-2 hover:bg-red-600"
-              onClick={() =>
-                router.push(`/product/${selectedProduct.id_product}`)
-              }
-            >
-              View Detail
-            </button>
-            <button
-              className="w-full bg-gray-200 text-black py-2 rounded-md hover:bg-gray-300"
-              onClick={() => handleAddToCart(selectedProduct)}
-            >
-              Add to Cart
-            </button>
+
+            <div className="space-y-2">
+              <button
+                className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
+                onClick={() => handleViewDetail(selectedProduct.id_product)}
+                type="button"
+              >
+                View Detail
+              </button>
+
+              <button
+                className="w-full bg-gray-200 text-black py-2 rounded-md hover:bg-gray-300 transition-colors"
+                onClick={() => handleAddToCart(selectedProduct)}
+                type="button"
+              >
+                Add to Cart
+              </button>
+            </div>
           </div>
         )}
       </Drawer>
