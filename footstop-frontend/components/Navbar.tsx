@@ -40,7 +40,10 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target as Node)
+      ) {
         setIsProfileOpen(false);
       }
     };
@@ -106,7 +109,6 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-
         {/* LEFT: Logo + Desktop Menu */}
         <div className="flex items-center gap-6">
           <Link href="/" className="group relative">
@@ -142,7 +144,10 @@ export default function Navbar() {
 
         {/* CENTER: Modern Search Bar */}
         <div className="hidden md:flex items-center w-96 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={18}
+          />
           <input
             type="text"
             placeholder="Search products..."
@@ -185,15 +190,20 @@ export default function Navbar() {
               </button>
 
               {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 animate-fade-in">
+                <div className="absolute right-0 mt-32 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 animate-fade-in">
                   <Link
                     href="/profile"
                     className="block px-4 py-2 hover:bg-gray-100"
                   >
                     Profile
                   </Link>
-                  {(user.role_id === 2 || user.role_id === 2) && (
-                  <Link href="/admin/dashboard">Admin</Link>
+                  {(user.id_role === 1 || user.id_role === 1) && (
+                    <Link
+                      href="/admin/dashboard"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                    >
+                      Admin
+                    </Link>
                   )}
                   <button
                     onClick={handleLogout}
@@ -234,7 +244,10 @@ export default function Navbar() {
         <div className="md:hidden mt-2 px-4 animate-slide-down">
           {/* Mobile Search */}
           <div className="mb-4 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Search products..."
