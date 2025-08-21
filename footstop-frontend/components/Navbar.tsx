@@ -197,7 +197,7 @@ export default function Navbar() {
                   >
                     Profile
                   </Link>
-                  {(user.id_role === 1 || user.id_role === 1) && (
+                  {user.id_user === 1 && (
                     <Link
                       href="/admin/dashboard"
                       className="block px-4 py-2 hover:bg-gray-100"
