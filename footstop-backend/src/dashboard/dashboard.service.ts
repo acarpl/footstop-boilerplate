@@ -14,7 +14,7 @@ export class DashboardService {
   async getDashboardStats() {
     // GANTI 'totalPrice' menjadi nama properti yang benar di Order entity (misal: 'total_price')
     const totalRevenueResult = await this.orderRepo.sum("totalPrice", {
-      statusPengiriman: "Delivered",
+      statusPengiriman: "Selesai",
     });
 
     // GANTI 'statusPengiriman' menjadi nama properti yang benar di Order entity (misal: 'status_pengiriman')

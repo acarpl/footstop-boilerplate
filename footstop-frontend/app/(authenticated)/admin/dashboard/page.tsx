@@ -21,7 +21,7 @@ export default function AdminDashboardPage() {
         }
 
         // Validate the expected properties
-        const requiredProps = ["totalRevenue", "newOrders", "totalUsers"];
+        const requiredProps = ["newOrders", "totalUsers"];
         const isValidData = requiredProps.every((prop) => prop in data);
 
         if (!isValidData) {
