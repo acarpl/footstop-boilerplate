@@ -8,8 +8,8 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
-import apiClient from "../lib/apiClient"; // Pastikan path ini benar
-import Loading from "#/components/loading"; // Asumsi komponen loading Anda ada
+import apiClient from "../lib/apiClient";
+import Loading from "#/components/loading";
 
 // Tipe data untuk User, disesuaikan dengan respons backend
 interface User {

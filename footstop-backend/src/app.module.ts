@@ -1,33 +1,32 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RoleModule } from './role/role.module';
-import { BrandsModule } from './brands/brands.module';
-import { CategoriesModule } from './categories/categories.module';
-import { AddressModule } from './address/address.module';
-import { GambarModule } from './gambar/gambar.module';
-import { CartsModule } from './carts/carts.module';
-import { OrdersModule } from './orders/orders.module';
-import { ProductsModule } from './products/products.module';
-import { PaymentsModule } from './payments/payments.module';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { OrdersDetailsModule } from './orders-details/orders-details.module';
-import { LoggerModule } from 'nestjs-pino';
-import { DashboardModule } from './dashboard/dashboard.module';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { LoggerModule } from "nestjs-pino";
+import { AddressModule } from "./address/address.module";
+import { AuthModule } from "./auth/auth.module";
+import { BrandsModule } from "./brands/brands.module";
+import { CartsModule } from "./carts/carts.module";
+import { CategoriesModule } from "./categories/categories.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
+import { GambarModule } from "./gambar/gambar.module";
+import { OrdersModule } from "./orders/orders.module";
+import { OrdersDetailsModule } from "./orders-details/orders-details.module";
+import { PaymentsModule } from "./payments/payments.module";
+import { ProductsModule } from "./products/products.module";
+import { RoleModule } from "./role/role.module";
+import { UsersModule } from "./users/users.module";
+
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // Membuat ConfigService tersedia di seluruh aplikasi
+      isGlobal: true,
     }),
-    LoggerModule.forRoot({ // ✅ Tambahkan LoggerModule disini
+    LoggerModule.forRoot({
       pinoHttp: {
-        level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
+        level: process.env.NODE_ENV !== "production" ? "debug" : "info",
         transport: {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-          },
+          target: "pino-pretty",
+          options: { colorize: true },
         },
       },
     }),
@@ -35,30 +34,30 @@ import { DashboardModule } from './dashboard/dashboard.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_DATABASE'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'], // Otomatis memuat semua file entity
-        synchronize: false, // PENTING: false karena database Anda sudah ada
+        type: "postgres",
+        host: configService.get<string>("DB_HOST"),
+        port: configService.get<number>("DB_PORT"),
+        username: configService.get<string>("DB_USERNAME"),
+        password: configService.get<string>("DB_PASSWORD"),
+        database: configService.get<string>("DB_DATABASE"),
+        entities: [__dirname + "/**/*.entity{.ts,.js}"],
+        synchronize: false,
       }),
     }),
-    RoleModule,
-    BrandsModule,
-    CategoriesModule,
+
     AddressModule,
-    GambarModule,
+    AuthModule,
+    BrandsModule,
     CartsModule,
+    CategoriesModule,
+    DashboardModule,
+    GambarModule,
     OrdersModule,
     OrdersDetailsModule,
-    ProductsModule,
     PaymentsModule,
-    AuthModule,
+    ProductsModule,
+    RoleModule,
     UsersModule,
-    DashboardModule,
-    // Module lain akan diimpor di sini
   ],
   controllers: [],
   providers: [],
