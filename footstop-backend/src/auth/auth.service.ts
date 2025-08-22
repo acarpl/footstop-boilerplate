@@ -1,4 +1,3 @@
-// src/auth/auth.service.ts
 import {
   Injectable,
   ConflictException,
@@ -16,7 +15,6 @@ import { DeepPartial } from "typeorm";
 
 @Injectable()
 export class AuthService {
-  // HAPUS 'userRepository: any;'
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -24,107 +22,117 @@ export class AuthService {
   ) {}
 
   /**
-   * Register user baru (default role = customer).
+   * Mendaftarkan pengguna baru dengan peran default 'customer'.
+   * @returns Objek user yang baru dibuat, tanpa properti password.
    */
   async register(
     createUserDto: CreateUserDto
-  ): Promise<Omit<User, "password">> {
-    // ... (Logika register Anda sudah benar)
+  ): Promise<Omit<User, "password" | "refreshTokenHash">> {
     const existingUser = await this.usersService.findOneByEmail(
       createUserDto.email
     );
-    if (existingUser) throw new ConflictException("Email already registered");
+    if (existingUser) {
+      throw new ConflictException("Email already registered");
+    }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
     const newUser = await this.usersService.create({
       ...createUserDto,
       password: hashedPassword,
-      role: { id_role: 2 },
+      role: { id_role: 2 }, // Asumsi ID 2 adalah customer
     } as DeepPartial<User>);
 
+    // Hapus properti sensitif sebelum dikembalikan
     delete newUser.password;
+    delete newUser.refreshTokenHash;
     return newUser;
   }
 
   /**
-   * Login user, cek password & generate token
+   * Mengautentikasi pengguna dan mengembalikan data user beserta token.
    */
   async login(loginDto: LoginDto) {
-    // 1. Panggil metode validasi yang sudah diperbaiki
-    const user = await this.validateUser(loginDto.email, loginDto.password);
+    const user = await this.usersService.findOneByEmail(loginDto.email);
     if (!user) {
       throw new UnauthorizedException("Invalid credentials");
     }
 
-    // 2. Buat token
-    const tokens = await this._generateTokens(user);
+    const isPasswordMatching = await bcrypt.compare(
+      loginDto.password,
+      user.password
+    );
+    if (!isPasswordMatching) {
+      throw new UnauthorizedException("Invalid credentials");
+    }
 
-    // 3. Simpan hash refresh token
+    const tokens = await this._generateTokens(user);
     await this.usersService.updateRefreshToken(
       user.id_user,
       tokens.refreshToken
     );
 
-    // 4. Kembalikan user dan token
-    return {
-      user: user, // user dari validateUser sudah tidak punya password
-      ...tokens,
-    };
+    // Hapus properti sensitif dari objek user yang akan dikembalikan
+    delete user.password;
+    delete user.refreshTokenHash;
+
+    return { user, ...tokens };
   }
 
-  /**
-   * Register & login otomatis
-   */
   async registerAndLogin(createUserDto: CreateUserDto) {
-    const user = await this.register(createUserDto);
-    // Kita perlu mengambil user lagi untuk mendapatkan objek 'role' yang lengkap
-    const userWithRole = await this.usersService.findOneById(user.id_user);
-    const tokens = await this._generateTokens(userWithRole);
+    // 1. Daftarkan user baru. Hasilnya adalah objek user tanpa password.
+    const registeredUser = await this.register(createUserDto);
+
+    // 2. AMBIL KEMBALI data user yang lengkap dari database.
+    // Ini penting untuk mendapatkan semua relasi (seperti 'role') dan ID yang benar.
+    const userForToken = await this.usersService.findOneById(
+      registeredUser.id_user
+    );
+
+    if (!userForToken) {
+      // Ini seharusnya tidak pernah terjadi, tapi ini adalah pengaman yang baik
+      throw new UnauthorizedException(
+        "Failed to retrieve user after registration."
+      );
+    }
+
+    // 3. Sekarang 'userForToken' adalah objek User yang lengkap, aman untuk membuat token.
+    const tokens = await this._generateTokens(userForToken);
+
+    // 4. Simpan hash refresh token.
     await this.usersService.updateRefreshToken(
-      userWithRole.id_user,
+      userForToken.id_user,
       tokens.refreshToken
     );
-    return { user: userWithRole, ...tokens };
+
+    // Hapus properti sensitif sebelum dikembalikan
+    delete userForToken.password;
+    delete userForToken.refreshTokenHash;
+
+    return { user: userForToken, ...tokens };
   }
 
   /**
-   * [DIPERBAIKI] Memvalidasi kredensial pengguna.
-   */
-  async validateUser(
-    email: string,
-    pass: string
-  ): Promise<Omit<User, "password"> | null> {
-    // Gunakan UsersService yang sudah di-inject, bukan userRepository yang tidak ada
-    const user = await this.usersService.findOneByEmail(email);
-
-    if (user && (await bcrypt.compare(pass, user.password))) {
-      const { password, ...result } = user;
-      return result; // Mengembalikan objek user tanpa password
-    }
-    return null;
-  }
-
-  /**
-   * Logout (hapus refresh token)
+   * Menghapus sesi refresh token dari database.
    */
   async logout(userId: number) {
-    // ... (Logika logout Anda sudah benar)
     await this.usersService.removeRefreshToken(userId);
     return { message: "Logout successful" };
   }
 
   /**
-   * Refresh token
+   * Membuat sepasang token baru menggunakan refresh token.
    */
   async refreshTokens(userId: number, refreshToken: string) {
-    // ... (Logika refreshTokens Anda sudah benar)
     const user = await this.usersService.findOneById(userId);
     if (!user || !user.refreshTokenHash)
       throw new ForbiddenException("Access Denied");
 
-    const isValid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
-    if (!isValid) throw new ForbiddenException("Access Denied");
+    const isRefreshTokenMatching = await bcrypt.compare(
+      refreshToken,
+      user.refreshTokenHash
+    );
+    if (!isRefreshTokenMatching) throw new ForbiddenException("Access Denied");
 
     const tokens = await this._generateTokens(user);
     await this.usersService.updateRefreshToken(
@@ -136,13 +144,19 @@ export class AuthService {
   }
 
   /**
-   * [DIPERBAIKI] Private helper: generate access & refresh token
+   * Helper privat untuk membuat access dan refresh token.
    */
-  private async _generateTokens(user: Omit<User, "password">) {
+  private async _generateTokens(user: User) {
+    if (!user.role) {
+      throw new Error(
+        `User object for user ID ${user.id_user} is missing the 'role' relation.`
+      );
+    }
+
     const payload = {
       sub: user.id_user,
       username: user.username,
-      role: user.role.nama_role,
+      role: user.role.nama_role, // Menggunakan nama peran, bukan ID
     };
 
     const [accessToken, refreshToken] = await Promise.all([

@@ -24,6 +24,8 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const { user, logout, loading, cartItems } = useAuth();
+
+  console.log(user, TokenUtil.accessToken);
   const pathname = usePathname();
   const router = useRouter();
   const profileRef = useRef<HTMLDivElement>(null);
