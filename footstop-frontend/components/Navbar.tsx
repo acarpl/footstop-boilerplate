@@ -1,4 +1,3 @@
-// components/Navbar.tsx
 "use client";
 
 import Link from "next/link";
@@ -287,7 +286,7 @@ export default function Navbar() {
                     Profile
                   </Link>
                 </li>
-                {user.role_id === 2 && (
+                {user.role_id === 1 && (
                   <li>
                     <Link
                       href="/admin/dashboard"
