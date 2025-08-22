@@ -138,11 +138,10 @@ export class AuthService {
   /**
    * [DIPERBAIKI] Private helper: generate access & refresh token
    */
-  private async _generateTokens(user: User) {
+  private async _generateTokens(user: Omit<User, "password">) {
     const payload = {
       sub: user.id_user,
       username: user.username,
-      // Gunakan nama peran, bukan ID. Ini lebih baik untuk otorisasi.
       role: user.role.nama_role,
     };
 
