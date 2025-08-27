@@ -21,43 +21,93 @@ export class UsersService {
    * Membuat user baru, otomatis hash password.
    */
   async create(userLikeObject: DeepPartial<User>): Promise<User> {
+    console.log("🔧 UsersService.create() called with:", {
+      email: userLikeObject.email,
+      username: userLikeObject.username,
+      hasPassword: !!userLikeObject.password,
+      passwordLength: userLikeObject.password?.length || 0,
+    });
+
     const existing = await this.userRepository.findOneBy({
       email: userLikeObject.email,
     });
     if (existing) throw new BadRequestException("Email is already in use.");
 
-    if (!userLikeObject.id_role) userLikeObject.id_role = 2; // 1 = Admin, 2 = Customer
+    if (!userLikeObject.id_role) userLikeObject.id_role = 2;
 
     if (!userLikeObject.phone_number) {
       throw new BadRequestException("phone_number is required");
     }
 
     if (!userLikeObject.role) {
-      userLikeObject.role = { id_role: 2 }; // default customer
+      userLikeObject.role = { id_role: 2 };
     }
 
+    // Hash password hanya jika ada dan belum di-hash
     if (userLikeObject.password) {
-      userLikeObject.password = await bcrypt.hash(userLikeObject.password, 10);
+      console.log("🔑 Processing password...");
+
+      // Cek apakah sudah berupa hash bcrypt
+      const isBcryptHash = userLikeObject.password.startsWith("$2");
+
+      if (!isBcryptHash) {
+        console.log("🔑 Password is plain text, hashing with bcrypt...");
+        const originalPassword = userLikeObject.password;
+        userLikeObject.password = await bcrypt.hash(
+          userLikeObject.password,
+          10
+        );
+
+        console.log("✅ Password hashed successfully:", {
+          originalLength: originalPassword.length,
+          hashedLength: userLikeObject.password.length,
+          isValidBcryptFormat: userLikeObject.password.startsWith("$2"),
+        });
+      } else {
+        console.log("⚠️ Password already appears to be hashed, skipping...");
+      }
     }
 
     const user = this.userRepository.create(userLikeObject);
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    console.log("✅ User saved successfully with ID:", savedUser.id_user);
+
+    return savedUser;
   }
 
   async findOneById(id_user: number): Promise<User | undefined> {
     return this.userRepository.findOne({
       where: { id_user },
-      relations: ["role"], // supaya role ikut
+      relations: ["role"],
     });
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {
-    return this.userRepository
+    console.log("🔍 Finding user by email:", email);
+
+    const user = await this.userRepository
       .createQueryBuilder("user")
       .leftJoinAndSelect("user.role", "role")
-      .addSelect("user.password")
+      .addSelect("user.password") // Pastikan password di-select
+      .addSelect("user.refreshTokenHash") // Pastikan refresh token hash juga di-select
       .where("user.email = :email", { email })
       .getOne();
+
+    if (user) {
+      console.log("✅ User found:", {
+        id: user.id_user,
+        username: user.username,
+        email: user.email,
+        hasPassword: !!user.password,
+        passwordLength: user.password?.length || 0,
+        roleName: user.role?.nama_role,
+      });
+    } else {
+      console.log("❌ User not found for email:", email);
+    }
+
+    return user;
   }
 
   /**
@@ -89,17 +139,21 @@ export class UsersService {
     userId: number,
     refreshToken: string
   ): Promise<void> {
+    console.log("🔄 Updating refresh token for user:", userId);
     const hashed = await bcrypt.hash(refreshToken, 10);
     await this.userRepository.update(userId, {
       refreshTokenHash: hashed,
     } as any);
+    console.log("✅ Refresh token updated successfully");
   }
 
   /**
    * Menghapus refresh token hash saat logout
    */
   async removeRefreshToken(userId: number): Promise<void> {
+    console.log("🗑️ Removing refresh token for user:", userId);
     await this.userRepository.update(userId, { refreshTokenHash: null });
+    console.log("✅ Refresh token removed successfully");
   }
 
   async remove(id_user: number): Promise<void> {
@@ -113,7 +167,7 @@ export class UsersService {
     const users = await this.userRepository.find({
       skip,
       take: limit,
-      relations: ["role"], // relasi role
+      relations: ["role"],
     });
     const totalCount = await this.userRepository.count();
     return {
