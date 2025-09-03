@@ -39,7 +39,7 @@ export default function ShopPage() {
 
   const [filters, setFilters] = useState({
     page: 1,
-    limit: 9,
+    limit: 100,
     id_category: null,
     id_brand: null,
     search: searchQuery, // Add search to filters

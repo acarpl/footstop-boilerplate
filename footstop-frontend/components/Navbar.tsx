@@ -3,31 +3,23 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Menu,
-  X,
-  Search,
-  ShoppingCart,
-  User as UserIcon,
-  ChevronDown,
-} from "lucide-react";
+import { Menu, X, Search, ShoppingCart, User as UserIcon } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { TokenUtil } from "#/utils/token";
 
 TokenUtil.loadToken();
 
-export default function Navbar() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+// Constants
+const mainMenu = [
+  { path: "/shop", label: "Shop" },
+  { path: "/new", label: "New" },
+  { path: "/sale", label: "Sale" },
+  { path: "/about", label: "About" },
+];
+
+// Custom Hook for Scroll Detection
+const useScrolled = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  const { user, logout, loading, cartItems } = useAuth();
-
-  console.log(user, TokenUtil.accessToken);
-  const pathname = usePathname();
-  const router = useRouter();
-  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -35,32 +27,34 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  return isScrolled;
+};
+
+// Main Component
+export default function Navbar() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const { user, logout, loading, cartItems } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+  const isScrolled = useScrolled();
+
+  // Handle mobile menu body scroll
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isOpen]);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(e.target as Node)
-      ) {
-        setIsProfileOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
+  // Event Handlers
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-
     const trimmedQuery = searchQuery.trim();
-    if (trimmedQuery !== "") {
+    if (trimmedQuery) {
       router.push(`/shop?search=${encodeURIComponent(trimmedQuery)}`);
       setIsOpen(false);
-      // Optional: Clear search after successful search
-      // setSearchQuery("");
+      setSearchQuery("");
     }
   };
 
@@ -70,15 +64,10 @@ export default function Navbar() {
     }
   };
 
-  const handleSearchIconClick = () => {
-    handleSearch();
-  };
-
   const handleLogout = async () => {
     try {
       await logout();
       router.push("/");
-      setIsProfileOpen(false);
       setIsOpen(false);
     } catch (error) {
       console.error("Logout failed:", error);
@@ -86,13 +75,6 @@ export default function Navbar() {
   };
 
   const isActive = (path: string) => pathname === path;
-
-  const mainMenu = [
-    { path: "/shop", label: "Shop" },
-    { path: "/new", label: "New" },
-    { path: "/sale", label: "Sale" },
-    { path: "/about", label: "About" },
-  ];
 
   if (loading) {
     return (
@@ -120,9 +102,10 @@ export default function Navbar() {
           : "bg-white/50 backdrop-blur-md text-black"
       }`}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-        {/* LEFT: Logo + Desktop Menu */}
-        <div className="flex items-center gap-6">
+      <div className="max-w-7xl mx-auto px-4 py-3">
+        {/* Top Row: Logo, Search, Cart, Profile, Hamburger */}
+        <div className="flex items-center justify-between">
+          {/* Logo */}
           <Link href="/" className="group relative">
             <img
               src="/icons/logo-shoe.svg"
@@ -131,7 +114,7 @@ export default function Navbar() {
                 isScrolled ? "scale-95" : "scale-100"
               }`}
             />
-            <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 text-xs bg-black text-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs bg-black text-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               Footstop
             </span>
           </Link>
@@ -152,17 +135,67 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
+
+          {/* Right: Search, Cart, Profile, Hamburger */}
+          <div className="flex items-center gap-2">
+            {/* Search Icon for Mobile */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden p-2 hover:bg-gray-200 rounded-md"
+            >
+              <Search size={20} />
+            </button>
+
+            {/* Cart */}
+            <Link
+              href="/cart"
+              className="p-2 hover:bg-gray-200 rounded-full relative"
+            >
+              <ShoppingCart size={20} />
+              {cartItems?.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
+                  {cartItems.length}
+                </span>
+              )}
+            </Link>
+
+            {/* Profile/Login */}
+            {user ? (
+              <Link
+                href="/profile"
+                className="p-2 hover:bg-gray-200 rounded-full"
+              >
+                <UserIcon size={20} />
+              </Link>
+            ) : (
+              <Link href="/login">
+                <button className="px-4 py-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition hidden md:block">
+                  Log In
+                </button>
+              </Link>
+            )}
+
+            {/* Hamburger for Mobile */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden p-2 hover:bg-gray-200 rounded-md"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
 
-        {/* CENTER: Modern Search Bar */}
+        {/* Search Bar (Desktop always visible, Mobile visible when isOpen) */}
         <form
           onSubmit={handleSearch}
-          className="hidden md:flex items-center w-96 relative"
+          className={`mt-2 md:flex md:items-center md:w-96 md:mx-auto relative ${
+            isOpen ? "flex" : "hidden"
+          }`}
         >
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-red-600 transition-colors"
             size={18}
-            onClick={handleSearchIconClick}
+            onClick={handleSearch}
           />
           <input
             type="text"
@@ -172,7 +205,6 @@ export default function Navbar() {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          {/* Search Button */}
           <button
             type="submit"
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
@@ -181,117 +213,11 @@ export default function Navbar() {
             <Search size={14} />
           </button>
         </form>
-
-        {/* RIGHT: Auth & Cart */}
-        <div className="hidden md:flex items-center gap-4 relative">
-          {user ? (
-            <div className="flex items-center gap-2 relative" ref={profileRef}>
-              {/* Cart with badge */}
-              <Link
-                href="/cart"
-                className="p-2 hover:bg-gray-200 rounded-full relative"
-              >
-                <ShoppingCart size={20} />
-                {cartItems && cartItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
-                    {cartItems.length}
-                  </span>
-                )}
-              </Link>
-
-              {/* Profile Dropdown */}
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-1 p-2 hover:bg-gray-200 rounded-full"
-              >
-                <UserIcon size={20} />
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform ${
-                    isProfileOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {isProfileOpen && (
-                <div className="absolute right-0 mt-32 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 animate-fade-in">
-                  <Link
-                    href="/profile"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    Profile
-                  </Link>
-                  {user.id_user === 1 && (
-                    <Link
-                      href="/admin/dashboard"
-                      className="block px-4 py-2 hover:bg-gray-100"
-                    >
-                      Admin
-                    </Link>
-                  )}
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <Link href="/register">
-                <button className="px-4 py-2 border border-red-600 text-red-600 rounded-full hover:bg-red-50 transition">
-                  Register
-                </button>
-              </Link>
-              <Link href="/login">
-                <button className="px-4 py-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition">
-                  Log In
-                </button>
-              </Link>
-            </>
-          )}
-        </div>
-
-        {/* Hamburger Mobile */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-2 hover:bg-gray-200 rounded-md"
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu (Only Navigation and Auth) */}
       {isOpen && (
-        <div className="md:hidden mt-2 px-4 animate-slide-down">
-          {/* Mobile Search */}
-          <form onSubmit={handleSearch} className="mb-4 relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-red-600 transition-colors"
-              size={18}
-              onClick={handleSearchIconClick}
-            />
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="w-full pl-10 pr-12 py-2 rounded-full border border-gray-300 focus:border-red-600 focus:ring-1 focus:ring-red-600 text-sm text-gray-700 placeholder-gray-400 transition"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            {/* Mobile Search Button */}
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-              aria-label="Search"
-            >
-              <Search size={14} />
-            </button>
-          </form>
-
-          {/* Mobile Menu Links */}
+        <div className="md:hidden px-4 py-4 bg-white/95 backdrop-blur-md animate-slide-down">
           <ul className="flex flex-col gap-2">
             {mainMenu.map((item) => (
               <li key={item.path}>
@@ -309,16 +235,7 @@ export default function Navbar() {
             <hr className="my-2" />
             {user ? (
               <>
-                <li>
-                  <Link
-                    href="/profile"
-                    className="block py-2 px-3 rounded-md hover:bg-gray-100"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                </li>
-                {user.role_id === 1 && (
+                {user.id_user === 1 && (
                   <li>
                     <Link
                       href="/admin/dashboard"
@@ -332,7 +249,7 @@ export default function Navbar() {
                 <li>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100"
+                    className="w-full text-left py-2 px-3 rounded-md hover:bg-gray-100 text-red-600"
                   >
                     Logout
                   </button>

@@ -17,10 +17,8 @@ interface User {
   username: string;
   email: string;
   phone_number?: string;
-  role: {
-    id_role: number;
-    nama_role: string;
-  };
+  id_role: number;
+  nama_role: string;
 }
 
 interface RegisterInput {
@@ -114,9 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const exists = prev.find((i) => i.id === item.id);
       if (exists) {
         return prev.map((i) =>
-          i.id === item.id
-            ? { ...i, quantity: i.quantity + item.quantity }
-            : i
+          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
         );
       }
       return [...prev, item];
