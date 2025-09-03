@@ -8,3 +8,14 @@
 body {
   @apply bg-gray-100;
 }
+/* Semua tombol primary */
+.ant-btn-primary {
+  background-color: #b9181b !important;
+  border-color: #c81215 !important;
+}
+
+/* Hover */
+.ant-btn-primary:hover {
+  background-color: #791a1f !important;
+  border-color: #72181c !important;
+}
