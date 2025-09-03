@@ -52,15 +52,26 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSearch = () => {
-    if (searchQuery.trim() !== "") {
-      router.push(`/shop?search=${encodeURIComponent(searchQuery)}`);
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery !== "") {
+      router.push(`/shop?search=${encodeURIComponent(trimmedQuery)}`);
       setIsOpen(false);
+      // Optional: Clear search after successful search
+      // setSearchQuery("");
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleSearch();
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  const handleSearchIconClick = () => {
+    handleSearch();
   };
 
   const handleLogout = async () => {
@@ -144,20 +155,32 @@ export default function Navbar() {
         </div>
 
         {/* CENTER: Modern Search Bar */}
-        <div className="hidden md:flex items-center w-96 relative">
+        <form
+          onSubmit={handleSearch}
+          className="hidden md:flex items-center w-96 relative"
+        >
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-red-600 transition-colors"
             size={18}
+            onClick={handleSearchIconClick}
           />
           <input
             type="text"
             placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:border-red-600 focus:ring-1 focus:ring-red-600 text-sm text-gray-700 placeholder-gray-400 transition"
+            className="w-full pl-10 pr-12 py-2 rounded-full border border-gray-300 focus:border-red-600 focus:ring-1 focus:ring-red-600 text-sm text-gray-700 placeholder-gray-400 transition"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-        </div>
+          {/* Search Button */}
+          <button
+            type="submit"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+            aria-label="Search"
+          >
+            <Search size={14} />
+          </button>
+        </form>
 
         {/* RIGHT: Auth & Cart */}
         <div className="hidden md:flex items-center gap-4 relative">
@@ -244,20 +267,29 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden mt-2 px-4 animate-slide-down">
           {/* Mobile Search */}
-          <div className="mb-4 relative">
+          <form onSubmit={handleSearch} className="mb-4 relative">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-red-600 transition-colors"
               size={18}
+              onClick={handleSearchIconClick}
             />
             <input
               type="text"
               placeholder="Search products..."
-              className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:border-red-600 focus:ring-1 focus:ring-red-600 text-sm text-gray-700 placeholder-gray-400 transition"
+              className="w-full pl-10 pr-12 py-2 rounded-full border border-gray-300 focus:border-red-600 focus:ring-1 focus:ring-red-600 text-sm text-gray-700 placeholder-gray-400 transition"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
             />
-          </div>
+            {/* Mobile Search Button */}
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+              aria-label="Search"
+            >
+              <Search size={14} />
+            </button>
+          </form>
 
           {/* Mobile Menu Links */}
           <ul className="flex flex-col gap-2">

@@ -54,7 +54,7 @@ export class ProductsService {
     if (search) {
       // Mencari di nama produk DAN nama brand secara case-insensitive
       queryBuilder.andWhere(
-        "(product.productName ILIKE :search OR brand.brandName ILIKE :search)",
+        "(product.product_name ILIKE :search OR brand.brandName ILIKE :search)",
         { search: `%${search}%` }
       );
     }
