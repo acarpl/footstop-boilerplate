@@ -11,7 +11,7 @@ import React, {
 import apiClient from "../lib/apiClient";
 import Loading from "#/components/loading";
 
-// Tipe data untuk User, disesuaikan dengan respons backend
+// ==================== Types ====================
 interface User {
   id_user: number;
   username: string;
@@ -30,33 +30,44 @@ interface RegisterInput {
   phone_number?: string;
 }
 
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (data: RegisterInput) => Promise<void>;
+  cartItems: CartItem[];
+  addToCart: (item: CartItem) => void;
+  removeFromCart: (id: number) => void;
+  clearCart: () => void;
 }
 
+// ==================== Context ====================
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  // Fungsi tunggal untuk memeriksa sesi dengan bertanya ke backend
+  // ==================== AUTH ====================
   const fetchUserProfile = useCallback(async () => {
     try {
-      // Browser akan otomatis mengirim cookie karena `withCredentials: true` di apiClient
       const response = await apiClient.get<User>("/auth/profile");
       setUser(response.data);
     } catch (_) {
-      // Jika error (401), berarti tidak ada sesi valid
       setUser(null);
     }
   }, []);
 
-  // Periksa sesi saat aplikasi pertama kali dimuat
   useEffect(() => {
     const checkInitialSession = async () => {
       await fetchUserProfile();
@@ -65,42 +76,78 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkInitialSession();
   }, [fetchUserProfile]);
 
-  // Logika login disederhanakan
   const login = async (email: string, password: string) => {
-    // API call di sini akan membuat backend mengatur cookie
     await apiClient.post("/auth/login", { email, password });
-    // Setelah cookie diatur, perbarui state user dengan data terbaru
     await fetchUserProfile();
   };
 
-  // Logika register disederhanakan
   const register = async (data: RegisterInput) => {
-    // API call ini akan membuat user baru DAN membuat backend mengatur cookie
-    // jika Anda menggunakan metode registerAndLogin
     await apiClient.post("/auth/register", data);
-    // Setelah registrasi dan login otomatis, perbarui state user
     await fetchUserProfile();
   };
 
-  // Logika logout disederhanakan
   const logout = async () => {
     try {
-      // Beritahu backend untuk menghapus sesi dan cookie
       await apiClient.post("/auth/logout");
-    } catch (_) {
-      // Tetap lanjutkan logout di frontend bahkan jika API gagal
-    }
+    } catch (_) {}
     setUser(null);
-    // Paksa refresh ke halaman login untuk membersihkan semua state
+    clearCart();
     window.location.href = "/login";
   };
 
+  // ==================== CART ====================
+  // Load cart dari localStorage
+  useEffect(() => {
+    const storedCart = localStorage.getItem("cart");
+    if (storedCart) {
+      setCartItems(JSON.parse(storedCart));
+    }
+  }, []);
+
+  // Sync cart ke localStorage
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  const addToCart = (item: CartItem) => {
+    setCartItems((prev) => {
+      const exists = prev.find((i) => i.id === item.id);
+      if (exists) {
+        return prev.map((i) =>
+          i.id === item.id
+            ? { ...i, quantity: i.quantity + item.quantity }
+            : i
+        );
+      }
+      return [...prev, item];
+    });
+  };
+
+  const removeFromCart = (id: number) => {
+    setCartItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const clearCart = () => setCartItems([]);
+
+  // ==================== LOADING ====================
   if (loading) {
     return <Loading />;
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        register,
+        cartItems,
+        addToCart,
+        removeFromCart,
+        clearCart,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
