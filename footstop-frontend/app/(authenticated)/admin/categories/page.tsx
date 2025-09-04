@@ -1,10 +1,26 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, Form, Input, Spin, message, Popconfirm, Typography } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { getAllCategoriesAdmin, createCategory, updateCategory, deleteCategory } from '../../../../lib/services/adminService';
-import type { TableProps } from 'antd';
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  Button,
+  Space,
+  Modal,
+  Form,
+  Input,
+  Spin,
+  message,
+  Popconfirm,
+  Typography,
+} from "antd";
+import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  getAllCategoriesAdmin,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../../../../lib/services/adminService";
+import type { TableProps } from "antd";
 
 // Definisikan tipe data
 interface Category {
@@ -25,7 +41,7 @@ export default function ManageCategoriesPage() {
       const response = await getAllCategoriesAdmin();
       setCategories(response);
     } catch (error) {
-      message.error('Failed to fetch categories.');
+      message.error("Failed to fetch categories.");
     } finally {
       setLoading(false);
     }
@@ -50,10 +66,10 @@ export default function ManageCategoriesPage() {
   const handleDelete = async (categoryId: number) => {
     try {
       await deleteCategory(categoryId);
-      message.success('Category deleted successfully.');
+      message.success("Category deleted successfully.");
       fetchCategories(); // Refresh tabel
     } catch (error) {
-      message.error('Failed to delete category.');
+      message.error("Failed to delete category.");
     }
   };
 
@@ -62,34 +78,44 @@ export default function ManageCategoriesPage() {
       const values = await form.validateFields();
       if (editingCategory) {
         await updateCategory(editingCategory.id_category, values);
-        message.success('Category updated successfully.');
+        message.success("Category updated successfully.");
       } else {
         await createCategory(values);
-        message.success('Category created successfully.');
+        message.success("Category created successfully.");
       }
       setIsModalOpen(false);
-      fetchCategories(); // Refresh tabel
+      fetchCategories();
     } catch (error) {
-      message.error('Operation failed. Please check the form.');
+      message.error("Category already exists.");
     }
   };
-  
+
   const handleModalCancel = () => {
     setIsModalOpen(false);
     setEditingCategory(null);
   };
 
-  const columns: TableProps<Category>['columns'] = [
-    { title: 'ID', dataIndex: 'id_category', key: 'id_category', width: 80 },
-    { title: 'Category Name', dataIndex: 'category_name', key: 'category_name' },
+  const columns: TableProps<Category>["columns"] = [
+    { title: "ID", dataIndex: "id_category", key: "id_category", width: 80 },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Category Name",
+      dataIndex: "category_name",
+      key: "category_name",
+    },
+    {
+      title: "Actions",
+      key: "actions",
       width: 150,
       render: (_, record) => (
         <Space size="middle">
-          <Button icon={<EditOutlined />} onClick={() => showEditModal(record)} />
-          <Popconfirm title="Delete this category?" onConfirm={() => handleDelete(record.id_category)}>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => showEditModal(record)}
+          />
+          <Popconfirm
+            title="Delete this category?"
+            onConfirm={() => handleDelete(record.id_category)}
+          >
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
         </Space>
@@ -101,7 +127,13 @@ export default function ManageCategoriesPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <Typography.Title level={2}>Manage Categories</Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showCreateModal}>Create Category</Button>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={showCreateModal}
+        >
+          Create Category
+        </Button>
       </div>
       <Table
         columns={columns}
@@ -110,14 +142,20 @@ export default function ManageCategoriesPage() {
         loading={loading}
       />
       <Modal
-        title={editingCategory ? 'Edit Category' : 'Create New Category'}
+        title={editingCategory ? "Edit Category" : "Create New Category"}
         open={isModalOpen}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
-        okText={editingCategory ? 'Save Changes' : 'Create'}
+        okText={editingCategory ? "Save Changes" : "Create"}
       >
         <Form form={form} layout="vertical" className="mt-4">
-          <Form.Item name="category_name" label="Category Name" rules={[{ required: true, message: 'Please enter the category name' }]}>
+          <Form.Item
+            name="category_name"
+            label="Category Name"
+            rules={[
+              { required: true, message: "Please enter the category name" },
+            ]}
+          >
             <Input />
           </Form.Item>
         </Form>

@@ -77,7 +77,6 @@ export default function Navbar() {
   useEffect(() => {
     const style = document.createElement("style");
     style.textContent = `
-      body { padding-top: 72px; }
       main, #__next { position: relative; z-index: 1; }
     `;
     document.head.appendChild(style);
@@ -94,19 +93,11 @@ export default function Navbar() {
       setSearchQuery("");
     }
   };
-
-  /*************  ✨ Windsurf Command ⭐  *************/
-  /**
-   * Handles the keydown event on the search input field. If the
-   * Enter key is pressed, it calls the `handleSearch` function.
-   * @param e The KeyboardEvent object.
-   */
-  /*******  60240525-4db0-4add-be17-fea7a690fa52  *******/ const handleKeyDown =
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        handleSearch();
-      }
-    };
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -264,7 +255,14 @@ export default function Navbar() {
                     >
                       Profile
                     </Link>
-                    {user.id_user === 1 && (
+                    <Link
+                      href="/orders"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      Orders History
+                    </Link>
+                    {user.id_role === 1 && (
                       <Link
                         href="/admin/dashboard"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

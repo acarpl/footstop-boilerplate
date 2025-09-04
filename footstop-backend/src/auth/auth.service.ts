@@ -121,7 +121,7 @@ export class AuthService {
 
     if (!user) {
       console.log("❌ User not found for email:", loginDto.email);
-      throw new UnauthorizedException("Invalid credentials");
+      throw new UnauthorizedException("Invalid Email");
     }
 
     console.log("✅ User found:", {
@@ -148,7 +148,7 @@ export class AuthService {
 
     if (!isPasswordMatching) {
       console.log("❌ Password does not match");
-      throw new UnauthorizedException("Invalid credentials");
+      throw new UnauthorizedException("Invalid Password");
     }
 
     console.log("✅ Login successful");

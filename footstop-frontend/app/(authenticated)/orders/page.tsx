@@ -112,6 +112,15 @@ const getStatusColor = (status: string): string => {
   return ORDER_STATUS_COLORS[normalizedStatus] || ORDER_STATUS_COLORS.default;
 };
 
+// Function untuk mengurutkan orders dari yang terbaru
+const sortOrdersByNewest = (orders: OrderSummary[]): OrderSummary[] => {
+  return [...orders].sort((a, b) => {
+    const dateA = new Date(a.orderDate).getTime();
+    const dateB = new Date(b.orderDate).getTime();
+    return dateB - dateA; // Descending order (terbaru dulu)
+  });
+};
+
 // Components
 const OrderCard: React.FC<OrderCardProps> = React.memo(
   ({ order, onViewDetails }) => {
@@ -216,7 +225,9 @@ const useOrders = () => {
 
     try {
       const ordersData = await getMyOrders();
-      setOrders(ordersData);
+      // Sort orders by newest first
+      const sortedOrders = sortOrdersByNewest(ordersData);
+      setOrders(sortedOrders);
     } catch (err) {
       const errorMessage = "Failed to fetch your orders. Please try again.";
       setError(errorMessage);
@@ -274,7 +285,7 @@ const OrdersPageContent: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
       <div className="flex justify-between items-center mb-8 mt-10">
-        <Typography.Title level={2}>My Orders</Typography.Title>
+        <Typography.Title level={2}>Orders History</Typography.Title>
         <Button onClick={refetch} loading={loading}>
           Refresh
         </Button>
