@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/axios": "^2.0.0",
     "@nestjs/common": "^9.3.9",
     "@nestjs/config": "^2.3.1",
@@ -41,6 +42,7 @@
     "joi": "^17.7.1",
     "midtrans-client": "^1.4.3",
     "nestjs-pino": "^3.1.2",
+    "nodemailer": "^7.0.6",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.16.2",

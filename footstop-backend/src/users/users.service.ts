@@ -175,4 +175,14 @@ export class UsersService {
       meta: { page, limit, totalCount, relations: ["role", "address"] },
     };
   }
+
+  async save(user: User): Promise<User> {
+    return this.userRepository.save(user);
+  }
+
+  async findOneByResetToken(token: string): Promise<User | undefined> {
+    return this.userRepository.findOne({
+      where: { resetPasswordToken: token },
+    });
+  }
 }

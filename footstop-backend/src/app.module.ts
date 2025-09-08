@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { LoggerModule } from "nestjs-pino";
+import { MailerModule } from "@nestjs-modules/mailer";
 import { AddressModule } from "./address/address.module";
 import { AuthModule } from "./auth/auth.module";
 import { BrandsModule } from "./brands/brands.module";
@@ -44,7 +45,24 @@ import { UsersModule } from "./users/users.module";
         synchronize: false,
       }),
     }),
-
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: configService.get("MAIL_HOST"),
+          port: configService.get("MAIL_PORT"),
+          secure: false, // true for 465, false for other ports
+          auth: {
+            user: configService.get("MAIL_USER"),
+            pass: configService.get("MAIL_PASSWORD"),
+          },
+        },
+        defaults: {
+          from: `"No Reply" <${configService.get("MAIL_FROM")}>`,
+        },
+      }),
+    }),
     AddressModule,
     AuthModule,
     BrandsModule,

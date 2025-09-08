@@ -3,6 +3,7 @@ import {
   ConflictException,
   UnauthorizedException,
   ForbiddenException,
+  BadRequestException,
 } from "@nestjs/common";
 import { UsersService } from "../users/users.service";
 import { JwtService } from "@nestjs/jwt";
@@ -12,7 +13,10 @@ import { User } from "src/users/entities/user.entity";
 import { LoginDto } from "./dto/login.dto";
 import { ConfigService } from "@nestjs/config";
 import { DeepPartial } from "typeorm";
-
+import { MailerService } from "@nestjs-modules/mailer";
+import { promisify } from "util";
+import { randomBytes } from "crypto";
+import * as crypto from "crypto";
 /**
  * AuthService bertanggung jawab atas semua logika otentikasi,
  * termasuk registrasi, login, logout, dan manajemen token.
@@ -22,7 +26,8 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly mailerService: MailerService
   ) {}
 
   /**
@@ -207,6 +212,66 @@ export class AuthService {
       tokens.refreshToken
     );
     return tokens;
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) {
+      console.log(
+        `Forgot Password attempt for non-existent email: ${email}. Responding with generic success message.`
+      );
+      return {
+        message: "If a matching account exists, an email has been sent.",
+      };
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const resetUrl = `${this.configService.get(
+      "FRONTEND_URL"
+    )}/reset-password?token=${token}`;
+
+    console.log(`\n--- ATTEMPTING TO SEND EMAIL ---`);
+    console.log(`To: ${user.email}`);
+    console.log(`Subject: Footstop - Password Reset Request`);
+    console.log(`Reset URL: ${resetUrl}`);
+    console.log("--------------------------------\n");
+
+    try {
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: "Footstop - Password Reset Request",
+        html: `Click <a href="${resetUrl}">here</a> to reset your password.`,
+      });
+
+      // log sukses
+      console.log("✅ Email sent successfully!");
+    } catch (error) {
+      // log error yang detail
+      console.error("❌ FAILED TO SEND EMAIL. Error object:", error);
+    }
+
+    return { message: "If a matching account exists, an email has been sent." };
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string
+  ): Promise<{ message: string }> {
+    const user = await this.usersService.findOneByResetToken(token);
+
+    if (!user || user.resetPasswordExpires < new Date()) {
+      throw new BadRequestException(
+        "Password reset token is invalid or has expired."
+      );
+    }
+
+    // Update password dan hapus token
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await this.usersService.save(user);
+
+    return { message: "Password has been reset successfully." };
   }
 
   /**
