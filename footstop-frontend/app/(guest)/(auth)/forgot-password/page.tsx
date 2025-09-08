@@ -63,7 +63,7 @@ const ForgotPasswordPageContent = () => {
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={loading} block>
-            Send Reset Link
+            Send Reset Link to Email
           </Button>
         </Form.Item>
       </Form>

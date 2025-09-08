@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button, Card, Checkbox, Form, Input, Typography, message } from "antd";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../../context/AuthContext";
+import Image from "next/image";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);

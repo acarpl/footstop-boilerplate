@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button, Card, Form, Input, Typography, message } from "antd";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../../context/AuthContext";
+import Image from "next/image";
 
 const Register = () => {
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ const Register = () => {
   }) => {
     setLoading(true);
     try {
-      await register(values); // values sekarang termasuk phone_number
+      await register(values);
       message.success("Register berhasil! Mengarahkan ke dashboard...");
       setTimeout(() => router.push("/home"), 1000);
     } catch (err: any) {
@@ -37,25 +38,70 @@ const Register = () => {
         backgroundSize: "contain",
       }}
     >
-      <Card className="shadow-xl rounded-2xl" style={{ width: 350, textAlign: "center" }}>
-        <Typography.Title level={3} style={{ color: "#E53935" }}>FOOTSTOP</Typography.Title>
-        <Typography.Text strong>Daftar akun baru</Typography.Text>
+      <Card
+        className="shadow-xl rounded-3xl"
+        style={{ width: 450, textAlign: "center", padding: "16px 38px"}}
+      >
+        <div className="flex flex-col items-center mb-4">
+          <Image
+            src="/icons/logo-shoe.svg"
+            alt="Footstop Logo"
+            width={40}
+            height={40}
+          />
+          <Image
+            src="/icons/FOOTSTOP.svg"
+            alt="Footstop Logo"
+            width={200}
+            height={200}
+          />
+        </div>
 
-        <Form layout="vertical" onFinish={onFinish} style={{ marginTop: 20 }}>
+        {/* Title & subtitle */}
+        <div style={{ textAlign: "left", marginBottom: 16 }}>
+        <Typography.Title
+          level={4}
+          style={{ marginBottom: 4, fontWeight: "bold", color: "#000" }}
+        >
+          Selamat Datang di FootStop!
+        </Typography.Title>
+        <Typography.Text type="secondary">
+          Buat akunmu dan nikmati fitur dan juga dikon!
+        </Typography.Text>
+        </div>
+        <Form
+          layout="vertical"
+          onFinish={onFinish}
+          style={{ marginTop: 16 }}
+        >
           {/* Username */}
           <Form.Item
             label="Username"
             name="username"
             rules={[{ required: true, message: "Masukkan username!" }]}
+            style={{ marginBottom: 12 }}
           >
             <Input placeholder="Username kamu" />
+          </Form.Item>
+
+          {/* Phone Number */}
+          <Form.Item
+            label="Nomor Telepon"
+            name="phone_number"
+            rules={[{ required: true, message: "Masukkan nomor telepon!" }]}
+            style={{ marginBottom: 12 }}
+          >
+            <Input placeholder="0812xxxxxxx" />
           </Form.Item>
 
           {/* Email */}
           <Form.Item
             label="Email"
             name="email"
-            rules={[{ required: true, type: "email", message: "Masukkan email valid!" }]}
+            rules={[
+              { required: true, type: "email", message: "Masukkan email valid!" },
+            ]}
+            style={{ marginBottom: 12 }}
           >
             <Input placeholder="contoh: kamu@example.com" />
           </Form.Item>
@@ -65,21 +111,13 @@ const Register = () => {
             label="Password"
             name="password"
             rules={[{ required: true, message: "Masukkan password!" }]}
+            style={{ marginBottom: 20 }}
           >
             <Input.Password placeholder="Password kamu" />
           </Form.Item>
 
-          {/* Phone Number */}
-          <Form.Item
-            label="Nomor Telepon"
-            name="phone_number"
-            rules={[{ required: true, message: "Masukkan nomor telepon!" }]}
-          >
-            <Input placeholder="0812xxxxxxx" />
-          </Form.Item>
-
           {/* Tombol Register */}
-          <Form.Item>
+          <Form.Item style={{ marginBottom: 8 }}>
             <Button
               type="primary"
               block
@@ -90,6 +128,14 @@ const Register = () => {
               Register
             </Button>
           </Form.Item>
+
+          {/* Login link */}
+          <Typography.Text style={{ fontSize: 13 }}>
+            Sudah punya akun?{" "}
+            <a href="/login" className="font-semibold text-black">
+              Login Here!
+            </a>
+          </Typography.Text>
         </Form>
       </Card>
     </div>
