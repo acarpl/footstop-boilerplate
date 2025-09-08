@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Card, Checkbox, Form, Input, Typography, message } from "antd";
+import { Button, Card, Form, Input, Typography, message } from "antd";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../../context/AuthContext";
+import Image from "next/image";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -24,45 +25,95 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{
-      backgroundColor: "#963535",
-      backgroundImage: "url(/backgrounds/footstop-pattern.svg)",
-      backgroundSize: "contain",
-    }}>
-      <Card className="shadow-xl rounded-2xl" style={{ width: 350, textAlign: "center" }}>
-        <Typography.Title level={3} style={{ color: "#E53935" }}>FOOTSTOP</Typography.Title>
-        <Typography.Text strong>Welcome Back!</Typography.Text>
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{
+        backgroundColor: "#963535",
+        backgroundImage: "url(/backgrounds/footstop-pattern.svg)",
+        backgroundSize: "200px",
+      }}
+    >
+      <Card
+        className="shadow-xl rounded-3xl p-6"
+        style={{ width: 380, textAlign: "center" }}
+      >
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-4">
+          <Image
+            src="/logo-shoes.svg"
+            alt="Footstop Logo"
+            width={40}
+            height={40}
+          />
+          <Typography.Title
+            level={2}
+            style={{
+              margin: 0,
+              color: "#E53935",
+              fontWeight: "bold",
+              letterSpacing: 1,
+            }}
+          >
+            FOOTSTOP
+          </Typography.Title>
+        </div>
 
+        {/* Title & subtitle */}
+        <Typography.Title
+          level={4}
+          style={{ marginBottom: 0, fontWeight: "bold", color: "#000" }}
+        >
+          Welcome Back!
+        </Typography.Title>
+        <Typography.Text type="secondary">
+          Log in to your account.
+        </Typography.Text>
+
+        {/* Form */}
         <Form layout="vertical" onFinish={onFinish} style={{ marginTop: 20 }}>
           <Form.Item
-            label="email"
+            label="E-mail"
             name="email"
-            rules={[{ required: true, type: "email", message: "Masukkan email valid!" }]}
+            rules={[
+              { required: true, type: "email", message: "Masukkan email valid!" },
+            ]}
           >
-            <Input placeholder="contoh: kamu@example.com" />
+            <Input placeholder="e.g farhankepap@example.com" size="large" />
           </Form.Item>
 
           <Form.Item
-            label="password"
+            label="Password"
             name="password"
             rules={[{ required: true, message: "Masukkan password!" }]}
           >
-            <Input.Password placeholder="Ketik password kamu di sini" />
-          </Form.Item>
-
-          <Form.Item name="remember" valuePropName="checked">
-            <Checkbox>Ingat saya</Checkbox>
+            <Input.Password placeholder="Type your Password Here!" size="large" />
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" block htmlType="submit" loading={loading} className="bg-red-600 hover:bg-red-700">
-              Log In
+            <Button
+              type="primary"
+              block
+              htmlType="submit"
+              loading={loading}
+              size="large"
+              className="bg-red-600 hover:bg-red-700 rounded-md"
+            >
+              Log in
             </Button>
           </Form.Item>
 
-          <Typography.Text>
-            Belum punya akun? <a href="/register" className="text-red-600">Daftar di sini!</a>
-          </Typography.Text>
+          {/* Register & Forgot password */}
+          <div className="flex flex-col items-center space-y-1 text-sm">
+            <Typography.Text>
+              Don’t have any account?{" "}
+              <a href="/register" className="font-semibold text-red-600">
+                Register Here!
+              </a>
+            </Typography.Text>
+            <a href="/forgot-password" className="font-semibold text-black">
+              Forgot Password?
+            </a>
+          </div>
         </Form>
       </Card>
     </div>
