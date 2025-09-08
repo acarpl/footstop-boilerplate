@@ -198,18 +198,6 @@ export default function BrandPage() {
                       </p>
                     )}
                   </div>
-
-                  {/* Action Button */}
-                  <button
-                    className="mt-3 px-4 py-2 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-all duration-200 opacity-0 hover:opacity-100 transform translate-y-1 hover:translate-y-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleBrandClick(brand);
-                    }}
-                    type="button"
-                  >
-                    View Products
-                  </button>
                 </Card>
               </div>
             ))}

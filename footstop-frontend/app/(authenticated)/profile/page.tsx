@@ -14,11 +14,7 @@ import {
   Tabs,
   Divider,
 } from "antd";
-import {
-  UserOutlined,
-  EditOutlined,
-  LogoutOutlined,
-} from "@ant-design/icons";
+import { UserOutlined, EditOutlined, LogoutOutlined } from "@ant-design/icons";
 import apiClient from "../../../lib/apiClient";
 import { AxiosError } from "axios";
 
@@ -41,7 +37,10 @@ const ProfilePage: React.FC = () => {
   }, [user, form]);
 
   /** Handle form submit */
-  const onFinish = async (values: { username: string; phone_number: string }) => {
+  const onFinish = async (values: {
+    username: string;
+    phone_number: string;
+  }) => {
     setIsSubmitting(true);
     try {
       await apiClient.patch("/users/me", values);
@@ -79,7 +78,9 @@ const ProfilePage: React.FC = () => {
             <Form.Item
               label="Username"
               name="username"
-              rules={[{ required: true, message: "Please input your username!" }]}
+              rules={[
+                { required: true, message: "Please input your username!" },
+              ]}
             >
               <Input />
             </Form.Item>
@@ -117,6 +118,22 @@ const ProfilePage: React.FC = () => {
             <Paragraph>Are you sure you want to log out?</Paragraph>
             <Button danger type="primary" onClick={handleLogout}>
               Yes, Logout
+            </Button>
+          </div>
+        ),
+      },
+      {
+        key: "ForgotPassword",
+        label: (
+          <span>
+            <LogoutOutlined /> Forgot Password
+          </span>
+        ),
+        children: (
+          <div className="text-center p-6">
+            <Paragraph>Are you sure you want to reset your password?</Paragraph>
+            <Button danger type="primary" href="/forgot-password">
+              Yes, Reset Password
             </Button>
           </div>
         ),

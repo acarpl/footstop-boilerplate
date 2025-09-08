@@ -257,13 +257,32 @@ export class AuthService {
     token: string,
     newPassword: string
   ): Promise<{ message: string }> {
+    console.log("\n--- RESET PASSWORD ATTEMPT ---");
+    console.log("Token received from frontend:", token);
+
     const user = await this.usersService.findOneByResetToken(token);
 
-    if (!user || user.resetPasswordExpires < new Date()) {
+    if (!user) {
+      console.error("❌ VALIDATION FAILED: No user found with this token.");
       throw new BadRequestException(
         "Password reset token is invalid or has expired."
       );
     }
+
+    console.log("✅ User found for token. Checking expiration...");
+    console.log("Token Expires At:", user.resetPasswordExpires);
+    console.log("Current Time:", new Date());
+
+    if (user.resetPasswordExpires < new Date()) {
+      console.error("❌ VALIDATION FAILED: Token has expired.");
+      throw new BadRequestException(
+        "Password reset token is invalid or has expired."
+      );
+    }
+
+    console.log(
+      "✅ Token is valid and not expired. Proceeding to reset password."
+    );
 
     // Update password dan hapus token
     user.password = await bcrypt.hash(newPassword, 10);
@@ -274,9 +293,6 @@ export class AuthService {
     return { message: "Password has been reset successfully." };
   }
 
-  /**
-   * [HELPER] Fungsi privat untuk membuat sepasang token.
-   */
   private async _getTokens(userId: number, username: string, role: string) {
     const [accessToken, refreshToken] = await Promise.all([
       // Membuat Access Token
