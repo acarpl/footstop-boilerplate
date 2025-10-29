@@ -36,15 +36,35 @@ const Login = () => {
       }}
     >
       <Card
-        className="shadow-xl rounded-2xl"
-        style={{ width: 350, textAlign: "center" }}
+        className="shadow-xl rounded-3xl"
+        style={{ width: 400, textAlign: "center", padding: "10px 18px" }}
       >
-        <Typography.Title level={3} style={{ color: "#E53935" }}>
-          FOOTSTOP
-        </Typography.Title>
-        <Typography.Text strong>Welcome Back!</Typography.Text>
+        <div className="flex flex-col items-center mb-4">
+          <Image
+            src="/icons/logo-shoe.svg"
+            alt="Footstop Logo"
+            width={40}
+            height={40}
+          />
+          <Image
+            src="/icons/FOOTSTOP.svg"
+            alt="Footstop Logo"
+            width={200}
+            height={200}
+          />
+        </div>
 
-        <Form layout="vertical" onFinish={onFinish} style={{ marginTop: 20 }}>
+        <Typography.Title
+          level={3}
+          style={{ marginBottom: 1, fontWeight: "bold", color: "#000" }}
+        >
+          Welcome Back!
+        </Typography.Title>
+        <Typography.Text type="secondary">
+          Log in to your account.
+        </Typography.Text>
+
+        <Form layout="vertical" onFinish={onFinish} style={{ marginTop: 16 }}>
           <Form.Item
             label="email"
             name="email"
@@ -55,6 +75,7 @@ const Login = () => {
                 message: "Masukkan email valid!",
               },
             ]}
+            style={{ marginBottom: 12 }}
           >
             <Input placeholder="contoh: kamu@example.com" />
           </Form.Item>
@@ -63,6 +84,7 @@ const Login = () => {
             label="password"
             name="password"
             rules={[{ required: true, message: "Masukkan password!" }]}
+            style={{ marginBottom: 12 }}
           >
             <Input.Password placeholder="Ketik password kamu di sini" />
           </Form.Item>
@@ -85,12 +107,14 @@ const Login = () => {
             </Button>
           </Form.Item>
 
-          <Typography.Text>
-            Belum punya akun?{" "}
-            <a href="/register" className="text-red-600">
-              Daftar di sini!
-            </a>
-          </Typography.Text>
+          <Form.Item style={{ marginBottom: 0, textAlign: "center" }}>
+            <Typography.Text style={{ fontSize: 13 }}>
+              Belum punya akun?{" "}
+              <a href="/register" className="text-red-600 font-semibold">
+                Daftar di sini!
+              </a>
+            </Typography.Text>
+          </Form.Item>
         </Form>
       </Card>
     </div>

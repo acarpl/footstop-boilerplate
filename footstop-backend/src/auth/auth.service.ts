@@ -217,15 +217,19 @@ export class AuthService {
   async forgotPassword(email: string): Promise<{ message: string }> {
     const user = await this.usersService.findOneByEmail(email);
     if (!user) {
-      console.log(
-        `Forgot Password attempt for non-existent email: ${email}. Responding with generic success message.`
-      );
       return {
         message: "If a matching account exists, an email has been sent.",
       };
     }
 
     const token = crypto.randomBytes(32).toString("hex");
+    const expirationTime = new Date(Date.now() + 60 * 60 * 1000); // 1 jam
+
+    // 🔥 Simpan token dan expiration ke database
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = expirationTime;
+    await this.usersService.save(user);
+
     const resetUrl = `${this.configService.get(
       "FRONTEND_URL"
     )}/reset-password?token=${token}`;
