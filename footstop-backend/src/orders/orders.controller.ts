@@ -24,8 +24,6 @@ import { User } from "../users/entities/user.entity";
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // --- RUTE ADMIN (Lebih Spesifik, Taruh di Atas) ---
-
   @Get("admin/all")
   @UseGuards(RolesGuard)
   @Roles("admin")
@@ -58,22 +56,16 @@ export class OrdersController {
     return this.ordersService.updateStatus(id, status);
   }
 
-  // --- RUTE PENGGUNA BIASA (Lebih Umum, Taruh di Bawah) ---
-
   @Post()
   create(@Body() createOrderDto: CreateOrderDto, @GetUser() user: User) {
     return this.ordersService.create(user, createOrderDto);
   }
 
-  // Rute ini GET tanpa parameter, jadi urutannya tidak terlalu krusial
-  // tapi lebih baik ditaruh di atas rute dengan parameter.
   @Get()
   findAllForUser(@GetUser() user: User) {
     return this.ordersService.findAllForUser(user.id_user);
   }
 
-  // Rute ini paling umum (dinamis), jadi harus di PALING BAWAH
-  // dari semua rute GET.
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number, @GetUser() user: User) {
     return this.ordersService.findOneForUser(user.id_user, id);
