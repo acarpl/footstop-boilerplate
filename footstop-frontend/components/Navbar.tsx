@@ -20,7 +20,6 @@ TokenUtil.loadToken();
 const mainMenu = [
   { path: "/shop", label: "Shop" },
   { path: "/new", label: "New" },
-  { path: "/sale", label: "Sale" },
   { path: "/about", label: "About" },
 ];
 
